@@ -32,6 +32,7 @@ kotlin {
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
 
+            implementation(libs.osmdroid)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
