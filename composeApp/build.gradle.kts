@@ -12,6 +12,9 @@ plugins {
     //room
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
+    //firebase
+    alias(libs.plugins.google.gms.google.services)
+
 }
 
 kotlin {
@@ -40,6 +43,12 @@ kotlin {
 
             //room
             implementation(libs.androidx.room.sqlite.wrapper)
+
+            //firebase
+            implementation(project.dependencies.platform(libs.firebase.bom))
+            implementation(libs.firebase.config)
+            implementation(libs.firebase.database)
+            implementation(libs.kotlinx.coroutines.play.services)
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -98,6 +107,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.database)
     debugImplementation(libs.compose.uiTooling)
 
     //room

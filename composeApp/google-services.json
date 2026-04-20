@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1089371268035",
+    "project_id": "mapexplorer07",
+    "storage_bucket": "mapexplorer07.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089371268035:android:813ebd00123bae91281376",
+        "android_client_info": {
+          "package_name": "com.ucb.mapexplorer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXUodAhGhp-4MXXJXFel2_49-Ojlcp_9c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
