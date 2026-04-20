@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.ucb.mapexplorer.auth.presentation.login.screen.LoginScreen
 import com.ucb.mapexplorer.dollar.presentation.screen.DollarScreen
 
 @Composable
@@ -20,11 +21,16 @@ fun AppNavHost() {
     Scaffold(//manejo de errores
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) {
-        NavHost(navController = navController, startDestination = NavRoute.Dollar) {
+        NavHost(navController = navController, startDestination = NavRoute.Login) {
             composable<NavRoute.Dollar> {
                 DollarScreen()
             }
 
+            composable<NavRoute.Login> {
+                LoginScreen(
+                    navController = navController
+                )
+            }
 
         }
     }
