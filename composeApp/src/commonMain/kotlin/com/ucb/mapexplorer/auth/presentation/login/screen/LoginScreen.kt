@@ -22,6 +22,7 @@ import androidx.navigation.NavHostController
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEffect
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEvent
 import com.ucb.mapexplorer.auth.presentation.login.viewmodel.LoginViewModel
+import com.ucb.mapexplorer.navigation.NavRoute
 
 import mapexplorer.composeapp.generated.resources.Res
 import mapexplorer.composeapp.generated.resources.login_btn
@@ -48,7 +49,7 @@ fun LoginScreen(
                 }
 
                 LoginEffect.NavigateToRegister -> {
-                   // navController.navigate(NavRoute.Register)
+                   navController.navigate(NavRoute.Register)
                 }
 
                 is LoginEffect.ShowError -> {
