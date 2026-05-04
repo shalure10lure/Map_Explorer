@@ -1,0 +1,24 @@
+<resources>
+
+    <!-- General -->
+    <string name="app_name">Map Explorer</string>
+    <string name="explore">Explore</string>
+
+    <!-- LOGIN -->
+    <string name="login_title">Sign in</string>
+    <string name="login_email">Email</string>
+    <string name="login_password">Password</string>
+    <string name="login_btn">Sign in</string>
+    <string name="login_no_account">Don’t have an account? Register</string>
+
+    <!-- REGISTER -->
+    <string name="register_title">Register</string>
+    <string name="register_username">Username</string>
+    <string name="register_email">Email</string>
+    <string name="register_password">Password</string>
+    <string name="register_confirm_password">Confirm password</string>
+    <string name="register_description">Description</string>
+    <string name="register_btn">Register</string>
+    <string name="register_have_account">Already have an account? Sign in</string>
+
+</resources>
