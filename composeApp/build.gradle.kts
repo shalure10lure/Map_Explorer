@@ -86,6 +86,8 @@ kotlin {
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
 
+            //design system
+            implementation(project(":core:designsystem"))
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

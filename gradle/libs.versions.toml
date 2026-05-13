@@ -34,6 +34,9 @@ firebaseDatabaseKtx = "22.0.1"
 firebaseMessaging = "25.0.1"
 
 workRuntimeKtx = "2.11.0"
+kotlinStdlib = "2.3.0"
+runner = "1.7.0"
+core = "1.7.0"
 
 
 [libraries]
@@ -95,6 +98,9 @@ firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging
 
 
 androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version.ref = "workRuntimeKtx" }
+kotlin-stdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlinStdlib" }
+androidx-runner = { group = "androidx.test", name = "runner", version.ref = "runner" }
+androidx-core = { group = "androidx.test", name = "core", version.ref = "core" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
@@ -109,3 +115,5 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 androidx-room = { id = "androidx.room", version.ref = "room" }
 
 google-gms-google-services = { id = "com.google.gms.google-services", version.ref = "googleGmsGoogleServices" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "agp" }
+android-lint = { id = "com.android.lint", version.ref = "agp" }

@@ -1,5 +1,6 @@
 package com.ucb.mapexplorer
 
+import DsTheme
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.MaterialTheme
@@ -14,9 +15,10 @@ import com.ucb.mapexplorer.navigation.AppNavHost
 @Composable
 @Preview
 fun App() {
+    val currentMode = ThemeMode.LIGHT
     val snackbarHostState = remember { SnackbarHostState() }
-    MaterialTheme(
-        //colorScheme = darkColorScheme()
+    DsTheme(
+        mode = currentMode
     ) {
         Scaffold(
             contentWindowInsets = WindowInsets.safeDrawing,
