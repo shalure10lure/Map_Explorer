@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Loco xml export: Android strings
+ Project: MapExplorer
+ Locale: en-US, English (USA)
+ Exported by: CHRISTOPHER BORIS QUIROZ GARECA
+ Exported at: Mon, 18 May 2026 11:23:25 -0400
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="login_tittle">LOG IN</string>
+    <string name="login_subtittle_email">Email:</string>
+    <string name="login_subtittle_password">Password:</string>
+    <string name="login_buttonText_login">Log-in</string>
+    <string name="login_forgotPassword_question">Forgot your password?</string>
+    <string name="login_dontHaveAccount_question">Don´t have an account?</string>
+    <string name="login_buttonText_createAccount">Create account</string>
+    <string name="signIn_tittle">SIGN IN</string>
+    <string name="signIn_subtittle_username">Username:</string>
+    <string name="signIn_subtittle_email">Email:</string>
+    <string name="signIn_subtittle_password">Password:</string>
+    <string name="signIn_subtittle_confirmPassword">Confirm Password:</string>
+    <string name="buttonText_continue">Continue</string>
+    <string name="signIn_text_alreadyHaveAccount_question">Already have an account? Click here</string>
+    <string name="optionalData_tittle">SIGN IN</string>
+    <string name="optionalData_subtittle_description">Description:</string>
+    <string name="optionalData_subtittle_age">Age:</string>
+    <string name="optionalData_subtittle_editAvatar">Change Avatar:</string>
+    <string name="optionalData_buttonText_signIn">Sign In</string>
+    <string name="navigationBar_socialMedia_textSelection">Social Media</string>
+    <string name="navigationBar_nearbyPlaces_textSelection">Nearby Places</string>
+    <string name="navigationBar_profile_textSelection">Profile</string>
+    <string name="moreOptions_tittle">More Options</string>
+    <string name="moreOptions_subtittle_language">Language:</string>
+    <string name="moreOptions_optionText_spanish">Spanish</string>
+    <string name="moreOptions_optionText_english">English</string>
+    <string name="moreOptions_subtittle_theme">Theme:</string>
+    <string name="moreOptions_optionText_bright">Bright</string>
+    <string name="moreOptions_optionText_dark">Dark</string>
+    <string name="moreOptions_textSelector_favoritePlaces">View my favorite places</string>
+    <string name="moreOptions_textSelector_savedPlaces">View my saved places</string>
+    <string name="navigationSelector_backToMap">Back to the map</string>
+    <string name="searchText_searchForPerson">Search for a person</string>
+    <string name="socialMedia_subtittle_myExperience">My\u0020\u0020experience:</string>
+    <string name="socialMedia_subtittle_sendFriend">Send Friend Request</string>
+    <string name="socialMedia_subtittle_viewInMap">View location on map</string>
+    <string name="navigationSelector_seeNearbyPlaces">See nearby places</string>
+    <string name="placeDetails_description">Description:</string>
+    <string name="placeDetails_seeOnMap">See on the map</string>
+    <string name="placeDetails_guideMe">Guide me</string>
+    <string name="placeDetails_share">Share my thoughts</string>
+    <string name="publishExperience_rating">Rate this place</string>
+    <string name="publishExperience_writeOpinion">Write your experience</string>
+    <string name="presentation_subtittle_exploreYourWorld">Explore your world like never before</string>
+    <string name="presentation_description_exploreYourWorld">Explore your world like never before. Discover new areas around you and unlock parts of the map as you walk. Every place you explore brings you closer to becoming a true explorer.</string>
+    <string name="presentation_subtittle_shareWithFriends">Share with your friends</string>
+    <string name="presentation_description_shareWithFriends">Post and share with people around the world about a place you\'ve recently visited on your map.</string>
+    <string name="presentation_subtittle_exploreWithSafety">Explore with safety and in comunity</string>
+    <string name="presentation_descriptionPart1_exploreWithSafety">You\'ll be warned about dangerous places that many reviews say are not recommended.\n\nStay away from places marked with this icon on the map:</string>
+    <string name="presentation_descriptionPart2_exploreWithSafety">Get safe routes, discover places recommended by your friends, and share your adventures in real time.\nYour information will always be protected.</string>
+    <string name="profileView_subtittle_description">Description</string>
+    <string name="profileView_subtittle_age">Age</string>
+    <string name="profileView_subtittle_email">Email</string>
+    <string name="profileView_subtittle_friends">Friends</string>
+    <string name="buttonText_editProfile">Edit Profile</string>
+    <string name="buttonText_viewFriendRequest">View Friend Requests</string>
+    <string name="buttonText_backToProfile">Back to my Profile</string>
+    <string name="buttonText_breakFriend">Break Friendship</string>
+    <string name="buttonText_goBack">Go Back</string>
+    <string name="buttonText_sendFriendRequest">Send Friend Request</string>
+    <string name="editingProfile_subtittle_name">Name</string>
+    <string name="editingProfile_subtittle_description">Description</string>
+    <string name="editingProfile_subtittle_email">Email</string>
+    <string name="editingProfile_subtittle_age">Age</string>
+    <string name="editingProfile_subtittle_editingAvatar">Edit Avatar</string>
+    <string name="buttonText_cancel">Cancel</string>
+    <string name="buttonText_save">Save</string>
+    <string name="navigationSelector_backToSocialMedia">Go Back to SocialMedia</string>
+</resources>

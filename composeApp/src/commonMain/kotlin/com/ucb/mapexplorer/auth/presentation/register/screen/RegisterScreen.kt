@@ -40,7 +40,6 @@ fun RegisterScreen(
                     }
                 }
                 RegisterEffect.NavigateToHome -> {
-                    // Esta es la rama que faltaba para solucionar el error
                     navController.navigate(NavRoute.Map) {
                         popUpTo(NavRoute.Register) { inclusive = true }
                     }
@@ -77,59 +76,59 @@ fun RegisterScreen(
         ) {
             Column(modifier = Modifier.padding(24.dp)) {
 
-                Text(stringResource(Res.string.register_title), style = AppTheme.typography.headlineLarge)
+                Text(stringResource(Res.string.signIn_tittle), style = AppTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // 1. USERNAME
-                Text(stringResource(Res.string.register_username), style = AppTheme.typography.bodyMedium)
+                Text(stringResource(Res.string.signIn_subtittle_username), style = AppTheme.typography.bodyMedium)
                 BasicInput(
                     value = state.username,
                     onValueChange = { viewModel.onEvent(RegisterEvent.OnUsernameChanged(it)) },
-                    label = stringResource(Res.string.register_username_placeholder),
+                    label = "",
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // 2. EMAIL
-                Text(stringResource(Res.string.register_email), style = AppTheme.typography.bodyMedium)
+                Text(stringResource(Res.string.signIn_subtittle_email), style = AppTheme.typography.bodyMedium)
                 BasicInput(
                     value = state.email,
                     onValueChange = { viewModel.onEvent(RegisterEvent.OnEmailChanged(it)) },
-                    label = stringResource(Res.string.register_email_placeholder),
+                    label = "",
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // 3. PASSWORD
-                Text(stringResource(Res.string.register_password), style = AppTheme.typography.bodyMedium)
+                Text(stringResource(Res.string.signIn_subtittle_password), style = AppTheme.typography.bodyMedium)
                 BasicInput(
                     value = state.password,
                     onValueChange = { viewModel.onEvent(RegisterEvent.OnPasswordChanged(it)) },
-                    label = stringResource(Res.string.register_password_placeholder),
+                    label = "",
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // 4. CONFIRM PASSWORD
-                Text(stringResource(Res.string.register_confirm_password), style = AppTheme.typography.bodyMedium)
+                Text(stringResource(Res.string.signIn_subtittle_confirmPassword), style = AppTheme.typography.bodyMedium)
                 BasicInput(
                     value = state.confirmPassword,
                     onValueChange = { viewModel.onEvent(RegisterEvent.OnConfirmPasswordChanged(it)) },
-                    label = stringResource(Res.string.register_confirm_password_placeholder),
+                    label = "",
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // 5. DESCRIPTION
-                Text(stringResource(Res.string.register_description), style = AppTheme.typography.bodyMedium)
+                Text(stringResource(Res.string.optionalData_subtittle_description), style = AppTheme.typography.bodyMedium)
                 BasicInput(
                     value = state.description,
                     onValueChange = { viewModel.onEvent(RegisterEvent.OnDescriptionChanged(it)) },
-                    label = stringResource(Res.string.register_description_placeholder),
+                    label = "",
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -137,7 +136,7 @@ fun RegisterScreen(
 
                 // BOTÓN REGISTRAR
                 PrimaryButton(
-                    text = stringResource(Res.string.register_btn),
+                    text = stringResource(Res.string.optionalData_buttonText_signIn),
                     onClick = { viewModel.onEvent(RegisterEvent.OnClick) },
                     modifier = Modifier.fillMaxWidth(),
                     isLoading = state.isLoading,
@@ -148,7 +147,7 @@ fun RegisterScreen(
 
                 // YA TENGO CUENTA
                 Text(
-                    text = stringResource(Res.string.register_have_account),
+                    text = stringResource(Res.string.signIn_text_alreadyHaveAccount_question),
                     style = AppTheme.typography.bodyMedium,
                     color = AppTheme.colors.textSecondary,
                     modifier = Modifier

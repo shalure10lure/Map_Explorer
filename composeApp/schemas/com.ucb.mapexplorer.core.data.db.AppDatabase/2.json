@@ -2,42 +2,8 @@
   "formatVersion": 1,
   "database": {
     "version": 2,
-    "identityHash": "bfbec9533e62cd91751aa3d8afaea9b6",
+    "identityHash": "07b0b8176be33b47f31b17b23618ea10",
     "entities": [
-      {
-        "tableName": "dollars",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`dollar_official` TEXT, `dollar_parallel` TEXT, `timestamp` INTEGER NOT NULL, `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL)",
-        "fields": [
-          {
-            "fieldPath": "dollarOfficial",
-            "columnName": "dollar_official",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "dollarParallel",
-            "columnName": "dollar_parallel",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "timestamp",
-            "columnName": "timestamp",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
-        }
-      },
       {
         "tableName": "users",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`email` TEXT NOT NULL, `username` TEXT NOT NULL, `description` TEXT, PRIMARY KEY(`email`))",
@@ -70,7 +36,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bfbec9533e62cd91751aa3d8afaea9b6')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '07b0b8176be33b47f31b17b23618ea10')"
     ]
   }
 }

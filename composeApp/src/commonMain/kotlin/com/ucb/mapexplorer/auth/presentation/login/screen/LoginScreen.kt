@@ -36,7 +36,6 @@ fun LoginScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 LoginEffect.NavigateToHome -> {
-                    // Redirección al mapa limpiando por completo el flujo de autenticación de la pila
                     navController.navigate(NavRoute.Map) {
                         popUpTo(NavRoute.Login) { inclusive = true }
                     }
@@ -49,17 +48,15 @@ fun LoginScreen(
         }
     }
 
-    // CONTENEDOR PRINCIPAL (Fondo de toda la pantalla)
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(AppTheme.colors.background) // Este debe ser el color claro/rosado
+            .background(AppTheme.colors.background)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
 
-        // 1. LOGO (Fuera de la Card, arriba)
         Image(
             painter = painterResource(Res.drawable.logo_map_explorer),
             contentDescription = null,
@@ -68,7 +65,6 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // 2. LA TARJETA BLANCA (ElevatedCard)
         ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(16.dp),
@@ -77,43 +73,39 @@ fun LoginScreen(
             Column(
                 modifier = Modifier.padding(24.dp)
             ) {
-                Text(stringResource(Res.string.login_title), style = AppTheme.typography.headlineLarge)
+                Text(stringResource(Res.string.login_tittle), style = AppTheme.typography.headlineLarge)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Email con etiqueta arriba
-                Text(stringResource(Res.string.login_email), style = AppTheme.typography.bodyMedium)
+                Text(stringResource(Res.string.login_subtittle_email), style = AppTheme.typography.bodyMedium)
                 BasicInput(
                     value = state.email,
                     onValueChange = { viewModel.onEvent(LoginEvent.OnEmailChanged(it)) },
-                    label = stringResource(Res.string.login_email_placeholder),
+                    label = "", 
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Password con etiqueta arriba
-                Text(stringResource(Res.string.login_password), style = AppTheme.typography.bodyMedium)
+                Text(stringResource(Res.string.login_subtittle_password), style = AppTheme.typography.bodyMedium)
                 BasicInput(
                     value = state.password,
                     onValueChange = { viewModel.onEvent(LoginEvent.OnPasswordChanged(it)) },
-                    label = stringResource(Res.string.login_password_placeholder),
+                    label = "",
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // BOTÓN SIGN IN (Negro #2C2C2C)
                 PrimaryButton(
-                    text = stringResource(Res.string.login_btn),
+                    text = stringResource(Res.string.login_buttonText_login),
                     onClick = { viewModel.onEvent(LoginEvent.OnClick) },
                     modifier = Modifier.fillMaxWidth(),
                     isLoading = state.isLoading,
                     isPrimary = true
                 )
 
-                // OLVIDÉ MI CONTRASEÑA
                 Text(
-                    text = stringResource(Res.string.login_forgot_password),
+                    text = stringResource(Res.string.login_forgotPassword_question),
                     style = AppTheme.typography.bodySmall.copy(
                         textDecoration = TextDecoration.Underline
                     ),
@@ -124,16 +116,15 @@ fun LoginScreen(
 
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // SECCIÓN "CREAR CUENTA"
                 Text(
-                    text = stringResource(Res.string.login_no_account_question),
+                    text = stringResource(Res.string.login_dontHaveAccount_question),
                     style = AppTheme.typography.bodyMedium
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
 
                 PrimaryButton(
-                    text = stringResource(Res.string.login_create_account),
+                    text = stringResource(Res.string.login_buttonText_createAccount),
                     onClick = { viewModel.onEvent(LoginEvent.OnClickRegister) },
                     modifier = Modifier.fillMaxWidth(),
                     isPrimary = true

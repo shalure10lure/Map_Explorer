@@ -10,30 +10,23 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.ucb.mapexplorer.auth.presentation.login.screen.LoginScreen
 import com.ucb.mapexplorer.auth.presentation.register.screen.RegisterScreen
-import com.ucb.mapexplorer.dollar.presentation.screen.DollarScreen
 import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 
 @Composable
 fun AppNavHost() {
-
     val navController = rememberNavController()
-    val snackbarHostState = remember { SnackbarHostState() }//agregar para el manejo de errores
+    val snackbarHostState = remember { SnackbarHostState() }
 
-    Scaffold(//manejo de errores
+    Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) {paddingValues ->
+    ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = NavRoute.Login,
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable<NavRoute.Dollar> {
-                DollarScreen()
-            }
-
             composable<NavRoute.Login> {
                 LoginScreen(
                     navController = navController
@@ -48,7 +41,6 @@ fun AppNavHost() {
             composable<NavRoute.Map> {
                 MapScreen()
             }
-
         }
     }
 }

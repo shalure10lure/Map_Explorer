@@ -6,9 +6,6 @@ import kotlinx.serialization.Serializable
 sealed class NavRoute {
 
     @Serializable
-    object Dollar: NavRoute()
-
-    @Serializable
     object Login: NavRoute()
 
     @Serializable
@@ -16,6 +13,4 @@ sealed class NavRoute {
 
     @Serializable
     object Map: NavRoute()
-
-
 }
