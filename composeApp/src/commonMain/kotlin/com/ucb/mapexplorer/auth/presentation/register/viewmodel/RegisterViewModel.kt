@@ -83,7 +83,8 @@ class RegisterViewModel(
             )
 
             if (result) {
-                emit(RegisterEffect.NavigateToLogin)
+                // CAMBIO: Ahora navega directamente al Home (Mapa)
+                emit(RegisterEffect.NavigateToHome)
             } else {
                 emit(RegisterEffect.ShowError("Error al registrar usuario"))
             }

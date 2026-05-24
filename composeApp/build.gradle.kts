@@ -14,6 +14,9 @@ plugins {
     alias(libs.plugins.androidx.room)
     //firebase
     alias(libs.plugins.google.gms.google.services)
+    // Testing Multiplatform Mocks
+    alias(libs.plugins.mockative)
+
 
 }
 
@@ -40,7 +43,6 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.koin.android)
             implementation(libs.koin.androidx.compose)
-
             implementation(libs.ktor.client.okhttp)
 
             //room
@@ -51,10 +53,14 @@ kotlin {
             implementation(libs.firebase.config)
             implementation(libs.firebase.database)
             implementation(libs.kotlinx.coroutines.play.services)
-
             implementation(libs.firebase.messaging)
             //segundo plano
             implementation(libs.androidx.work.runtime.ktx)
+
+            // Mapa Base Nativo y Geolocalización (Agregados)
+            implementation(libs.osmdroid)
+            implementation(libs.play.services.location)
+
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -74,7 +80,7 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.kotlinx.serialization.json)
 
-            //ktor
+            // Capa de red ktor
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -85,10 +91,23 @@ kotlin {
             //room
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.sqlite.bundled)
+            implementation(libs.kotlinx.datetime)
 
+            //design system
+            implementation(project(":core:designsystem"))
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.turbine)
+            implementation(libs.mockative)
+
+        }
+        androidInstrumentedTest.dependencies {
+            implementation(libs.ui.test.junit4)
         }
     }
 }
@@ -127,11 +146,12 @@ dependencies {
     implementation(libs.firebase.messaging)
 
     debugImplementation(libs.compose.uiTooling)
-
+    debugImplementation(libs.ui.test.manifest)
     //room
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
+
 }
 
 //room

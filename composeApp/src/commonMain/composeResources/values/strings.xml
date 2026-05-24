@@ -1,24 +1,79 @@
-<resources>
-
-    <!-- General -->
-    <string name="app_name">Map Explorer</string>
-    <string name="explore">Explore</string>
-
-    <!-- LOGIN -->
-    <string name="login_title">Sign in</string>
-    <string name="login_email">Email</string>
-    <string name="login_password">Password</string>
-    <string name="login_btn">Sign in</string>
-    <string name="login_no_account">Don’t have an account? Register</string>
-
-    <!-- REGISTER -->
-    <string name="register_title">Register</string>
-    <string name="register_username">Username</string>
-    <string name="register_email">Email</string>
-    <string name="register_password">Password</string>
-    <string name="register_confirm_password">Confirm password</string>
-    <string name="register_description">Description</string>
-    <string name="register_btn">Register</string>
-    <string name="register_have_account">Already have an account? Sign in</string>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ Loco xml export: Android strings
+ Project: MapExplorer
+ Locale: es-BO, Spanish (Bolivia)
+ Exported by: CHRISTOPHER BORIS QUIROZ GARECA
+ Exported at: Sun, 24 May 2026 12:00:54 -0400
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="login_tittle">INICIAR SESIÓN</string>
+    <string name="login_subtittle_email">Correo Electrónico:</string>
+    <string name="login_subtittle_password">Contraseña:</string>
+    <string name="login_buttonText_login">Ingresar</string>
+    <string name="login_forgotPassword_question">Olvidaste tu contraseña?</string>
+    <string name="login_dontHaveAccount_question">Aun no tienes una cuenta?</string>
+    <string name="login_buttonText_createAccount">Crear cuenta</string>
+    <string name="signIn_tittle">REGISTRARSE</string>
+    <string name="signIn_subtittle_username">Nombre de usuario:</string>
+    <string name="signIn_subtittle_email">Correo Electrónico:</string>
+    <string name="signIn_subtittle_password">Contraseña:</string>
+    <string name="signIn_subtittle_confirmPassword">Confirmar Contraseña:</string>
+    <string name="buttonText_continue">Siguiente</string>
+    <string name="signIn_text_alreadyHaveAccount_question">Ya tienes una cuenta? Ingresa aquí</string>
+    <string name="optionalData_tittle">REGISTRARSE</string>
+    <string name="optionalData_subtittle_description">Descripción:</string>
+    <string name="optionalData_subtittle_age">Edad:</string>
+    <string name="optionalData_subtittle_editAvatar">Editar Avatar:</string>
+    <string name="optionalData_buttonText_signIn">Registrarse</string>
+    <string name="navigationBar_socialMedia_textSelection">Espacio Social</string>
+    <string name="navigationBar_nearbyPlaces_textSelection">Lugares Cercanos</string>
+    <string name="navigationBar_profile_textSelection">Perfil</string>
+    <string name="moreOptions_tittle_configuration">Configuración</string>
+    <string name="moreOptions_subtittle_language">Idioma:</string>
+    <string name="moreOptions_optionText_spanish">Español</string>
+    <string name="moreOptions_optionText_english">Inglés</string>
+    <string name="moreOptions_subtittle_theme">Tema:</string>
+    <string name="moreOptions_optionText_bright">Claro</string>
+    <string name="moreOptions_optionText_dark">Oscuro</string>
+    <string name="moreOptions_textSelector_favoritePlaces">Ver mis lugares favoritos</string>
+    <string name="moreOptions_textSelector_savedPlaces">Ver mis lugares guardados</string>
+    <string name="navigationSelector_backToMap">Volver al mapa</string>
+    <string name="searchText_searchForPerson">Buscar Persona</string>
+    <string name="socialMedia_subtittle_myExperience">Mi experiencia:</string>
+    <string name="socialMedia_subtittle_sendFriend">Enviar solicitud de Amistad</string>
+    <string name="socialMedia_subtittle_viewInMap">Ver lugar en el mapa</string>
+    <string name="navigationSelector_seeNearbyPlaces">Ver lugares cercanos a mi</string>
+    <string name="placeDetails_description">Descripción:</string>
+    <string name="placeDetails_seeOnMap">Ver en el mapa</string>
+    <string name="placeDetails_guideMe">Guíame al lugar</string>
+    <string name="placeDetails_share">Compartir mi experiencia</string>
+    <string name="publishExperience_rating">Califica el lugar</string>
+    <string name="publishExperience_writeOpinion">Escribe tu opinión</string>
+    <string name="presentation_subtittle_exploreYourWorld">Explora tu mundo como nunca antes</string>
+    <string name="presentation_description_exploreYourWorld">Descubre nuevas zonas a tu alrededor y desbloquea partes del mapa mientras caminas.  Cada lugar explorado te acerca a convertirte en un verdadero explorador.</string>
+    <string name="presentation_subtittle_shareWithFriends">Comparte con tus amigos</string>
+    <string name="presentation_description_shareWithFriends">Publica y comparte con personas en todo el mundo sobre un sitio que hayas visitado recientemente en tu mapa.</string>
+    <string name="presentation_subtittle_exploreWithSafety">Explora con seguridad y en comunidad</string>
+    <string name="presentation_descriptionPart1_exploreWithSafety">Se te advertiran lugares peligrosos que no son rcomendables segun muchas reseñas\n\nMantente alejado de esos lugares que aparecen con un icono asi en el mapa:</string>
+    <string name="presentation_descriptionPart2_exploreWithSafety">Recibe rutas seguras, descubre lugares recomendados por tus amigos  y comparte tus aventuras en tiempo real.\nTu información siempre estará protegida.</string>
+    <string name="profileView_subtittle_description">Descripción</string>
+    <string name="profileView_subtittle_age">Edad</string>
+    <string name="profileView_subtittle_email">Correo</string>
+    <string name="profileView_subtittle_friends">Amigos</string>
+    <string name="buttonText_editProfile">Editar Perfil</string>
+    <string name="buttonText_viewFriendRequest">Ver Solicitudes de Amistad</string>
+    <string name="buttonText_backToProfile">Volver a mi Perfil</string>
+    <string name="buttonText_breakFriend">Romper la Amistad</string>
+    <string name="buttonText_goBack">Volver Atrás</string>
+    <string name="buttonText_sendFriendRequest">Enviar Solicitud de Amistad</string>
+    <string name="editingProfile_subtittle_name">Nombre</string>
+    <string name="editingProfile_subtittle_description">Descripción</string>
+    <string name="editingProfile_subtittle_email">Correo</string>
+    <string name="editingProfile_subtittle_age">Edad</string>
+    <string name="editingProfile_subtittle_editingAvatar">Editar Avatar</string>
+    <string name="buttonText_cancel">Cancelar</string>
+    <string name="buttonText_save">Guardar</string>
+    <string name="navigationSelector_backToSocialMedia">Volver al Espacio Social</string>
+    <string name="moreOptions_tittle_mySaves">Mis guardados</string>
 </resources>

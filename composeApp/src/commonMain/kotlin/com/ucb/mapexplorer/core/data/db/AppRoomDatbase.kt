@@ -4,14 +4,13 @@ import androidx.room.ConstructedBy
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.RoomDatabaseConstructor
-import com.ucb.mapexplorer.dollar.data.dao.DollarDao
-import com.ucb.mapexplorer.dollar.data.entity.DollarEntity
+import com.ucb.mapexplorer.auth.data.dao.AuthDao
+import com.ucb.mapexplorer.auth.data.entity.UserEntity
 
-
-@Database(entities = [DollarEntity::class], version = 1)
+@Database(entities = [UserEntity::class], version = 2)
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun getDao(): DollarDao
+    abstract fun getAuthDao(): AuthDao
 }
 
 // The Room compiler generates the `actual` implementations.
