@@ -17,6 +17,9 @@ import com.ucb.mapexplorer.explanation.explanation2.presentation.screen.Explanat
 import com.ucb.mapexplorer.explanation.explanation3.presentation.screen.Explanation3Screen
 import com.ucb.mapexplorer.explanation.explanation4.presentation.screen.Explanation4Screen
 import com.ucb.mapexplorer.map.presentation.screen.MapScreen
+import com.ucb.mapexplorer.profile.editProfile.presentation.screen.EditProfileScreen
+import com.ucb.mapexplorer.profile.editProfile.presentation.viewmodel.EditProfileViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AppNavHost() {
@@ -54,6 +57,14 @@ fun AppNavHost() {
             }
             composable<NavRoute.Map> {
                 MapScreen()
+            }
+            composable<NavRoute.EditProfile> {
+                val vm: EditProfileViewModel = koinViewModel()
+                EditProfileScreen(
+                    viewModel = vm,
+                    onCancel = { navController.popBackStack() },
+                    onSave   = { navController.popBackStack() }
+                )
             }
         }
     }
