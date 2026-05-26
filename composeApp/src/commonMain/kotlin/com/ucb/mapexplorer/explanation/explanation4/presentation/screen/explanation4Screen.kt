@@ -78,7 +78,7 @@ fun Explanation4Screen(
             text = stringResource(Res.string.login_buttonText_login).uppercase(),
             onClick = {
                 // Al terminar las explicaciones, llevar al mapa
-                navController.navigate(NavRoute.Map) {
+                navController.navigate(NavRoute.Main) {
                     popUpTo(NavRoute.Explanation1) { inclusive = true }
                 }
             },

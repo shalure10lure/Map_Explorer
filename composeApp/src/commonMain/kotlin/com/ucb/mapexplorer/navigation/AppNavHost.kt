@@ -16,6 +16,7 @@ import com.ucb.mapexplorer.explanation.explanation1.presentation.screen.Explanat
 import com.ucb.mapexplorer.explanation.explanation2.presentation.screen.Explanation2Screen
 import com.ucb.mapexplorer.explanation.explanation3.presentation.screen.Explanation3Screen
 import com.ucb.mapexplorer.explanation.explanation4.presentation.screen.Explanation4Screen
+import com.ucb.mapexplorer.map.presentation.screen.MainScreen
 import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.profile.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.profile.editProfile.presentation.viewmodel.EditProfileViewModel
@@ -55,8 +56,8 @@ fun AppNavHost() {
             composable<NavRoute.Explanation4> {
                 Explanation4Screen(navController = navController)
             }
-            composable<NavRoute.Map> {
-                MapScreen()
+            composable<NavRoute.Main> {
+                MainScreen(navController = navController)
             }
             composable<NavRoute.EditProfile> {
                 val vm: EditProfileViewModel = koinViewModel()

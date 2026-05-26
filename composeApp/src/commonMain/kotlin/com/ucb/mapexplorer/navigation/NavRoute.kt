@@ -27,4 +27,8 @@ sealed class NavRoute {
     object EditProfile : NavRoute()
     @Serializable
     object Explanation4: NavRoute()
+
+    @Serializable
+    object Main : NavRoute()
+
 }

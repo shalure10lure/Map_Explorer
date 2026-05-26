@@ -36,7 +36,7 @@ fun LoginScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 LoginEffect.NavigateToHome -> {
-                    navController.navigate(NavRoute.Map) {
+                    navController.navigate(NavRoute.Main) {
                         popUpTo(NavRoute.Login) { inclusive = true }
                     }
                 }
