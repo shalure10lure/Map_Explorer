@@ -23,4 +23,5 @@ actual val platformModule = module {
     }
 
     single { get<AppDatabase>().getAuthDao() }
+    single { get<AppDatabase>().getTileDao() }
 }

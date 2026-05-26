@@ -16,13 +16,20 @@ import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.designsystem.theme.ThemeMode
 import com.ucb.mapexplorer.core.*
+import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import mapexplorer.composeapp.generated.resources.*
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen() {
+fun MapScreen(
+    uid:String,
+    viewModel: MapViewModel = koinViewModel(parameters = { parametersOf(uid) })
+) {
+    val state by viewModel.state.collectAsState()
+
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
             initialValue = SheetValue.PartiallyExpanded
@@ -34,22 +41,24 @@ fun MapScreen() {
         sheetContent = {
             MapSettingsContent()
         },
-        sheetPeekHeight = 80.dp,
-        sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        sheetContainerColor = AppTheme.colors.surface,
-        sheetDragHandle = {
-            BottomSheetDefaults.DragHandle(
-                color = AppTheme.colors.textSecondary.copy(alpha = 0.5f)
-            )
-        }
+        sheetPeekHeight = 80.dp
     ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding).background(AppTheme.colors.background)) {
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+
             MapViewContainer(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                state = state
             )
+
         }
     }
 }
+
 
 @Composable
 private fun MapSettingsContent() {
