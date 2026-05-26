@@ -12,13 +12,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.designsystem.theme.ThemeMode
 import com.ucb.mapexplorer.core.*
-import mapexplorer.composeapp.generated.resources.*
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,6 +25,7 @@ fun MapScreen() {
         )
     )
 
+    // fillMaxSize sin padding externo — el scaffold vive dentro del Box de MainScreen
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         sheetContent = {
@@ -41,9 +38,17 @@ fun MapScreen() {
             BottomSheetDefaults.DragHandle(
                 color = AppTheme.colors.textSecondary.copy(alpha = 0.5f)
             )
-        }
-    ) { innerPadding ->
-        Box(modifier = Modifier.fillMaxSize().padding(innerPadding).background(AppTheme.colors.background)) {
+        },
+        // Clave: sin color de fondo en el scaffold para que no tape nada
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+    ) {
+        // No usar innerPadding aquí — causaba que el mapa empujara la TopBar
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppTheme.colors.background)
+        ) {
             MapViewContainer(
                 modifier = Modifier.fillMaxSize()
             )
@@ -52,166 +57,67 @@ fun MapScreen() {
 }
 
 @Composable
-private fun MapSettingsContent() {
-    // Valores globales actuales (reales)
-    val globalLanguage = LocalAppLanguage.current
-    val globalTheme = LocalThemeMode.current
-    
-    // Controladores globales para aplicar cambios
-    val changeLanguage = LocalLanguageController.current
-    val changeTheme = LocalThemeController.current
-
-    // ESTADO TEMPORAL (Borrador del usuario)
-    var tempLanguage by remember(globalLanguage) { mutableStateOf(globalLanguage) }
-    var tempTheme by remember(globalTheme) { mutableStateOf(globalTheme) }
-
-    // Verificamos si el usuario ha movido algo respecto a lo guardado
-    val hasChanges = tempLanguage != globalLanguage || tempTheme != globalTheme
+fun MapSettingsContent() {
+    val onThemeChange = LocalThemeController.current
+    val currentTheme = LocalThemeMode.current
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(AppTheme.colors.surface)
-            .padding(horizontal = 24.dp)
-            .padding(bottom = 40.dp),
-        horizontalAlignment = Alignment.Start
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // --- SECCIÓN: CONFIGURACIÓN ---
-        SectionHeader(stringResource(Res.string.moreOptions_tittle_configuration))
-        
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Selector de Idioma
         Text(
-            text = stringResource(Res.string.moreOptions_subtittle_language),
-            style = AppTheme.typography.bodyMedium,
+            text = "Configuración del Mapa",
+            style = AppTheme.typography.headlineLarge,
             color = AppTheme.colors.textPrimary,
-            modifier = Modifier.padding(bottom = 12.dp)
+            fontSize = 20.sp
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            SettingChip(
-                text = stringResource(Res.string.moreOptions_optionText_spanish),
-                isSelected = tempLanguage == AppLanguage.SPANISH,
-                onClick = { tempLanguage = AppLanguage.SPANISH }
-            )
-            SettingChip(
-                text = stringResource(Res.string.moreOptions_optionText_english),
-                isSelected = tempLanguage == AppLanguage.ENGLISH,
-                onClick = { tempLanguage = AppLanguage.ENGLISH }
-            )
-        }
-        
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Selector de Tema
-        Text(
-            text = stringResource(Res.string.moreOptions_subtittle_theme),
-            style = AppTheme.typography.bodyMedium,
-            color = AppTheme.colors.textPrimary,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
-            SettingChip(
-                text = stringResource(Res.string.moreOptions_optionText_bright),
-                isSelected = tempTheme == ThemeMode.LIGHT,
-                onClick = { tempTheme = ThemeMode.LIGHT }
+            ThemeOption(
+                label = "Claro",
+                isSelected = currentTheme == ThemeMode.LIGHT,
+                onClick = { onThemeChange(ThemeMode.LIGHT) }
             )
-            SettingChip(
-                text = stringResource(Res.string.moreOptions_optionText_dark),
-                isSelected = tempTheme == ThemeMode.DARK,
-                onClick = { tempTheme = ThemeMode.DARK }
+            ThemeOption(
+                label = "Oscuro",
+                isSelected = currentTheme == ThemeMode.DARK,
+                onClick = { onThemeChange(ThemeMode.DARK) }
             )
         }
-        
-        // BOTONES DE ACCIÓN (Solo aparecen si hay cambios pendientes)
-        if (hasChanges) {
-            Spacer(modifier = Modifier.height(32.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // BOTÓN REVERTIR
-                OutlinedButton(
-                    onClick = {
-                        tempLanguage = globalLanguage
-                        tempTheme = globalTheme
-                    },
-                    modifier = Modifier.weight(1f).height(48.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, AppTheme.colors.border),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = AppTheme.colors.textPrimary
-                    )
-                ) {
-                    Text(stringResource(Res.string.buttonText_cancel), style = AppTheme.typography.labelLarge)
-                }
 
-                // BOTÓN GUARDAR
-                PrimaryButton(
-                    text = stringResource(Res.string.buttonText_save),
-                    onClick = {
-                        if (tempLanguage != globalLanguage) changeLanguage(tempLanguage)
-                        if (tempTheme != globalTheme) changeTheme(tempTheme)
-                    },
-                    modifier = Modifier.weight(1f).height(48.dp)
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(40.dp))
-
-        // --- SECCIÓN: MIS GUARDADOS ---
-        SectionHeader(stringResource(Res.string.moreOptions_tittle_mySaves))
-
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title.uppercase(),
-            style = AppTheme.typography.labelLarge,
-            color = AppTheme.colors.textSecondary,
-            letterSpacing = 1.2.sp
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        com.ucb.designsystem.components.divider.HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            color = AppTheme.colors.border.copy(alpha = 0.5f)
-        )
-    }
-}
-
-@Composable
-private fun SettingChip(
-    text: String,
+fun ThemeOption(
+    label: String,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
     Surface(
-        modifier = Modifier.clickable { onClick() },
+        modifier = Modifier
+            .width(120.dp)
+            .height(48.dp)
+            .clickable { onClick() },
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) AppTheme.colors.primary else AppTheme.colors.textPrimary.copy(alpha = 0.05f),
-        contentColor = if (isSelected) Color.White else AppTheme.colors.textPrimary,
-        border = if (!isSelected) BorderStroke(1.dp, AppTheme.colors.border.copy(alpha = 0.3f)) else null
+        color = if (isSelected) AppTheme.colors.primary else AppTheme.colors.surface,
+        border = if (!isSelected) BorderStroke(1.dp, AppTheme.colors.border) else null,
+        tonalElevation = 2.dp
     ) {
-        Text(
-            text = text,
-            modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp),
-            style = AppTheme.typography.bodyMedium
-        )
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                color = if (isSelected) Color.White else AppTheme.colors.textPrimary,
+                style = AppTheme.typography.labelLarge
+            )
+        }
     }
 }
-

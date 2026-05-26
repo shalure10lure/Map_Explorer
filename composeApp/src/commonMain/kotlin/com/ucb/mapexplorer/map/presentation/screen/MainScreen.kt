@@ -2,8 +2,10 @@ package com.ucb.mapexplorer.map.presentation.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.ucb.mapexplorer.navigation.MainTab
 import com.ucb.mapexplorer.navigation.composable.MainTopBar
@@ -17,36 +19,58 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MainScreen(
     navController: NavController
 ) {
-    // Pestaña activa — empieza en el mapa (ninguna pestaña seleccionada)
-    // pero usamos NEARBY como pantalla de inicio
     var selectedTab by remember { mutableStateOf(MainTab.NEARBY) }
-
-    // Avatar del usuario — en el futuro vendrá del ViewModel de sesión
     val avatarConfig = remember { AvatarConfigModel() }
+    val ownProfileViewModel: OwnProfileViewModel = koinViewModel()
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    // Usamos Box para asegurar que la TopBar siempre esté en la capa superior (Z-order)
+    Box(modifier = Modifier.fillMaxSize()) {
+        
+        // 1. Contenido principal (Map, Social, Perfil)
+        // Se coloca primero para que quede al fondo
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (selectedTab) {
+                MainTab.NEARBY -> {
+                    // El mapa ocupa toda la pantalla. 
+                    // La TopBar flotará encima.
+                    MapScreen()
+                }
+                
+                MainTab.SOCIAL -> {
+                    // Añadimos un espaciador para que el contenido no empiece debajo de la TopBar
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Spacer(modifier = Modifier.statusBarsPadding())
+                        Spacer(modifier = Modifier.height(80.dp)) // Altura estimada de la barra
+                        SocialScreen(navController = navController)
+                    }
+                }
+                
+                MainTab.PROFILE -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Spacer(modifier = Modifier.statusBarsPadding())
+                        Spacer(modifier = Modifier.height(80.dp))
+                        OwnProfileScreen(
+                            viewModel      = ownProfileViewModel,
+                            onBack         = { selectedTab = MainTab.NEARBY },
+                            onEditProfile  = { navController.navigate(com.ucb.mapexplorer.navigation.NavRoute.EditProfile) },
+                            onViewRequests = { },
+                            onViewFriend   = { }
+                        )
+                    }
+                }
+            }
+        }
 
-        // ── BARRA SUPERIOR ROJA ─────────────────────────
+        // 2. MainTopBar (Encima de todo)
+        // Al estar al final del Box y con zIndex, se garantiza su visibilidad sobre el mapa nativo.
         MainTopBar(
             selectedTab   = selectedTab,
             avatarConfig  = avatarConfig,
             onTabSelected = { selectedTab = it },
-            onAvatarClick = { selectedTab = MainTab.PROFILE }
+            onAvatarClick = { selectedTab = MainTab.PROFILE },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .zIndex(10f)
         )
-
-        // ── CONTENIDO SEGÚN PESTAÑA ─────────────────────
-        Box(modifier = Modifier.fillMaxSize()) {
-            when (selectedTab) {
-                MainTab.NEARBY  -> MapScreen()
-                MainTab.SOCIAL  -> SocialScreen(navController = navController)
-                MainTab.PROFILE -> OwnProfileScreen(
-                    viewModel       = koinViewModel(),
-                    onBack          = { selectedTab = MainTab.NEARBY },
-                    onEditProfile   = { navController.navigate(com.ucb.mapexplorer.navigation.NavRoute.EditProfile) },
-                    onViewRequests  = { /* navegar a solicitudes */ },
-                    onViewFriend    = { /* navegar al perfil del amigo */ }
-                )
-            }
-        }
     }
 }

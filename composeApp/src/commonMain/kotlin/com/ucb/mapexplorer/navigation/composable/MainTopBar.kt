@@ -26,13 +26,15 @@ fun MainTopBar(
     selectedTab: MainTab,
     avatarConfig: AvatarConfigModel,
     onTabSelected: (MainTab) -> Unit,
-    onAvatarClick: () -> Unit
+    onAvatarClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     // Fondo rojo completo de la barra
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(AppTheme.colors.primary)
+            .statusBarsPadding()
             .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -119,3 +121,4 @@ private fun TabItem(
         }
     }
 }
+
