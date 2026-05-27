@@ -15,6 +15,13 @@ sealed class NavRoute {
     object Map: NavRoute()
 
     @Serializable
+    data class PlaceDetail(val placeId: String): NavRoute()
+
+    @Serializable
+    data class NearbyPlaces(val lat: Double, val lon: Double): NavRoute()
+
+
+    @Serializable
     object Explanation1: NavRoute()
 
     @Serializable

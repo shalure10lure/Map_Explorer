@@ -5,6 +5,10 @@ import com.ucb.mapexplorer.auth.domain.usecase.RegisterUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetCurrentLocationUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetDiscoveredTilesUseCase
 import com.ucb.mapexplorer.map.domain.usecase.UnlockTileUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetNearbyPlacesUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetPlaceDetailUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarDescubiertoUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarVisitadoUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -14,5 +18,11 @@ val domainModule = module {
     singleOf(::GetDiscoveredTilesUseCase)
     singleOf(::GetCurrentLocationUseCase)
     singleOf(::UnlockTileUseCase)
+
+    // NearbyPlaces
+    singleOf(::GetNearbyPlacesUseCase)
+    singleOf(::GetPlaceDetailUseCase)
+    singleOf(::SyncLugarDescubiertoUseCase)
+    singleOf(::SyncLugarVisitadoUseCase)
 
 }

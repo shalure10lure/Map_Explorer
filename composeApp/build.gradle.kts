@@ -61,6 +61,8 @@ kotlin {
             implementation(libs.osmdroid)
             implementation(libs.play.services.location)
 
+            implementation("io.ktor:ktor-client-android:2.3.12")
+
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
