@@ -55,7 +55,7 @@ fun MapScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        sheetContent = { MapBottomSheetContent(state) },
+        sheetContent = { MapSettingsContent() },
         sheetPeekHeight = 80.dp,
         sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         sheetContainerColor = AppTheme.colors.surface,
@@ -117,37 +117,6 @@ fun MapScreen(
         }
     }
 }
-
-@Composable
-private fun MapBottomSheetContent(
-    state: com.ucb.mapexplorer.map.presentation.state.MapUIState
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(AppTheme.colors.surface)
-            .padding(horizontal = 24.dp, vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Nivel ${state.level} • ${state.experience} XP",
-            style = AppTheme.typography.bodySmall,
-            color = AppTheme.colors.textPrimary
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = "Zonas descubiertas: ${state.totalTilesUnlocked}",
-            style = AppTheme.typography.bodyMedium,
-            color = AppTheme.colors.textSecondary
-        )
-    }
-}
-
-
-
-
 @Composable
 private fun MapSettingsContent() {
     // Valores globales actuales (reales)
