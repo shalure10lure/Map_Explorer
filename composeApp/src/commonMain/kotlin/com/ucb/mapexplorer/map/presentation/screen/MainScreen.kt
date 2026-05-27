@@ -8,11 +8,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.ucb.mapexplorer.navigation.MainTab
+import com.ucb.mapexplorer.navigation.NavRoute
 import com.ucb.mapexplorer.navigation.composable.MainTopBar
 import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
 import com.ucb.mapexplorer.profile.ownProfile.presentation.screen.OwnProfileScreen
 import com.ucb.mapexplorer.profile.ownProfile.presentation.viewmodel.OwnProfileViewModel
-import com.ucb.mapexplorer.social.presentation.screen.SocialScreen
+import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -41,7 +42,12 @@ fun MainScreen(
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(modifier = Modifier.statusBarsPadding())
                         Spacer(modifier = Modifier.height(80.dp)) // Altura estimada de la barra
-                        SocialScreen(navController = navController)
+                        SocialSpaceScreen(
+                            onBack = { selectedTab = MainTab.NEARBY },
+                            onNavigateToMessages = { /* TODO: Implementar navegación a mensajes */ },
+                            onNavigateToNearby = { selectedTab = MainTab.NEARBY },
+                            onNavigateToProfile = { selectedTab = MainTab.PROFILE }
+                        )
                     }
                 }
                 
@@ -52,7 +58,7 @@ fun MainScreen(
                         OwnProfileScreen(
                             viewModel      = ownProfileViewModel,
                             onBack         = { selectedTab = MainTab.NEARBY },
-                            onEditProfile  = { navController.navigate(com.ucb.mapexplorer.navigation.NavRoute.EditProfile) },
+                            onEditProfile  = { navController.navigate(NavRoute.EditProfile) },
                             onViewRequests = { },
                             onViewFriend   = { }
                         )
