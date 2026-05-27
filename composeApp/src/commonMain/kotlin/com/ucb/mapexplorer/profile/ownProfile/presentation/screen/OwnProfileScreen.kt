@@ -22,6 +22,7 @@ import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.profile.ownProfile.presentation.state.OwnProfileEffect
 import com.ucb.mapexplorer.profile.ownProfile.presentation.state.OwnProfileEvent
 import com.ucb.mapexplorer.profile.ownProfile.presentation.viewmodel.OwnProfileViewModel
+import com.ucb.mapexplorer.profile.presentation.composable.AvatarDisplay
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
@@ -111,18 +112,10 @@ fun OwnProfileScreen(
                 }
 
                 // Avatar Placeholder
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .background(AppTheme.colors.surface, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        "Personaje\nusuario", 
-                        style = AppTheme.typography.bodySmall,
-                        color = AppTheme.colors.textSecondary
-                    )
-                }
+                AvatarDisplay(
+                    config = state.avatarConfig,
+                    size   = 100.dp
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))

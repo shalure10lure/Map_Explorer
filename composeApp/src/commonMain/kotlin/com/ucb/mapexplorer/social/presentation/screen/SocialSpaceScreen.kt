@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.social.presentation.state.*
+import com.ucb.mapexplorer.social.presentation.state.SocialPost
 import com.ucb.mapexplorer.social.presentation.viewmodel.SocialSpaceViewModel
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.painterResource

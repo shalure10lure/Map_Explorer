@@ -52,6 +52,7 @@ fun MapScreen(
         )
     )
 
+    // fillMaxSize sin padding externo — el scaffold vive dentro del Box de MainScreen
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         snackbarHost = { SnackbarHost(snackbarHostState) },

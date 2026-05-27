@@ -4,23 +4,24 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class NavRoute {
-    @Serializable
-    object Login : NavRoute()
 
     @Serializable
-    object Register : NavRoute()
+    object Login: NavRoute()
 
     @Serializable
-    object Map : NavRoute()
+    object Register: NavRoute()
 
     @Serializable
-    object Explanation1 : NavRoute()
+    object Map: NavRoute()
 
     @Serializable
-    object Explanation2 : NavRoute()
+    object Explanation1: NavRoute()
 
     @Serializable
-    object Explanation3 : NavRoute()
+    object Explanation2: NavRoute()
+
+    @Serializable
+    object Explanation3: NavRoute()
 
     @Serializable
     object Explanation4 : NavRoute()
@@ -30,6 +31,11 @@ sealed class NavRoute {
 
     @Serializable
     object Profile : NavRoute()
+
+    @Serializable
+    object EditProfile : NavRoute()
+    @Serializable
+    object Main : NavRoute()
 
     @Serializable
     object NearbyPlaces : NavRoute()

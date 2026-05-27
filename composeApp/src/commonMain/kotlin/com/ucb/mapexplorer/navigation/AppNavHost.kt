@@ -1,6 +1,6 @@
 package com.ucb.mapexplorer.navigation
 
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -16,10 +16,13 @@ import com.ucb.mapexplorer.explanation.explanation1.presentation.screen.Explanat
 import com.ucb.mapexplorer.explanation.explanation2.presentation.screen.Explanation2Screen
 import com.ucb.mapexplorer.explanation.explanation3.presentation.screen.Explanation3Screen
 import com.ucb.mapexplorer.explanation.explanation4.presentation.screen.Explanation4Screen
+import com.ucb.mapexplorer.map.presentation.screen.MainScreen
 import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.profile.editProfile.presentation.screen.EditProfileScreen
+import com.ucb.mapexplorer.profile.editProfile.presentation.viewmodel.EditProfileViewModel
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -29,13 +32,12 @@ fun AppNavHost() {
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { _ -> 
+    ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = NavRoute.Login,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.padding(paddingValues)
         ) {
             composable<NavRoute.Login> {
                 LoginScreen(navController = navController)
@@ -58,10 +60,21 @@ fun AppNavHost() {
             composable<NavRoute.Explanation4> {
                 Explanation4Screen(navController = navController)
             }
+            composable<NavRoute.EditProfile> {
+                val vm: EditProfileViewModel = koinViewModel()
+                EditProfileScreen(
+                    viewModel = vm,
+                    onCancel = { navController.popBackStack() },
+                    onSave   = { navController.popBackStack() }
+                )
+            }
+            composable<NavRoute.Main> {
+                MainScreen(navController = navController)
+            }
             composable<NavRoute.Map> {
                 MapScreen()
             }
-            
+
             // 🌐 Espacio Social
             composable<NavRoute.SocialSpace> {
                 SocialSpaceScreen(
@@ -73,7 +86,7 @@ fun AppNavHost() {
             }
 
             // 📍 Pantalla de lista de lugares
-            composable<NavRoute.NearbyPlaces> { 
+            composable<NavRoute.NearbyPlaces> {
                 val viewModel: NearbyPlacesViewModel = koinViewModel()
                 NearbyPlacesScreen(
                     viewModel = viewModel,
@@ -84,7 +97,7 @@ fun AppNavHost() {
             }
 
             // 🖼️ Pantalla de detalle de lugar
-            composable<NavRoute.PlaceDetail> { 
+            composable<NavRoute.PlaceDetail> {
                 val viewModel: NearbyPlacesViewModel = koinViewModel()
                 PlaceDetailScreen(
                     viewModel = viewModel,
