@@ -4,6 +4,7 @@ import com.ucb.mapexplorer.auth.presentation.login.viewmodel.LoginViewModel
 import com.ucb.mapexplorer.auth.presentation.register.viewmodel.RegisterViewModel
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.social.presentation.viewmodel.SocialSpaceViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -11,6 +12,6 @@ val presentationModule = module {
     viewModelOf(::LoginViewModel)
     viewModelOf(::RegisterViewModel)
     viewModelOf(::MapViewModel)
-
     viewModelOf(::NearbyPlacesViewModel)
+    viewModelOf(::SocialSpaceViewModel)
 }

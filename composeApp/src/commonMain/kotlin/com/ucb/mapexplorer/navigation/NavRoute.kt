@@ -4,32 +4,36 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class NavRoute {
+    @Serializable
+    object Login : NavRoute()
 
     @Serializable
-    object Login: NavRoute()
+    object Register : NavRoute()
 
     @Serializable
-    object Register: NavRoute()
+    object Map : NavRoute()
 
     @Serializable
-    object Map: NavRoute()
-
-    // 📍 NearbyPlaces recibe lat/lon como parámetros
-    @Serializable
-    data class NearbyPlaces(val lat: Double, val lon: Double)
-
-    // 🖼️ PlaceDetail recibe el id del lugar
-    @Serializable
-    data class PlaceDetail(val placeId: String)
-    @Serializable
-    object Explanation1: NavRoute()
+    object Explanation1 : NavRoute()
 
     @Serializable
-    object Explanation2: NavRoute()
+    object Explanation2 : NavRoute()
 
     @Serializable
-    object Explanation3: NavRoute()
+    object Explanation3 : NavRoute()
 
     @Serializable
-    object Explanation4: NavRoute()
+    object Explanation4 : NavRoute()
+
+    @Serializable
+    object SocialSpace : NavRoute()
+
+    @Serializable
+    object Profile : NavRoute()
+
+    @Serializable
+    object NearbyPlaces : NavRoute()
+
+    @Serializable
+    data class PlaceDetail(val placeId: String) : NavRoute()
 }

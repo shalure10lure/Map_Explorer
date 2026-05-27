@@ -16,8 +16,6 @@ plugins {
     alias(libs.plugins.google.gms.google.services)
     // Testing Multiplatform Mocks
     alias(libs.plugins.mockative)
-
-
 }
 
 kotlin {
@@ -62,7 +60,6 @@ kotlin {
             implementation(libs.play.services.location)
 
             implementation("io.ktor:ktor-client-android:2.3.12")
-
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -71,6 +68,7 @@ kotlin {
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
             implementation(libs.compose.uiToolingPreview)
+            implementation(compose.materialIconsExtended)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             //koin
@@ -106,7 +104,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.turbine)
             implementation(libs.mockative)
-
         }
         androidInstrumentedTest.dependencies {
             implementation(libs.ui.test.junit4)
@@ -153,7 +150,6 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
-
 }
 
 //room

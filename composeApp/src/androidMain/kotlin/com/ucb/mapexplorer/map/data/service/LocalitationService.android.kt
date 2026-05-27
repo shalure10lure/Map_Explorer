@@ -2,20 +2,18 @@ package com.ucb.mapexplorer.map.data.service
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.core.content.ContextCompat
 import com.google.android.gms.location.*
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-actual class LocalitationService actual constructor() {
+actual class LocalitationService actual constructor() : KoinComponent {
 
-    // El contexto se inyecta via Koin (ver MapModule.kt)
-    private lateinit var context: Context
-
-    fun init(ctx: Context) {
-        context = ctx
-    }
+    private val context: Context by inject()
 
     @SuppressLint("MissingPermission")
     actual fun observeLocation(): Flow<UserLocationModel> = callbackFlow {
@@ -23,10 +21,9 @@ actual class LocalitationService actual constructor() {
 
         val request = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            2_000L          // intervalo: 2 segundos
+            5_000L          // intervalo: 5 segundos
         )
-            .setMinUpdateDistanceMeters(5f)   // solo emitir si movió ≥5m
-            .setMaxUpdateDelayMillis(5_000L)
+            .setMinUpdateDistanceMeters(10f)   // solo emitir si movió ≥10m
             .build()
 
         val callback = object : LocationCallback() {
@@ -45,7 +42,18 @@ actual class LocalitationService actual constructor() {
             }
         }
 
-        client.requestLocationUpdates(request, callback, null)
+        // Obtener el Executor del hilo principal para procesar los callbacks de ubicación.
+        // Esto soluciona el error "invalid null looper" al ser llamado desde Coroutines.
+        val executor = ContextCompat.getMainExecutor(context)
+        
+        try {
+            client.requestLocationUpdates(request, executor, callback)
+                .addOnFailureListener { e ->
+                    close(e)
+                }
+        } catch (e: Exception) {
+            close(e)
+        }
 
         awaitClose {
             client.removeLocationUpdates(callback)

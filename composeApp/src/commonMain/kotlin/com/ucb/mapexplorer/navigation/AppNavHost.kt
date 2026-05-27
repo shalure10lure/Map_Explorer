@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.toRoute
 import com.ucb.mapexplorer.auth.presentation.login.screen.LoginScreen
 import com.ucb.mapexplorer.auth.presentation.register.screen.RegisterScreen
 import com.ucb.mapexplorer.explanation.explanation1.presentation.screen.Explanation1Screen
@@ -21,6 +20,7 @@ import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -61,11 +61,20 @@ fun AppNavHost() {
             composable<NavRoute.Map> {
                 MapScreen()
             }
-            // 📍 Pantalla de lista de lugares
-            composable<NavRoute.NearbyPlaces> { backStackEntry ->
-                val route = backStackEntry.toRoute<NavRoute.NearbyPlaces>()
-                val viewModel: NearbyPlacesViewModel = koinViewModel()
+            
+            // 🌐 Espacio Social
+            composable<NavRoute.SocialSpace> {
+                SocialSpaceScreen(
+                    onBack = { navController.popBackStack() },
+                    onNavigateToMessages = { /* TODO */ },
+                    onNavigateToNearby = { navController.navigate(NavRoute.NearbyPlaces) },
+                    onNavigateToProfile = { navController.navigate(NavRoute.Profile) }
+                )
+            }
 
+            // 📍 Pantalla de lista de lugares
+            composable<NavRoute.NearbyPlaces> { 
+                val viewModel: NearbyPlacesViewModel = koinViewModel()
                 NearbyPlacesScreen(
                     viewModel = viewModel,
                     onPlaceClick = { placeId ->
@@ -75,14 +84,18 @@ fun AppNavHost() {
             }
 
             // 🖼️ Pantalla de detalle de lugar
-            composable<NavRoute.PlaceDetail> { backStackEntry ->
-                val route = backStackEntry.toRoute<NavRoute.PlaceDetail>()
+            composable<NavRoute.PlaceDetail> { 
                 val viewModel: NearbyPlacesViewModel = koinViewModel()
-
                 PlaceDetailScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() }
                 )
+            }
+
+            // 👤 Perfil
+            composable<NavRoute.Profile> {
+                // Implementación pendiente o redirección
+                navController.navigate(NavRoute.Map)
             }
         }
     }
