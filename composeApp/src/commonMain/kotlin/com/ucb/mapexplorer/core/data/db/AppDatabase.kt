@@ -8,18 +8,23 @@ import com.ucb.mapexplorer.auth.data.dao.AuthDao
 import com.ucb.mapexplorer.auth.data.entity.UserEntity
 import com.ucb.mapexplorer.map.data.dao.TileDao
 import com.ucb.mapexplorer.map.data.entity.TileEntity
+import com.ucb.mapexplorer.nearbyplaces.data.dao.PlaceDao
+import com.ucb.mapexplorer.nearbyplaces.data.entity.LugarCacheEntity
 
 @Database(
     entities = [
         UserEntity::class,
-        TileEntity::class
+        TileEntity::class,
+        LugarCacheEntity::class
     ],
-    version = 5,exportSchema = true
+    version = 6,exportSchema = true
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun getAuthDao(): AuthDao
     abstract fun getTileDao(): TileDao
+
+    abstract fun getPlaceDao(): PlaceDao
 }
 
 // The Room compiler generates the `actual` implementations.

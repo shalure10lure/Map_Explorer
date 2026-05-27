@@ -20,14 +20,14 @@ import com.ucb.mapexplorer.explanation.explanation4.presentation.screen.Explanat
 import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
+import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AppNavHost() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Quitamos el paddingValues del NavHost para que cada pantalla maneje sus propios insets (Edge-to-Edge)
-    // Esto permite que el ExploreTopBar rojo llegue hasta el borde superior de la pantalla.
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -59,37 +59,29 @@ fun AppNavHost() {
                 Explanation4Screen(navController = navController)
             }
             composable<NavRoute.Map> {
-                MapScreen(
-                    onNavigateToNearbyPlaces = { lat, lon ->
-                        navController.navigate(NavRoute.NearbyPlaces(lat, lon))
-                    }
-                )
+                MapScreen()
             }
+            // 📍 Pantalla de lista de lugares
             composable<NavRoute.NearbyPlaces> { backStackEntry ->
                 val route = backStackEntry.toRoute<NavRoute.NearbyPlaces>()
+                val viewModel: NearbyPlacesViewModel = koinViewModel()
+
                 NearbyPlacesScreen(
-                    userLat = route.lat,
-                    userLon = route.lon,
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onPlaceSelected = { placeId ->
+                    viewModel = viewModel,
+                    onPlaceClick = { placeId ->
                         navController.navigate(NavRoute.PlaceDetail(placeId))
                     }
                 )
             }
+
+            // 🖼️ Pantalla de detalle de lugar
             composable<NavRoute.PlaceDetail> { backStackEntry ->
                 val route = backStackEntry.toRoute<NavRoute.PlaceDetail>()
+                val viewModel: NearbyPlacesViewModel = koinViewModel()
+
                 PlaceDetailScreen(
-                    placeId = route.placeId,
-                    onNavigateBack = {
-                        navController.popBackStack()
-                    },
-                    onNavigateToMap = { _, _ ->
-                        navController.navigate(NavRoute.Map) {
-                            popUpTo(NavRoute.Map) { inclusive = true }
-                        }
-                    }
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
         }

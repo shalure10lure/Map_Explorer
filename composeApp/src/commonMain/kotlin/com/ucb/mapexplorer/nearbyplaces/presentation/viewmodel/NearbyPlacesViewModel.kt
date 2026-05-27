@@ -1,6 +1,5 @@
 package com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel
 
-
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ucb.mapexplorer.core.session.Session
@@ -51,8 +50,7 @@ class NearbyPlacesViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // Usamos el radio definido en el estado (1.5km por defecto)
-                val places = getNearbyPlacesUseCase(lat, lon, radiusMeters = _state.value.radiusMeters)
+                val places = getNearbyPlacesUseCase(lat, lon)
                 _state.update { it.copy(places = places, isLoading = false) }
 
                 // Sincronizar lugares descubiertos con Firebase

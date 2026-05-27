@@ -14,13 +14,13 @@ sealed class NavRoute {
     @Serializable
     object Map: NavRoute()
 
+    // 📍 NearbyPlaces recibe lat/lon como parámetros
     @Serializable
-    data class PlaceDetail(val placeId: String): NavRoute()
+    data class NearbyPlaces(val lat: Double, val lon: Double)
 
+    // 🖼️ PlaceDetail recibe el id del lugar
     @Serializable
-    data class NearbyPlaces(val lat: Double, val lon: Double): NavRoute()
-
-
+    data class PlaceDetail(val placeId: String)
     @Serializable
     object Explanation1: NavRoute()
 

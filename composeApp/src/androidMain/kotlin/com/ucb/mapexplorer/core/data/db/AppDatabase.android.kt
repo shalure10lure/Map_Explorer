@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 // Migración de versión 3 → 4:
 // - Se elimina columna porcentajeExplorado (no soportado en SQLite sin recrear tabla)
 // - Se recrea la tabla con el nuevo esquema
-val MIGRATION_3_5 = object : Migration(3, 5) {
+val MIGRATION_3_6 = object : Migration(3, 6) {
     override fun migrate(database: SupportSQLiteDatabase) {
         // Crear tabla nueva con esquema correcto
         database.execSQL("""
@@ -49,5 +49,7 @@ actual fun getDatabaseBuilder(ctx: Any?): RoomDatabase.Builder<AppDatabase> {
     return Room.databaseBuilder<AppDatabase>(
         context = appContext,
         name = dbFile.absolutePath
-    ).addMigrations(MIGRATION_3_5)  // ← agregar esto
+    ).addMigrations(MIGRATION_3_6
+
+    )
 }

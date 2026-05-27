@@ -28,11 +28,11 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
         isLenient = true
     }
 
-    // ── Firebase para persistencia del usuario ────────────────────────────
+    // ── Firebase ──────────────────────────────────────────────────────────
     private val firebaseDb = FirebaseDatabase.getInstance()
 
     // ─────────────────────────────────────────────────────────────────────
-    // 1. Overpass API → lugares cercanos
+    // 1. Overpass API
     // ─────────────────────────────────────────────────────────────────────
     actual suspend fun fetchNearbyPlaces(
         lat: Double,
@@ -40,8 +40,8 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
         radius: Int
     ): OverpassResponseDto {
         return try {
-            val query = buildOverpassQuery(lat, lon, radius)
-            val response: HttpResponse = client.post(OVERPASS_URL) {
+            val query    = buildOverpassQuery(lat, lon, radius)
+            val response = client.post(OVERPASS_URL) {
                 contentType(ContentType.Application.FormUrlEncoded)
                 setBody("data=${query.encodeURLParameter()}")
             }
@@ -53,7 +53,7 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // 2. Firebase → guardar lugar descubierto
+    // 2. Firebase → lugares_descubiertos
     //    usuarios/{uid}/exploracion/lugares_descubiertos/{lugarId}
     // ─────────────────────────────────────────────────────────────────────
     actual suspend fun saveLugarDescubierto(
@@ -72,24 +72,22 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
                 .child("exploracion")
                 .child("lugares_descubiertos")
                 .child(lugarId)
-                .setValue(
-                    mapOf(
-                        "nombre"          to nombre,
-                        "categoria"       to categoria,
-                        "latitud"         to lat,
-                        "longitud"        to lon,
-                        "descubierto_en"  to now,
-                        "sincronizado"    to true
-                    )
-                ).await()
-            println("✅ Lugar descubierto guardado: $lugarId para $uid")
+                .setValue(mapOf(
+                    "nombre"         to nombre,
+                    "categoria"      to categoria,
+                    "latitud"        to lat,
+                    "longitud"       to lon,
+                    "descubierto_en" to now,
+                    "sincronizado"   to true
+                )).await()
+            println("✅ Lugar descubierto: $lugarId para $uid")
         } catch (e: Exception) {
             println("Firebase error (saveLugarDescubierto): ${e.message}")
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────
-    // 3. Firebase → guardar lugar visitado (cuando el usuario abre detalle)
+    // 3. Firebase → lugares_visitados
     //    usuarios/{uid}/exploracion/lugares_visitados/{lugarId}
     // ─────────────────────────────────────────────────────────────────────
     actual suspend fun saveLugarVisitado(
@@ -100,22 +98,19 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
     ) {
         try {
             val now = Clock.System.now().toEpochMilliseconds()
-            val ref = firebaseDb.reference
+            firebaseDb.reference
                 .child("usuarios")
                 .child(uid)
                 .child("exploracion")
                 .child("lugares_visitados")
                 .child(lugarId)
-
-            ref.setValue(
-                mapOf(
+                .setValue(mapOf(
                     "nombre"        to nombre,
                     "categoria"     to categoria,
                     "ultima_visita" to now,
                     "sincronizado"  to true
-                )
-            ).await()
-            println("✅ Lugar visitado guardado: $lugarId para $uid")
+                )).await()
+            println("✅ Lugar visitado: $lugarId para $uid")
         } catch (e: Exception) {
             println("Firebase error (saveLugarVisitado): ${e.message}")
         }
