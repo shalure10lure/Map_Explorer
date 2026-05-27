@@ -6,10 +6,8 @@ import com.ucb.mapexplorer.map.domain.repository.MapRepository
 class UnlockTileUseCase(
     private val repository: MapRepository
 ) {
-    suspend operator fun invoke(
-        uid: String,
-        location: UserLocationModel
-    ) {
-        repository.unlockTile(uid, location)
+    /** @return true si se descubrió un tile NUEVO. */
+    suspend operator fun invoke(uid: String, location: UserLocationModel): Boolean {
+        return repository.unlockTile(uid, location)
     }
 }

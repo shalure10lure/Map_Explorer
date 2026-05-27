@@ -7,5 +7,6 @@ import com.ucb.mapexplorer.map.presentation.state.MapUIState
 @Composable
 expect fun MapViewContainer(
     modifier: Modifier = Modifier,
-    state: MapUIState
+    state: MapUIState,
+    onLocationChanged: (Double, Double) -> Unit
 )

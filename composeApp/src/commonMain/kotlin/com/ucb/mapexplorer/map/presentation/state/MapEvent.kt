@@ -1,16 +1,15 @@
 package com.ucb.mapexplorer.map.presentation.state
 
-import com.ucb.mapexplorer.map.domain.model.PlaceModel
-
 sealed interface MapEvent {
-    // carga inicial del mapa
+    /** Carga inicial: tiles guardados + arranca GPS. */
     data object OnLoadMap : MapEvent
 
-    // fuerza refresco de ubicación
-    data object OnRefreshLocation : MapEvent
+    /** Actualización de GPS desde la capa de UI. */
+    data class OnLocationUpdated(val latitude: Double, val longitude: Double) : MapEvent
 
+    /** Cierra el diálogo/snackbar de error. */
+    data object OnDismissError : MapEvent
 
-    //data class OnPlaceClicked( val place: PlaceModel ) : MapEvent
-
-    //data object OnDismissPlaceDetail : MapEvent
+    /** El usuario pide centrar el mapa en su posición. */
+    data object OnCenterOnUser : MapEvent
 }

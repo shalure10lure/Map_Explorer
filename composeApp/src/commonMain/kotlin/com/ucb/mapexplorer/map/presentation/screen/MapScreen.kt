@@ -16,19 +16,35 @@ import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.designsystem.theme.ThemeMode
 import com.ucb.mapexplorer.core.*
-import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
+
+import com.ucb.mapexplorer.map.presentation.state.MapEffect
+import com.ucb.mapexplorer.map.presentation.state.MapEvent
+import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import org.koin.compose.viewmodel.koinViewModel
-import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    uid:String,
-    viewModel: MapViewModel = koinViewModel(parameters = { parametersOf(uid) })
+    viewModel: MapViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Manejar efectos del ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is MapEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
+                is MapEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
+                is MapEffect.NewTileDiscovered -> {
+                    snackbarHostState.showSnackbar("¡Nueva zona descubierta! 🗺️")
+                }
+                MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
+            }
+        }
+    }
 
     val scaffoldState = rememberBottomSheetScaffoldState(
         bottomSheetState = rememberStandardBottomSheetState(
@@ -38,26 +54,98 @@ fun MapScreen(
 
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
-        sheetContent = {
-            MapSettingsContent()
-        },
-        sheetPeekHeight = 80.dp
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        sheetContent = { MapBottomSheetContent(state) },
+        sheetPeekHeight = 80.dp,
+        sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
+        sheetContainerColor = AppTheme.colors.surface,
+        sheetDragHandle = {
+            BottomSheetDefaults.DragHandle(
+                color = AppTheme.colors.textSecondary.copy(alpha = 0.5f)
+            )
+        }
     ) { innerPadding ->
 
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .background(AppTheme.colors.background)
         ) {
-
+            // Mapa principal con Fog of War
             MapViewContainer(
                 modifier = Modifier.fillMaxSize(),
-                state = state
+                state = state,
+                onLocationChanged = { lat, lng ->
+                    viewModel.onEvent(MapEvent.OnLocationUpdated(lat, lng))
+                }
             )
 
+            // Indicador de carga de primera ubicación
+            if (state.isLoadingLocation) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(AppTheme.colors.background.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = AppTheme.colors.primary)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Obteniendo tu ubicación...",
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.textPrimary
+                        )
+                    }
+                }
+            }
+
+            // Diálogo de error
+            state.errorMessage?.let { error ->
+                AlertDialog(
+                    onDismissRequest = { viewModel.onEvent(MapEvent.OnDismissError) },
+                    confirmButton = {
+                        TextButton(onClick = { viewModel.onEvent(MapEvent.OnDismissError) }) {
+                            Text("OK")
+                        }
+                    },
+                    title = { Text("Error") },
+                    text = { Text(error) }
+                )
+            }
         }
     }
 }
+
+@Composable
+private fun MapBottomSheetContent(
+    state: com.ucb.mapexplorer.map.presentation.state.MapUIState
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(AppTheme.colors.surface)
+            .padding(horizontal = 24.dp, vertical = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Nivel ${state.level} • ${state.experience} XP",
+            style = AppTheme.typography.bodySmall,
+            color = AppTheme.colors.textPrimary
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Zonas descubiertas: ${state.totalTilesUnlocked}",
+            style = AppTheme.typography.bodyMedium,
+            color = AppTheme.colors.textSecondary
+        )
+    }
+}
+
+
 
 
 @Composable
@@ -65,7 +153,7 @@ private fun MapSettingsContent() {
     // Valores globales actuales (reales)
     val globalLanguage = LocalAppLanguage.current
     val globalTheme = LocalThemeMode.current
-    
+
     // Controladores globales para aplicar cambios
     val changeLanguage = LocalLanguageController.current
     val changeTheme = LocalThemeController.current
@@ -87,7 +175,7 @@ private fun MapSettingsContent() {
     ) {
         // --- SECCIÓN: CONFIGURACIÓN ---
         SectionHeader(stringResource(Res.string.moreOptions_tittle_configuration))
-        
+
         Spacer(modifier = Modifier.height(8.dp))
 
         // Selector de Idioma
@@ -113,7 +201,7 @@ private fun MapSettingsContent() {
                 onClick = { tempLanguage = AppLanguage.ENGLISH }
             )
         }
-        
+
         Spacer(modifier = Modifier.height(24.dp))
 
         // Selector de Tema
@@ -139,7 +227,7 @@ private fun MapSettingsContent() {
                 onClick = { tempTheme = ThemeMode.DARK }
             )
         }
-        
+
         // BOTONES DE ACCIÓN (Solo aparecen si hay cambios pendientes)
         if (hasChanges) {
             Spacer(modifier = Modifier.height(32.dp))

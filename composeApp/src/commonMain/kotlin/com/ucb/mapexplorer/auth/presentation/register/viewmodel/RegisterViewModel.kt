@@ -7,6 +7,7 @@ import com.ucb.mapexplorer.auth.domain.usecase.RegisterUseCase
 import com.ucb.mapexplorer.auth.presentation.register.state.RegisterEffect
 import com.ucb.mapexplorer.auth.presentation.register.state.RegisterEvent
 import com.ucb.mapexplorer.auth.presentation.register.state.RegisterUIState
+import com.ucb.mapexplorer.core.session.Session
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -83,7 +84,7 @@ class RegisterViewModel(
             )
 
             if (result) {
-                // CAMBIO: Ahora navega directamente al Home (Mapa)
+                Session.uid = safeKey(s.email)  // ← LÍNEA QUE FALTA
                 emit(RegisterEffect.NavigateToHome)
             } else {
                 emit(RegisterEffect.ShowError("Error al registrar usuario"))
@@ -92,6 +93,10 @@ class RegisterViewModel(
             _state.update { it.copy(isLoading = false) }
         }
     }
+    private fun safeKey(email: String): String =
+        email.trim().lowercase()
+            .replace("@", "_")
+            .replace(".", "_")
 
     private fun emit(effect: RegisterEffect) {
         viewModelScope.launch {

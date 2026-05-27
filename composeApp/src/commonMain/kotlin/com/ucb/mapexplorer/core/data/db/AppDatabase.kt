@@ -14,7 +14,7 @@ import com.ucb.mapexplorer.map.data.entity.TileEntity
         UserEntity::class,
         TileEntity::class
     ],
-    version = 3
+    version = 5,exportSchema = true
 )
 @ConstructedBy(AppDatabaseConstructor::class)
 abstract class AppDatabase : RoomDatabase() {

@@ -1,29 +1,27 @@
 package com.ucb.mapexplorer.map.domain.model
 
-import kotlin.math.PI
-import kotlin.math.atan
-import kotlin.math.exp
 
+/**
+ * Modelo de dominio para un tile del mapa descubierto.
+ * Usamos coordenadas de tile OSM estándar (zoom 17) para un balance
+ * entre granularidad (~76m x 76m por tile) y rendimiento de BD.
+ *
+ * ZOOM 17 es el recomendado para "Fog of War" peatonal:
+ *   - Suficientemente pequeño para sentir que se "descubre" zona a zona.
+ *   - No tan pequeño que requiera miles de tiles por cuadra.
+ */
 data class TileModel(
     val tileX: Int,
     val tileY: Int,
-    val discovered: Boolean,
+    val discovered: Boolean = true,
     val discoveredAt: Long,
     val visitCount: Int,
-    val explorationPercentage: Float,
     val lastVisited: Long
 ) {
     val key: String
         get() = "${tileX}_${tileY}"
-    // centro geográfico del tile
-    // centro real del tile
-    val centerLat: Double
-        get() = (tileX * TILE_SIZE) + (TILE_SIZE / 2)
-
-    val centerLng: Double
-        get() = (tileY * TILE_SIZE) + (TILE_SIZE / 2)
 
     companion object {
-        private const val TILE_SIZE  = 262144.0
+        const val ZOOM = 17
     }
 }

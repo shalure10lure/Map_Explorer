@@ -23,12 +23,14 @@ actual class MapRemoteDataSource actual constructor() {
 
             ref.setValue(
                 mapOf(
-                    "descubierto_en" to tile.discoveredAt,
-                    "veces_visitado" to 1,
-                    "porcentaje_explorado" to 100,
-                    "sincronizado" to true
+                    "descubierto_en"  to tile.discoveredAt,
+                    "veces_visitado"  to tile.visitCount,
+                    "ultimo_ingreso"  to tile.lastVisited,
+                    "sincronizado"    to true
                 )
             ).await()
+            println("✅ Tile sincronizado: ${tile.tileX}_${tile.tileY} para $uid")
+
 
         } catch (e: Exception) {
             println("Firebase error: ${e.message}")

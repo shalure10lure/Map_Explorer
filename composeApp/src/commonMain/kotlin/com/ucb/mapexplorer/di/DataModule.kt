@@ -14,9 +14,9 @@ import org.koin.dsl.module
 
 val dataModule = module {
     singleOf(::AuthRepositoryImpl).bind<AuthRepository>()
-    singleOf(::FirebaseManager)
+    single { FirebaseManager() }
     singleOf(::MapLocalDataSource)
-    singleOf(::MapRemoteDataSource)
-    singleOf(::LocalitationService)
+    single { MapRemoteDataSource() }
+    single { LocalitationService() }
     singleOf(::MapRepositoryImpl).bind<MapRepository>()
 }

@@ -1,29 +1,33 @@
 package com.ucb.mapexplorer.map.presentation.state
 
-import com.ucb.mapexplorer.map.domain.model.PlaceModel
 import com.ucb.mapexplorer.map.domain.model.TileModel
-import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 
 data class MapUIState(
-    // tiles descubiertos por el usuario
+    /** Lista de tiles descubiertos por el usuario (leída de Room). */
     val discoveredTiles: List<TileModel> = emptyList(),
 
-    // ubicación actual
-    val currentLocation: UserLocationModel? = null,
-
-    // coordenadas rápidas (útiles para cámara / fog / cálculos)
+    /** Latitud actual del GPS. 0.0 = aún sin ubicación. */
     val userLat: Double = 0.0,
+
+    /** Longitud actual del GPS. */
     val userLng: Double = 0.0,
 
-    // total desbloqueados
-    val unlockedTiles: Int = 0,
+    /** Si estamos esperando la primera ubicación GPS. */
+    val isLoadingLocation: Boolean = true,
 
-    // loading
-    val isLoading: Boolean = false,
+    /** Cargando tiles desde la BD. */
+    val isLoadingTiles: Boolean = false,
 
-    // errores
-    val error: String? = null
-    //val nearbyPlaces: List<PlaceModel> = emptyList(),
-    //val selectedPlace: PlaceModel? = null,
+    /** Mensaje de error para mostrar (null = sin error). */
+    val errorMessage: String? = null,
 
+    /** Tiles totales descubiertos. */
+    val totalTilesUnlocked: Int = 0,
+
+    /** Nivel del usuario (calculado en base a tiles). */
+    val level: Int = 1,
+
+    /** Experiencia acumulada. */
+    val experience: Int = 0
 )
+

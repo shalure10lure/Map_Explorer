@@ -16,13 +16,13 @@ import com.ucb.mapexplorer.MainActivity
 class FirebaseService : FirebaseMessagingService() {
 
     companion object {
-        private val TAG = FirebaseService::class.java.simpleName
+       // private val TAG = FirebaseService::class.java.simpleName
         private const val CHANNEL_ID = "default_notification_channel"
         private const val CHANNEL_NAME = "General Notifications"
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d(TAG, "From: ${remoteMessage.from}")
+        //Log.d(TAG, "From: ${remoteMessage.from}")
 
         // Extract title and body from notification or data payload
         val title = remoteMessage.notification?.title ?: remoteMessage.data["title"] ?: "Notificación"
@@ -65,7 +65,7 @@ class FirebaseService : FirebaseMessagingService() {
     }
 
     override fun onNewToken(token: String) {
-        Log.d(TAG, "Refreshed token: $token")
+       // Log.d(TAG, "Refreshed token: $token")
         // Normally you would send this token to your server
     }
 }
