@@ -2,15 +2,20 @@ package com.ucb.mapexplorer.di
 
 import com.ucb.mapexplorer.auth.presentation.login.viewmodel.LoginViewModel
 import com.ucb.mapexplorer.auth.presentation.register.viewmodel.RegisterViewModel
-import com.ucb.mapexplorer.dollar.presentation.viewmodel.DollarViewModel
+import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
+import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.social.presentation.viewmodel.SocialSpaceViewModel
+import com.ucb.mapexplorer.profile.editProfile.presentation.viewmodel.EditProfileViewModel
+import com.ucb.mapexplorer.profile.ownProfile.presentation.viewmodel.OwnProfileViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
 val presentationModule = module {
-
-    viewModelOf(::DollarViewModel)
-
     viewModelOf(::LoginViewModel)
-
     viewModelOf(::RegisterViewModel)
+    viewModelOf(::MapViewModel)
+    viewModelOf(::NearbyPlacesViewModel)
+    viewModelOf(::SocialSpaceViewModel)
+    viewModelOf(::EditProfileViewModel)
+    viewModelOf(::OwnProfileViewModel)
 }

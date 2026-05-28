@@ -6,6 +6,7 @@ import com.ucb.mapexplorer.auth.domain.usecase.LoginUseCase
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEffect
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEvent
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginUIState
+import com.ucb.mapexplorer.core.session.Session
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -65,11 +66,12 @@ class LoginViewModel(
 
         viewModelScope.launch {
 
-            val result = loginUseCase(email, password)
+            val user = loginUseCase(email, password)
 
-            if (result) {
+            if (user) {
+                Session.uid = safeKey(email)  // ← "jr_gmail_com" en vez de "jr@gmail.com"
                 emit(LoginEffect.NavigateToHome)
-            } else {
+            }else {
                 emit(LoginEffect.ShowError("Credenciales incorrectas"))
             }
 
@@ -77,6 +79,11 @@ class LoginViewModel(
         }
 
     }
+    private fun safeKey(email: String): String =
+        email.trim().lowercase()
+            .replace("@", "_")
+            .replace(".", "_")
+
 
 
 }

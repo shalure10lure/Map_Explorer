@@ -2,17 +2,27 @@ package com.ucb.mapexplorer.di
 
 import com.ucb.mapexplorer.auth.domain.usecase.LoginUseCase
 import com.ucb.mapexplorer.auth.domain.usecase.RegisterUseCase
-import com.ucb.mapexplorer.dollar.domain.usecase.CreateDollarUseCase
-import com.ucb.mapexplorer.dollar.domain.usecase.GetDollarListUsecase
+import com.ucb.mapexplorer.map.domain.usecase.GetCurrentLocationUseCase
+import com.ucb.mapexplorer.map.domain.usecase.GetDiscoveredTilesUseCase
+import com.ucb.mapexplorer.map.domain.usecase.UnlockTileUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetNearbyPlacesUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetPlaceDetailUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarDescubiertoUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarVisitadoUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
 val domainModule = module {
-
-    singleOf(::GetDollarListUsecase)
-    singleOf(::CreateDollarUseCase)
-
     singleOf(::LoginUseCase)
     singleOf(::RegisterUseCase)
+    singleOf(::GetDiscoveredTilesUseCase)
+    singleOf(::GetCurrentLocationUseCase)
+    singleOf(::UnlockTileUseCase)
+
+    // NearbyPlaces
+    singleOf(::GetNearbyPlacesUseCase)
+    singleOf(::GetPlaceDetailUseCase)
+    singleOf(::SyncLugarDescubiertoUseCase)
+    singleOf(::SyncLugarVisitadoUseCase)
 
 }

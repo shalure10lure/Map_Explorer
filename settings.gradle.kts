@@ -29,3 +29,7 @@ dependencyResolutionManagement {
 }
 
 include(":composeApp")
+include(":core:designsystem")
+
+project(":core:designsystem").projectDir =
+    file("core/designsystem")
