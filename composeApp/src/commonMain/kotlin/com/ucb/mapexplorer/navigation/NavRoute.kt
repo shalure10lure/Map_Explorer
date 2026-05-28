@@ -38,6 +38,9 @@ sealed class NavRoute {
     object Main : NavRoute()
 
     @Serializable
+    object Onboarding : NavRoute()
+
+    @Serializable
     object NearbyPlaces : NavRoute()
 
     @Serializable

@@ -42,7 +42,7 @@ fun RegisterScreen(
                         popUpTo(NavRoute.Register) { inclusive = true }
                     }
                 RegisterEffect.NavigateToHome ->
-                    navController.navigate(NavRoute.Explanation1) {
+                    navController.navigate(NavRoute.Onboarding) {
                         popUpTo(NavRoute.Register) { inclusive = true }
                     }
                 is RegisterEffect.ShowError ->
