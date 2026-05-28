@@ -23,6 +23,7 @@ import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
 import com.ucb.mapexplorer.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
+import com.ucb.mapexplorer.onboarding.presentation.screen.OnboardingScreen
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
 import org.koin.compose.viewmodel.koinViewModel
 
