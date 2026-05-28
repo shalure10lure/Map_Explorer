@@ -9,6 +9,9 @@ import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetNearbyPlacesUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetPlaceDetailUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarDescubiertoUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarVisitadoUseCase
+import com.ucb.mapexplorer.profile.domain.usecase.GetProfileUseCase
+import com.ucb.mapexplorer.profile.domain.usecase.ObserveProfileUseCase
+import com.ucb.mapexplorer.profile.domain.usecase.UpdateProfileUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -25,4 +28,8 @@ val domainModule = module {
     singleOf(::SyncLugarDescubiertoUseCase)
     singleOf(::SyncLugarVisitadoUseCase)
 
+    // Profile
+    singleOf(::GetProfileUseCase)
+    singleOf(::UpdateProfileUseCase)
+    singleOf(::ObserveProfileUseCase)
 }

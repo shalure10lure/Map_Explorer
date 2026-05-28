@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -27,7 +26,6 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.social.presentation.state.*
-import com.ucb.mapexplorer.social.presentation.state.SocialPost
 import com.ucb.mapexplorer.social.presentation.viewmodel.SocialSpaceViewModel
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.painterResource
@@ -59,13 +57,8 @@ fun SocialSpaceScreen(
             .fillMaxSize()
             .background(AppTheme.colors.background)
     ) {
-        // 1. TOP NAVIGATION BAR (ROJA)
-        SocialTopBar(
-            onNearbyClick = onNavigateToNearby,
-            onProfileClick = onNavigateToProfile
-        )
-
-        // 2. SEARCH & BACK SECTION
+        // La TopBar global ya está presente en MainScreen.
+        // Aquí solo manejamos el contenido del feed.
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -91,29 +84,9 @@ fun SocialSpaceScreen(
                 }
             }
 
-            // Search Bar
-            OutlinedTextField(
-                value = state.searchQuery,
-                onValueChange = { viewModel.onEvent(SocialSpaceEvent.OnSearchQueryChanged(it)) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(Res.string.searchText_searchForPerson), color = AppTheme.colors.textSecondary) },
-                trailingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = AppTheme.colors.textSecondary) },
-                shape = RoundedCornerShape(24.dp),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedContainerColor = AppTheme.colors.surface,
-                    focusedContainerColor = AppTheme.colors.surface,
-                    focusedTextColor = AppTheme.colors.textPrimary,
-                    unfocusedTextColor = AppTheme.colors.textPrimary,
-                    cursorColor = AppTheme.colors.primary,
-                    focusedBorderColor = AppTheme.colors.primary,
-                    unfocusedBorderColor = AppTheme.colors.border
-                )
-            )
+            Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // 3. FEED LIST
+            // FEED LIST
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(32.dp),
@@ -132,72 +105,12 @@ fun SocialSpaceScreen(
 }
 
 @Composable
-fun SocialTopBar(
-    onNearbyClick: () -> Unit,
-    onProfileClick: () -> Unit
-) {
-    Surface(
-        color = Color(0xFFD32F2F), 
-        modifier = Modifier.fillMaxWidth().height(100.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            NavigationItem(
-                label = stringResource(Res.string.navigationBar_socialMedia_textSelection),
-                isSelected = true,
-                onClick = {}
-            )
-            NavigationItem(
-                label = stringResource(Res.string.navigationBar_nearbyPlaces_textSelection),
-                isSelected = false,
-                onClick = onNearbyClick
-            )
-            NavigationItem(
-                label = stringResource(Res.string.navigationBar_profile_textSelection),
-                isSelected = false,
-                onClick = onProfileClick
-            )
-        }
-    }
-}
-
-@Composable
-fun NavigationItem(label: String, isSelected: Boolean, onClick: () -> Unit) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(8.dp).clickable { onClick() }
-    ) {
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .background(
-                    if (isSelected) Color.White.copy(alpha = 0.25f) else Color.Transparent,
-                    CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.Default.Star, 
-                contentDescription = null, 
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Text(text = label, color = Color.White, fontSize = 10.sp, fontWeight = FontWeight.Medium)
-    }
-}
-
-@Composable
 fun SocialPostItem(
     post: SocialPost,
     onAddFriend: (String) -> Unit,
     onViewMap: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
-        // User Info Row
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
                 modifier = Modifier.size(40.dp).background(AppTheme.colors.surface, CircleShape),
@@ -220,11 +133,11 @@ fun SocialPostItem(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Image Card with Coil
         Card(
             modifier = Modifier.fillMaxWidth().height(220.dp),
             shape = RoundedCornerShape(12.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+            colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface)
         ) {
             if (!post.imageUrl.isNullOrBlank()) {
                 AsyncImage(
@@ -250,7 +163,6 @@ fun SocialPostItem(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Details Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -263,7 +175,6 @@ fun SocialPostItem(
                     fontWeight = FontWeight.Bold,
                     color = AppTheme.colors.textPrimary
                 )
-                // Rating Stars
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     repeat(5) { index ->
                         Icon(
@@ -296,7 +207,6 @@ fun SocialPostItem(
 
         Spacer(modifier = Modifier.height(8.dp))
         
-        // Experience Section
         Text(
             text = stringResource(Res.string.socialMedia_subtittle_myExperience),
             style = AppTheme.typography.bodySmall,

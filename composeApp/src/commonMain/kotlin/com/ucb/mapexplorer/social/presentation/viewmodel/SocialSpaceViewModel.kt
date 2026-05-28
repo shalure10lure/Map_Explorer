@@ -15,7 +15,7 @@ class SocialSpaceViewModel : ViewModel() {
     val effect = _effect.asSharedFlow()
 
     init {
-        loadMockPosts()
+
     }
 
     fun onEvent(event: SocialSpaceEvent) {
@@ -38,30 +38,4 @@ class SocialSpaceViewModel : ViewModel() {
         }
     }
 
-    private fun loadMockPosts() {
-        _state.update { 
-            it.copy(
-                posts = listOf(
-                    SocialPost(
-                        id = "1",
-                        userName = "Personaje Unknown User",
-                        locationName = "Punto de Encuentro",
-                        rating = 5,
-                        category = "Restaurante",
-                        userExperience = "Experiencia del usuario sobre el sitio que visito",
-                        isFriend = false
-                    ),
-                    SocialPost(
-                        id = "2",
-                        userName = "Amigo1",
-                        locationName = "Punto de Encuentro",
-                        rating = 4,
-                        category = "Restaurante",
-                        userExperience = "Me encantó este lugar, muy recomendado!",
-                        isFriend = true
-                    )
-                )
-            )
-        }
-    }
 }

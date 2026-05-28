@@ -21,8 +21,8 @@ import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
-import com.ucb.mapexplorer.profile.editProfile.presentation.screen.EditProfileScreen
-import com.ucb.mapexplorer.profile.editProfile.presentation.viewmodel.EditProfileViewModel
+import com.ucb.mapexplorer.editProfile.presentation.screen.EditProfileScreen
+import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
 import org.koin.compose.viewmodel.koinViewModel
 

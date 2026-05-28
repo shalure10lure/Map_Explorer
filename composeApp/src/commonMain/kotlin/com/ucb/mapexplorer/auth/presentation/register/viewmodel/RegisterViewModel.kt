@@ -8,7 +8,6 @@ import com.ucb.mapexplorer.auth.presentation.register.state.RegisterEffect
 import com.ucb.mapexplorer.auth.presentation.register.state.RegisterEvent
 import com.ucb.mapexplorer.auth.presentation.register.state.RegisterUIState
 import com.ucb.mapexplorer.core.session.Session
-import com.ucb.mapexplorer.profile.editProfile.presentation.state.AvatarTab // Enrutado al enum real
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
