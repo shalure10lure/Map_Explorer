@@ -21,6 +21,7 @@ import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.onboarding.presentation.screen.OnboardingScreen
 import com.ucb.mapexplorer.profile.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.profile.editProfile.presentation.viewmodel.EditProfileViewModel
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
@@ -47,7 +48,7 @@ fun AppNavHost() {
                     navController = navController,
                     snackbarHostState = snackbarHostState
                 )
-            }
+            }/*
             composable<NavRoute.Explanation1> {
                 Explanation1Screen(navController = navController)
             }
@@ -59,7 +60,7 @@ fun AppNavHost() {
             }
             composable<NavRoute.Explanation4> {
                 Explanation4Screen(navController = navController)
-            }
+            }*/
             composable<NavRoute.EditProfile> {
                 val vm: EditProfileViewModel = koinViewModel()
                 EditProfileScreen(
@@ -73,6 +74,9 @@ fun AppNavHost() {
             }
             composable<NavRoute.Map> {
                 MapScreen()
+            }
+            composable<NavRoute.Onboarding> {
+                OnboardingScreen(navController = navController)
             }
 
             // 🌐 Espacio Social
