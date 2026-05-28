@@ -2,6 +2,7 @@ package com.ucb.mapexplorer.map.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -22,8 +23,8 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MainScreen(
     navController: NavController
 ) {
-    // rememberSaveable mantiene la pestaña incluso si navegamos a otra ruta y volvemos
-    var selectedTab by rememberSaveable { mutableStateOf(MainTab.NEARBY) }
+    // Iniciamos en la pestaña del Mapa por defecto
+    var selectedTab by rememberSaveable { mutableStateOf(MainTab.MAP) }
     val ownProfileViewModel: OwnProfileViewModel = koinViewModel()
     val profileState by ownProfileViewModel.state.collectAsState()
 
@@ -35,7 +36,7 @@ fun MainScreen(
         
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTab) {
-                MainTab.NEARBY -> {
+                MainTab.MAP -> {
                     MapScreen()
                 }
                 
@@ -44,11 +45,18 @@ fun MainScreen(
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
                         Spacer(modifier = Modifier.height(70.dp)) 
                         SocialSpaceScreen(
-                            onBack = { selectedTab = MainTab.NEARBY },
+                            onBack = { selectedTab = MainTab.MAP },
                             onNavigateToMessages = { /* TODO */ },
                             onNavigateToNearby = { selectedTab = MainTab.NEARBY },
                             onNavigateToProfile = { selectedTab = MainTab.PROFILE }
                         )
+                    }
+                }
+
+                MainTab.NEARBY -> {
+                    // Pantalla temporal vacía o placeholder
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Próximamente: Lugares Cercanos", color = AppTheme.colors.textSecondary)
                     }
                 }
                 
@@ -58,7 +66,7 @@ fun MainScreen(
                         Spacer(modifier = Modifier.height(70.dp))
                         OwnProfileScreen(
                             viewModel      = ownProfileViewModel,
-                            onBack         = { selectedTab = MainTab.NEARBY },
+                            onBack         = { selectedTab = MainTab.MAP },
                             onEditProfile  = { navController.navigate(NavRoute.EditProfile) },
                             onViewRequests = { },
                             onViewFriend   = { }
@@ -68,11 +76,15 @@ fun MainScreen(
             }
         }
 
-        // La TopBar usa el avatar real cargado en el ViewModel de Perfil
+        // La TopBar con las nuevas opciones: Social Media, Mapa y Lugares Cercanos
         MainTopBar(
             selectedTab   = selectedTab,
             avatarConfig  = profileState.avatarConfig,
-            onTabSelected = { selectedTab = it },
+            onTabSelected = { tab ->
+                // "Lugares Cercanos" (NEARBY) está deshabilitado temporalmente si se desea
+                // Pero lo dejamos navegable para que se vea el placeholder
+                selectedTab = tab
+            },
             onAvatarClick = { selectedTab = MainTab.PROFILE },
             modifier = Modifier
                 .align(Alignment.TopCenter)

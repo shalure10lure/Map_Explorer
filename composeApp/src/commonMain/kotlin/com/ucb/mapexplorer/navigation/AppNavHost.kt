@@ -1,6 +1,6 @@
 package com.ucb.mapexplorer.navigation
 
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -32,12 +32,14 @@ fun AppNavHost() {
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
+    ) { _ -> 
+        // Eliminamos el padding(paddingValues) para permitir el diseño Edge-to-Edge
         NavHost(
             navController = navController,
             startDestination = NavRoute.Login,
-            modifier = Modifier.padding(paddingValues)
+            modifier = Modifier.fillMaxSize()
         ) {
             composable<NavRoute.Login> {
                 LoginScreen(navController = navController)
@@ -107,7 +109,6 @@ fun AppNavHost() {
 
             // 👤 Perfil
             composable<NavRoute.Profile> {
-                // Implementación pendiente o redirección
                 navController.navigate(NavRoute.Map)
             }
         }

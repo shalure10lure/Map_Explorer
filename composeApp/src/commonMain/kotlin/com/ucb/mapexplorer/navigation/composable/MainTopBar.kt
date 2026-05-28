@@ -29,53 +29,57 @@ fun MainTopBar(
     onAvatarClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Fondo rojo completo de la barra
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .background(AppTheme.colors.primary)
-            .statusBarsPadding()
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
+    // Surface garantiza que el fondo rojo cubra toda la zona, incluyendo debajo de statusBarsPadding
+    Surface(
+        color = AppTheme.colors.primary,
+        modifier = modifier.fillMaxWidth()
     ) {
-        // Las 3 pestañas ocupan el espacio disponible
         Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            TabItem(
-                label    = stringResource(Res.string.navigationBar_socialMedia_textSelection),
-                emoji    = "👥",
-                selected = selectedTab == MainTab.SOCIAL,
-                onClick  = { onTabSelected(MainTab.SOCIAL) }
-            )
-            TabItem(
-                label    = stringResource(Res.string.navigationBar_nearbyPlaces_textSelection),
-                emoji    = "📍",
-                selected = selectedTab == MainTab.NEARBY,
-                onClick  = { onTabSelected(MainTab.NEARBY) }
-            )
-            TabItem(
-                label    = stringResource(Res.string.navigationBar_profile_textSelection),
-                emoji    = "👤",
-                selected = selectedTab == MainTab.PROFILE,
-                onClick  = { onTabSelected(MainTab.PROFILE) }
-            )
-        }
-
-        // Botón circular del avatar — abre el perfil
-        Box(
             modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.15f))
-                .clickable { onAvatarClick() },
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .statusBarsPadding() // Empuja el CONTENIDO (iconos) debajo de la barra de estado
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            AvatarDisplay(
-                config   = avatarConfig,
-                size     = 36.dp
-            )
+            // Las 3 pestañas centrales
+            Row(
+                modifier = Modifier.weight(1f),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                TabItem(
+                    label    = stringResource(Res.string.navigationBar_socialMedia_textSelection),
+                    emoji    = "👥",
+                    selected = selectedTab == MainTab.SOCIAL,
+                    onClick  = { onTabSelected(MainTab.SOCIAL) }
+                )
+                TabItem(
+                    label    = "Mapa",
+                    emoji    = "🗺️",
+                    selected = selectedTab == MainTab.MAP,
+                    onClick  = { onTabSelected(MainTab.MAP) }
+                )
+                TabItem(
+                    label    = stringResource(Res.string.navigationBar_nearbyPlaces_textSelection),
+                    emoji    = "📍",
+                    selected = selectedTab == MainTab.NEARBY,
+                    onClick  = { onTabSelected(MainTab.NEARBY) }
+                )
+            }
+
+            // Botón circular del avatar — abre el perfil
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.15f))
+                    .clickable { onAvatarClick() },
+                contentAlignment = Alignment.Center
+            ) {
+                AvatarDisplay(
+                    config   = avatarConfig,
+                    size     = 36.dp
+                )
+            }
         }
     }
 }
@@ -109,7 +113,7 @@ private fun TabItem(
             textAlign = TextAlign.Center,
             maxLines = 2
         )
-        // Indicador de selección — línea blanca debajo
+        // Indicador de selección
         if (selected) {
             Spacer(modifier = Modifier.height(2.dp))
             Box(
@@ -121,4 +125,3 @@ private fun TabItem(
         }
     }
 }
-
