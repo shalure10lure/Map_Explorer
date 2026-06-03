@@ -28,7 +28,7 @@ fun OnboardingScreen(
     // Navegar al Home cuando corresponda
     LaunchedEffect(state.navigateToHome) {
         if (state.navigateToHome) {
-            navController.navigate(NavRoute.Map) {
+            navController.navigate(NavRoute.Main) {
                 popUpTo(NavRoute.Onboarding) { inclusive = true }
             }
         }
