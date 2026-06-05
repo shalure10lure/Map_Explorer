@@ -11,17 +11,24 @@ import com.ucb.mapexplorer.map.domain.usecase.UnlockTileUseCase
 import com.ucb.mapexplorer.map.presentation.state.MapEffect
 import com.ucb.mapexplorer.map.presentation.state.MapEvent
 import com.ucb.mapexplorer.map.presentation.state.MapUIState
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetNearbyPlacesUseCase
+import com.ucb.mapexplorer.profile.domain.repository.ProfileRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-
+import kotlin.math.atan2
+import kotlin.math.sqrt
+import kotlin.math.cos
+import kotlin.math.sin
 class MapViewModel(
     private val getCurrentLocationUseCase: GetCurrentLocationUseCase,
     private val unlockTileUseCase: UnlockTileUseCase,
-    private val getDiscoveredTilesUseCase: GetDiscoveredTilesUseCase
+    private val getDiscoveredTilesUseCase: GetDiscoveredTilesUseCase,
+    private val getNearbyPlacesUseCase: GetNearbyPlacesUseCase,
+    private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapUIState())
@@ -30,17 +37,16 @@ class MapViewModel(
     private val _effect = Channel<MapEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
-    /** Job del flujo GPS (se puede cancelar/reiniciar). */
     private var locationJob: Job? = null
-
-    /**
-     * Último tile procesado. Evita guardar en BD si el usuario
-     * no se movió a un tile diferente.
-     */
     private var lastProcessedTileKey: String? = null
+
+    // Caché para evitar peticiones repetitivas a la API
+    private var lastSearchLat: Double = 0.0
+    private var lastSearchLon: Double = 0.0
 
     init {
         onEvent(MapEvent.OnLoadMap)
+        loadUserProfile()
     }
 
     fun onEvent(event: MapEvent) {
@@ -61,6 +67,17 @@ class MapViewModel(
         }
     }
 
+    private fun loadUserProfile() {
+        val uid = Session.uid ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            profileRepository.observeProfile(uid).collect { profile ->
+                profile?.let {
+                    _state.update { it.copy(avatarConfig = profile.avatarConfig) }
+                }
+            }
+        }
+    }
+
     private fun startLocationUpdates() {
         if (locationJob?.isActive == true) return
 
@@ -70,7 +87,6 @@ class MapViewModel(
                     _effect.send(MapEffect.ShowError("Error GPS: ${e.message}"))
                 }
                 .collectLatest { location ->
-                    // Actualiza UI con la nueva posición
                     _state.update {
                         it.copy(
                             userLat = location.latitude,
@@ -78,16 +94,11 @@ class MapViewModel(
                             isLoadingLocation = false
                         )
                     }
-                    // Intenta desbloquear el tile
                     tryUnlockTile(location.latitude, location.longitude)
                 }
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // Maneja actualización de ubicación desde la capa de UI (MapViewContainer)
-    // Esto es para cuando el GPS se controla desde la vista (Android OSMDroid).
-    // ─────────────────────────────────────────────────────────────────────
     private fun handleLocationUpdate(lat: Double, lon: Double) {
         _state.update {
             it.copy(
@@ -98,74 +109,95 @@ class MapViewModel(
         }
         viewModelScope.launch(Dispatchers.IO) {
             tryUnlockTile(lat, lon)
+            loadDiscoveredTiles()
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // Core: Desbloquear tile
-    // ─────────────────────────────────────────────────────────────────────
-
     private suspend fun tryUnlockTile(lat: Double, lon: Double) {
-        val uid = Session.uid
-        println("🔍 SESSION UID = $uid")
-
-        if (uid.isNullOrEmpty()) {
-            println("❌ UID VACÍO - no se puede guardar")
-            _effect.send(MapEffect.ShowSnackbar("Inicia sesión para explorar"))
-            return
-        }
-
+        val uid = Session.uid ?: return
         val (tileX, tileY) = TileUtils.latLngToTile(lat, lon)
-        println("📍 GPS: lat=$lat lon=$lon → tile=${tileX}_${tileY}")
-
-        val (centerLat, centerLon) = TileUtils.tileToCenterLatLng(tileX, tileY)
-        val diffLat = kotlin.math.abs(lat - centerLat) * 111000
-        val diffLon = kotlin.math.abs(lon - centerLon) * 111000
-        println("🎯 Centro tile: lat=$centerLat lon=$centerLon")
-        println("📏 Desplazamiento: ${diffLat.toInt()}m lat, ${diffLon.toInt()}m lon")
-
         val tileKey = "${tileX}_${tileY}"
+
         if (tileKey == lastProcessedTileKey) return
         lastProcessedTileKey = tileKey
 
         try {
             val isNewTile = unlockTileUseCase(uid, UserLocationModel(lat, lon))
-            println("✅ TILE NUEVO = $isNewTile")  // ← y esto
-
             if (isNewTile) {
                 loadDiscoveredTiles()
                 _effect.send(MapEffect.NewTileDiscovered(tileX, tileY))
             }
         } catch (e: Exception) {
-            println("❌ ERROR TILE: ${e.message}")
             _effect.send(MapEffect.ShowSnackbar("Error: ${e.message}"))
         }
     }
-    // ─────────────────────────────────────────────────────────────────────
-    // Carga tiles desde Room
-    // ─────────────────────────────────────────────────────────────────────
 
     private fun loadDiscoveredTiles() {
         val uid = Session.uid ?: return
+        val currentLat = state.value.userLat
+        val currentLon = state.value.userLng
 
         viewModelScope.launch(Dispatchers.IO) {
-            _state.update { it.copy(isLoadingTiles = true) }
             try {
                 val tiles = getDiscoveredTilesUseCase(uid)
-                val totalTiles = tiles.size
-                _state.update {
-                    it.copy(
-                        discoveredTiles = tiles,
-                        totalTilesUnlocked = totalTiles,
-                        experience = totalTiles * 10,
-                        level = (totalTiles / 10) + 1,
-                        isLoadingTiles = false
-                    )
+
+                // Cálculo de distancia para optimizar API Overpass
+                val dist = haversine(currentLat, currentLon, lastSearchLat, lastSearchLon)
+
+                if (dist > 500 || lastSearchLat == 0.0) {
+                    _state.update { it.copy(isLoadingTiles = true) }
+                    val allPlaces = getNearbyPlacesUseCase(currentLat, currentLon)
+                    lastSearchLat = currentLat
+                    lastSearchLon = currentLon
+
+                    val filteredPlaces = allPlaces.filter { lugar ->
+                        val (placeX, placeY) = TileUtils.latLngToTile(lugar.latitude, lugar.longitude)
+                        tiles.any { tile -> tile.tileX == placeX && tile.tileY == placeY }
+                    }
+
+                    _state.update {
+                        it.copy(
+                            discoveredTiles = tiles,
+                            nearbyPlacesInMap = filteredPlaces,
+                            totalTilesUnlocked = tiles.size,
+                            experience = tiles.size * 10,
+                            level = (tiles.size / 10) + 1,
+                            isLoadingTiles = false
+                        )
+                    }
+                } else {
+                    _state.update { it.copy(discoveredTiles = tiles) }
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(isLoadingTiles = false) }
-                _effect.send(MapEffect.ShowSnackbar("Error cargando mapa: ${e.message}"))
             }
+        }
+    }
+
+    private fun haversine(
+        lat1: Double,
+        lon1: Double,
+        lat2: Double,
+        lon2: Double
+    ): Double {
+
+        val r = 6371000.0
+
+        val dLat = (lat2 - lat1) * kotlin.math.PI / 180.0
+        val dLon = (lon2 - lon1) * kotlin.math.PI / 180.0
+
+        val a =
+            sin(dLat / 2) * sin(dLat / 2) +
+                    cos(lat1 * kotlin.math.PI / 180.0) *
+                    cos(lat2 * kotlin.math.PI / 180.0) *
+                    sin(dLon / 2) * sin(dLon / 2)
+
+        return r * 2 * atan2(sqrt(a), sqrt(1 - a))
+    }
+
+    fun centerMapOnLocation(lat: Double, lon: Double) {
+        viewModelScope.launch {
+            _effect.send(MapEffect.CenterMapOnLocation(lat, lon))
         }
     }
 

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.designsystem.theme.ThemeMode
@@ -27,6 +28,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
+    navController: NavController,
     viewModel: MapViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -40,6 +42,11 @@ fun MapScreen(
                 is MapEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.NewTileDiscovered -> {
                     snackbarHostState.showSnackbar("¡Nueva zona descubierta! 🗺️")
+                }
+                is MapEffect.CenterMapOnLocation -> {
+                    // Aquí deberías tener una forma de mover la cámara de OsmDroid
+                    // Si usas un state para la cámara o el MapView directamente:
+                    // mapView.controller.animateTo(GeoPoint(effect.lat, effect.lon))
                 }
                 MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
             }
@@ -77,8 +84,9 @@ fun MapScreen(
             MapViewContainer(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
-                onLocationChanged = { lat, lng ->
-                    viewModel.onEvent(MapEvent.OnLocationUpdated(lat, lng))
+                navController = navController,
+                onLocationChanged = { lat, lon ->
+                    viewModel.onEvent(MapEvent.OnLocationUpdated(lat, lon))
                 }
             )
 

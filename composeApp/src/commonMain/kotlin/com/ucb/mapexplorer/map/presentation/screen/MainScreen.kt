@@ -11,9 +11,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.ucb.designsystem.theme.AppTheme
+import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.navigation.MainTab
 import com.ucb.mapexplorer.navigation.NavRoute
 import com.ucb.mapexplorer.navigation.composable.MainTopBar
+import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
+import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
 import com.ucb.mapexplorer.profile.presentation.screen.OwnProfileScreen
 import com.ucb.mapexplorer.profile.presentation.viewmodel.OwnProfileViewModel
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
@@ -28,6 +31,8 @@ fun MainScreen(
     val ownProfileViewModel: OwnProfileViewModel = koinViewModel()
     val profileState by ownProfileViewModel.state.collectAsState()
 
+    val mapViewModel: MapViewModel = koinViewModel()
+    val mapState by mapViewModel.state.collectAsState() // Escucha la Latitud y Longitud viva del GPS
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -37,7 +42,7 @@ fun MainScreen(
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTab) {
                 MainTab.MAP -> {
-                    MapScreen()
+                    MapScreen(navController = navController, viewModel = mapViewModel)
                 }
                 
                 MainTab.SOCIAL -> {
@@ -54,10 +59,17 @@ fun MainScreen(
                 }
 
                 MainTab.NEARBY -> {
-                    // Pantalla temporal vacía o placeholder
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Próximamente: Lugares Cercanos", color = AppTheme.colors.textSecondary)
-                    }
+                    val mapViewModel: MapViewModel = koinViewModel()
+                    val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
+
+                    NearbyPlacesScreen(
+                        mapViewModel = mapViewModel, // 👈 Pasamos el ViewModel del mapa
+                        viewModel = nearbyViewModel,
+                        onPlaceClick = { placeId ->
+                            navController.navigate(NavRoute.PlaceDetail(placeId))
+                        },
+                        onBack = { navController.popBackStack() }
+                    )
                 }
                 
                 MainTab.PROFILE -> {

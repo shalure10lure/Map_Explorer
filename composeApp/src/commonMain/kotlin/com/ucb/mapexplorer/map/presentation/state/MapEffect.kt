@@ -9,4 +9,7 @@ sealed interface MapEffect {
 
     /** Centra el mapa en la posición del usuario. */
     data object CenterMapOnUser : MapEffect
+
+    data class CenterMapOnLocation(val lat: Double, val lon: Double) : MapEffect
+
 }

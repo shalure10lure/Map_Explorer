@@ -11,9 +11,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.navigation.NavController
 import com.google.android.gms.location.*
 import com.ucb.mapexplorer.core.utils.TileUtils
 import com.ucb.mapexplorer.map.presentation.state.MapUIState
+import com.ucb.mapexplorer.navigation.NavRoute
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -26,6 +28,7 @@ import org.osmdroid.views.overlay.Overlay
 actual fun MapViewContainer(
     modifier: Modifier,
     state: MapUIState,
+    navController: NavController,
     onLocationChanged: (Double, Double) -> Unit
 ) {
     val context = LocalContext.current
@@ -73,17 +76,54 @@ actual fun MapViewContainer(
         }
     }
 
+
     // ── Marcador del usuario ──────────────────────────────────────────────
     val userMarker = remember {
         Marker(mapView).apply {
             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
-            val paint = Paint().apply {
-                textSize = 110f
-                textAlign = Paint.Align.CENTER
+            title = "Tú"
+        }
+    }
+
+// ── 🎨 GENERADOR DE BITMAP PARA EL AVATAR ──
+    val userAvatarBitmap = remember(state.avatarConfig) {
+        val size = 180 // Tamaño del marcador en pixeles
+        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+
+        // Función auxiliar para dibujar capas
+        fun drawLayer(resName: String?) {
+            if (resName.isNullOrBlank()) return
+            val resId = context.resources.getIdentifier(resName, "drawable", context.packageName)
+            if (resId != 0) {
+                val drawable = ContextCompat.getDrawable(context, resId)
+                drawable?.let {
+                    it.setBounds(0, 0, size, size)
+                    it.draw(canvas)
+                }
             }
-            val bitmap = Bitmap.createBitmap(160, 160, Bitmap.Config.ARGB_8888)
-            Canvas(bitmap).drawText("🧭", 80f, 120f, paint)
-            icon = android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
+        }
+
+        // Dibujamos en orden: Cuerpo -> Sombrero -> Accesorio
+        drawLayer(state.avatarConfig.body.resourceName)
+        drawLayer(state.avatarConfig.hat.resourceName)
+        drawLayer(state.avatarConfig.accessory.resourceName)
+
+        bitmap
+    }
+
+// Actualizamos el icono del marcador cada vez que el bitmap cambie
+    LaunchedEffect(userAvatarBitmap) {
+        userMarker.icon = android.graphics.drawable.BitmapDrawable(context.resources, userAvatarBitmap)
+        mapView.invalidate()
+    }
+
+// ── 🎯 MANEJAR "VER EN EL MAPA" (Centrado de cámara) ──
+    LaunchedEffect(state.cameraTarget) {
+        state.cameraTarget?.let { (lat, lon) ->
+            val targetPoint = GeoPoint(lat, lon)
+            mapView.controller.animateTo(targetPoint)
+            mapView.controller.setZoom(18.5) // Un poco más de zoom para ver el detalle
         }
     }
 
@@ -193,6 +233,51 @@ actual fun MapViewContainer(
     LaunchedEffect(Unit) {
         if (!mapView.overlays.contains(fogOverlay)) mapView.overlays.add(fogOverlay)
         if (!mapView.overlays.contains(userMarker)) mapView.overlays.add(userMarker)
+    }
+
+    // ── 🌟 PINTRAR LUGARES CERCANOS FILTRADOS POR TILE DISPONIBLE 🌟 ──
+    // Se ejecuta de manera limpia cada vez que cambia el listado en el state de tu ViewModel
+    val placeMarkers = remember { mutableStateListOf<Marker>() }
+
+    LaunchedEffect(state.nearbyPlacesInMap) {
+        // 1. Limpiamos los marcadores antiguos de lugares del mapa para no duplicar
+        placeMarkers.forEach { mapView.overlays.remove(it) }
+        placeMarkers.clear()
+
+        // 2. Recorremos tu lista limpia de lugares permitidos por tus Tiles descubiertos
+        state.nearbyPlacesInMap.forEach { lugar ->
+            val placeMarker = Marker(mapView).apply {
+                position = GeoPoint(lugar.latitude, lugar.longitude)
+                title = lugar.name
+                snippet = lugar.category // Ej: "Estadio"
+
+                // Colocamos el anclaje abajo en el centro para que flote bien
+                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+
+                // Convertir el emoji en un canvas legible e independiente para OsmDroid
+                val paint = Paint().apply {
+                    textSize = 90f // Tamaño del Emoji ideal para el mapa
+                    textAlign = Paint.Align.CENTER
+                }
+                val bitmap = Bitmap.createBitmap(140, 140, Bitmap.Config.ARGB_8888)
+                val canvas = Canvas(bitmap)
+                // Usamos el campo correspondiente a tu emoji de categoría (Ej: lugar.categoryIcon o lugar.emoji)
+                canvas.drawText(lugar.categoryIcon, 70f, 100f, paint)
+
+                icon = android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
+
+                // 🎯 REGLA PRINCIPAL: Al presionar el Emoji, te manda a los Detalles (image_8cb5db.png)
+                setOnMarkerClickListener { marker, _ ->
+                    // Usamos la ruta tipada definida en tus rutas de Jetpack Navigation
+                    navController.navigate(NavRoute.PlaceDetail(placeId = lugar.id))
+                    true
+                }
+            }
+
+            placeMarkers.add(placeMarker)
+            mapView.overlays.add(placeMarker)
+        }
+        mapView.invalidate() // Forzar refresco visual
     }
 
     // ── GPS — solo si tiene permiso ───────────────────────────────────────

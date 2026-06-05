@@ -1,6 +1,8 @@
 package com.ucb.mapexplorer.map.presentation.state
 
 import com.ucb.mapexplorer.map.domain.model.TileModel
+import com.ucb.mapexplorer.nearbyplaces.domain.model.PlaceModel
+import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
 
 data class MapUIState(
     /** Lista de tiles descubiertos por el usuario (leída de Room). */
@@ -28,6 +30,12 @@ data class MapUIState(
     val level: Int = 1,
 
     /** Experiencia acumulada. */
-    val experience: Int = 0
-)
+    val experience: Int = 0,
+    val nearbyPlacesInMap: List<PlaceModel> = emptyList(),
+    
+    /** Configuración del avatar del usuario para mostrar en el mapa. */
+    val avatarConfig: AvatarConfigModel = AvatarConfigModel(),
 
+    /** Ubicación a la que la cámara debe desplazarse (Ver en el mapa). */
+    val cameraTarget: Pair<Double, Double>? = null
+)

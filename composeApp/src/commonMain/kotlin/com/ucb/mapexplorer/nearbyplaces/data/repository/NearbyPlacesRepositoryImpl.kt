@@ -1,6 +1,5 @@
 package com.ucb.mapexplorer.nearbyplaces.data.repository
 
-
 import com.ucb.mapexplorer.nearbyplaces.data.datasource.NearbyPlacesLocalDataSource
 import com.ucb.mapexplorer.nearbyplaces.data.datasource.NearbyPlacesRemoteDataSource
 import com.ucb.mapexplorer.nearbyplaces.data.mapper.toEntity
@@ -17,7 +16,6 @@ class NearbyPlacesRepositoryImpl(
     private var lastUserLat = 0.0
     private var lastUserLon = 0.0
 
-    // ── Overpass → Room ────────────────────────────────────────────────────
     override suspend fun fetchAndCacheNearbyPlaces(
         latitude: Double,
         longitude: Double,
@@ -26,48 +24,52 @@ class NearbyPlacesRepositoryImpl(
         lastUserLat = latitude
         lastUserLon = longitude
 
-        val now      = Clock.System.now().toEpochMilliseconds()
+        val now = Clock.System.now().toEpochMilliseconds()
         val response = remote.fetchNearbyPlaces(latitude, longitude, radiusMeters)
 
         val entities = response.elements
             .mapNotNull { it.toEntity(now) }
             .distinctBy { it.lugarId }
 
-        if (entities.isNotEmpty()) local.saveAll(entities)
+        // ESCUDO 2: Solo si Overpass encontró lugares reales en Cochabamba actualizamos Room.
+        // Si la red falla o está vacía, no limpiamos el caché, protegemos los datos existentes.
+        if (entities.isNotEmpty()) {
+            local.saveAll(entities) // Esto ejecutará clearCache e insertAll de forma segura.
+            return entities
+                .map { it.toModel(latitude, longitude) }
+                .sortedBy { it.distanceMeters }
+        }
 
-        return entities
+        // Si la respuesta de red vino vacía por un micro-corte, devolvemos lo que había en Room
+        return local.getAll()
             .map { it.toModel(latitude, longitude) }
             .sortedBy { it.distanceMeters }
     }
 
-    // ── Cache offline ──────────────────────────────────────────────────────
     override suspend fun getCachedPlaces(): List<PlaceModel> =
         local.getAll()
             .map { it.toModel(lastUserLat, lastUserLon) }
             .sortedBy { it.distanceMeters }
 
-    // ── Detalle ────────────────────────────────────────────────────────────
     override suspend fun getPlaceById(id: String): PlaceModel? =
         local.getById(id)?.toModel(lastUserLat, lastUserLon)
 
-    // ── Firebase: lugar descubierto ────────────────────────────────────────
     override suspend fun syncLugarDescubierto(uid: String, place: PlaceModel) {
         remote.saveLugarDescubierto(
-            uid       = uid,
-            lugarId   = place.id,
-            nombre    = place.name,
+            uid = uid,
+            lugarId = place.id,
+            nombre = place.name,
             categoria = place.category,
-            lat       = place.latitude,
-            lon       = place.longitude
+            lat = place.latitude,
+            lon = place.longitude
         )
     }
 
-    // ── Firebase: lugar visitado ───────────────────────────────────────────
     override suspend fun syncLugarVisitado(uid: String, place: PlaceModel) {
         remote.saveLugarVisitado(
-            uid       = uid,
-            lugarId   = place.id,
-            nombre    = place.name,
+            uid = uid,
+            lugarId = place.id,
+            nombre = place.name,
             categoria = place.category
         )
     }

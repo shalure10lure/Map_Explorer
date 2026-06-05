@@ -1,12 +1,13 @@
 package com.ucb.mapexplorer.nearbyplaces.data.datasource
 
-
-
 import com.google.firebase.database.FirebaseDatabase
 import com.ucb.mapexplorer.nearbyplaces.data.dto.OverpassResponseDto
+import com.ucb.mapexplorer.nearbyplaces.data.service.OVERPASS_URL
+import com.ucb.mapexplorer.nearbyplaces.data.service.buildOverpassQuery
 import io.ktor.client.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.request.*
+import io.ktor.client.engine.okhttp.*
+import io.ktor.client.plugins.HttpTimeout // 🟢 NUEVO IMPORT PARA KTOR 3
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.tasks.await
@@ -15,11 +16,12 @@ import kotlinx.serialization.json.Json
 
 actual class NearbyPlacesRemoteDataSource actual constructor() {
 
-    // ── Ktor para Overpass API ────────────────────────────────────────────
-    private val client = HttpClient(Android) {
-        engine {
-            connectTimeout = 15_000
-            socketTimeout  = 25_000
+    // 🟢 Configuración adaptada y robusta para Ktor 3
+    private val client = HttpClient(OkHttp) { // 🟢 Cambia Android por OkHttp
+        install(HttpTimeout) {
+            connectTimeoutMillis = 15_000
+            requestTimeoutMillis = 25_000
+            socketTimeoutMillis = 25_000
         }
     }
 
@@ -28,34 +30,28 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
         isLenient = true
     }
 
-    // ── Firebase ──────────────────────────────────────────────────────────
     private val firebaseDb = FirebaseDatabase.getInstance()
 
-    // ─────────────────────────────────────────────────────────────────────
-    // 1. Overpass API
-    // ─────────────────────────────────────────────────────────────────────
     actual suspend fun fetchNearbyPlaces(
         lat: Double,
         lon: Double,
         radius: Int
     ): OverpassResponseDto {
         return try {
-            val query    = buildOverpassQuery(lat, lon, radius)
-            val response = client.post(OVERPASS_URL) {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody("data=${query.encodeURLParameter()}")
-            }
+            val query = buildOverpassQuery(lat, lon, radius)
+            val response = client.submitForm(
+                url = OVERPASS_URL,
+                formParameters = parameters {
+                    append("data", query)
+                }
+            )
             json.decodeFromString(response.bodyAsText())
         } catch (e: Exception) {
-            println("Overpass error (Android): ${e.message}")
+            println("❌ Overpass error (Android): ${e.message}")
             OverpassResponseDto(elements = emptyList())
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // 2. Firebase → lugares_descubiertos
-    //    usuarios/{uid}/exploracion/lugares_descubiertos/{lugarId}
-    // ─────────────────────────────────────────────────────────────────────
     actual suspend fun saveLugarDescubierto(
         uid: String,
         lugarId: String,
@@ -73,23 +69,18 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
                 .child("lugares_descubiertos")
                 .child(lugarId)
                 .setValue(mapOf(
-                    "nombre"         to nombre,
-                    "categoria"      to categoria,
-                    "latitud"        to lat,
-                    "longitud"       to lon,
+                    "nombre" to nombre,
+                    "categoria" to categoria,
+                    "latitud" to lat,
+                    "longitud" to lon,
                     "descubierto_en" to now,
-                    "sincronizado"   to true
+                    "sincronizado" to true
                 )).await()
-            println("✅ Lugar descubierto: $lugarId para $uid")
         } catch (e: Exception) {
-            println("Firebase error (saveLugarDescubierto): ${e.message}")
+            println("❌ Firebase error (saveLugarDescubierto): ${e.message}")
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // 3. Firebase → lugares_visitados
-    //    usuarios/{uid}/exploracion/lugares_visitados/{lugarId}
-    // ─────────────────────────────────────────────────────────────────────
     actual suspend fun saveLugarVisitado(
         uid: String,
         lugarId: String,
@@ -105,14 +96,13 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
                 .child("lugares_visitados")
                 .child(lugarId)
                 .setValue(mapOf(
-                    "nombre"        to nombre,
-                    "categoria"     to categoria,
+                    "nombre" to nombre,
+                    "categoria" to categoria,
                     "ultima_visita" to now,
-                    "sincronizado"  to true
+                    "sincronizado" to true
                 )).await()
-            println("✅ Lugar visitado: $lugarId para $uid")
         } catch (e: Exception) {
-            println("Firebase error (saveLugarVisitado): ${e.message}")
+            println("❌ Firebase error (saveLugarVisitado): ${e.message}")
         }
     }
 }
