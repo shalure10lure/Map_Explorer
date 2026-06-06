@@ -14,9 +14,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.google.android.gms.location.*
+import android.content.Context
 import com.ucb.mapexplorer.core.utils.TileUtils
 import com.ucb.mapexplorer.map.presentation.state.MapUIState
 import com.ucb.mapexplorer.navigation.NavRoute
+import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -73,70 +75,6 @@ actual fun MapViewContainer(
     }
 
 
-    // ── Helper: Bitmap de emoji ───────────────────────────────────────────
-    fun emojiBitmap(emoji: String, sizePx: Int = 120): Bitmap {
-        val bmp    = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bmp)
-
-        // Fondo blanco redondeado
-        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            setShadowLayer(4f, 0f, 2f, Color.argb(80, 0, 0, 0))
-        }
-        canvas.drawRoundRect(
-            RectF(4f, 4f, sizePx - 4f, sizePx - 4f),
-            16f, 16f, bgPaint
-        )
-
-        // Emoji
-        val paint = Paint().apply {
-            textSize  = sizePx * 0.52f
-            textAlign = Paint.Align.CENTER
-        }
-        canvas.drawText(emoji, sizePx / 2f, sizePx * 0.72f, paint)
-        return bmp
-    }
-
-
-    // ── Helper: Bitmap del avatar (capas de drawables) ────────────────────
-    fun avatarBitmap(): Bitmap {
-        val size   = 180
-        val bmp    = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bmp)
-
-        // Fondo circular rojo (color primario de la app)
-        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor("#D32F2F")
-        }
-        canvas.drawCircle(size / 2f, size / 2f, size / 2f, bgPaint)
-
-        // Borde blanco
-        val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.WHITE
-            style = Paint.Style.STROKE
-            strokeWidth = 6f
-        }
-        canvas.drawCircle(size / 2f, size / 2f, size / 2f - 3f, borderPaint)
-
-        fun drawLayer(resName: String?) {
-            if (resName.isNullOrBlank()) return
-            val resId = context.resources.getIdentifier(resName, "drawable", context.packageName)
-            if (resId != 0) {
-                val d = ContextCompat.getDrawable(context, resId)
-                d?.let {
-                    it.setBounds(20, 20, size - 20, size - 20)
-                    it.draw(canvas)
-                }
-            }
-        }
-
-        drawLayer(avatarConfig.value.body.resourceName)
-        drawLayer(avatarConfig.value.hat.resourceName)
-        drawLayer(avatarConfig.value.accessory.resourceName)
-
-        return bmp
-    }
-
     // ── Marcador del usuario (AVATAR) ─────────────────────────────────────
     val userMarker = remember {
         Marker(mapView).apply {
@@ -145,9 +83,11 @@ actual fun MapViewContainer(
         }
     }
 
-    // Actualiza el ícono del avatar cuando cambia la configuración
+    // ── Actualización del Avatar Dinámico ─────────────────────────────────
     LaunchedEffect(avatarConfig.value) {
-        userMarker.icon = BitmapDrawable(context.resources, avatarBitmap())
+        // Ejecutar la renderización de las capas del avatar en segundo plano para no trabar la UI
+        val bitmap = avatarBitmap(context, avatarConfig.value)
+        userMarker.icon = BitmapDrawable(context.resources, bitmap)
         mapView.invalidate()
     }
 
@@ -345,4 +285,64 @@ actual fun MapViewContainer(
     }
 
     AndroidView(factory = { mapView }, modifier = modifier)
+}
+private fun avatarBitmap(context: Context, config: AvatarConfigModel): Bitmap {
+    val size = 180
+    val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bmp)
+
+    // Fondo circular suavizado
+    val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.parseColor("#FEF7FF")
+    }
+    canvas.drawCircle(size / 2f, size / 2f, size / 2f, bgPaint)
+
+    // Borde blanco
+    val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        style = Paint.Style.STROKE
+        strokeWidth = 8f
+    }
+    canvas.drawCircle(size / 2f, size / 2f, size / 2f - 4f, borderPaint)
+
+    // FUNCIÓN INTERNA CORREGIDA
+    fun drawLayer(resName: String?) {
+        if (resName.isNullOrBlank()) return
+
+        // CORRECCIÓN: Usamos 'context.resources' explícitamente
+        val resId = context.resources.getIdentifier(resName, "drawable", context.packageName)
+
+        if (resId != 0) {
+            // CORRECCIÓN: Pasamos el 'resId' real en lugar de la variable 'r' cortada
+            ContextCompat.getDrawable(context, resId)?.let { drawable ->
+                drawable.setBounds(15, 15, size - 15, size - 15)
+                drawable.draw(canvas)
+            }
+        }
+    }
+
+    // Dibujar en orden de capas
+    drawLayer(config.body.resourceName)
+    drawLayer(config.hat.resourceName)
+    drawLayer(config.accessory.resourceName)
+
+    return bmp
+}
+
+private fun emojiBitmap(emoji: String, sizePx: Int = 120): Bitmap {
+    val bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bmp)
+
+    val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        color = Color.WHITE
+        setShadowLayer(4f, 0f, 2f, Color.argb(80, 0, 0, 0))
+    }
+    canvas.drawRoundRect(RectF(4f, 4f, sizePx - 4f, sizePx - 4f), 16f, 16f, bgPaint)
+
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textSize = sizePx * 0.52f
+        textAlign = Paint.Align.CENTER
+    }
+    canvas.drawText(emoji, sizePx / 2f, sizePx * 0.72f, paint)
+    return bmp
 }
