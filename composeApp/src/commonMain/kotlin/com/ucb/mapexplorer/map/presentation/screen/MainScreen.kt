@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.ucb.designsystem.theme.AppTheme
+import com.ucb.mapexplorer.map.presentation.state.MapEvent
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.navigation.MainTab
 import com.ucb.mapexplorer.navigation.NavRoute
@@ -34,11 +35,12 @@ fun MainScreen(
     val ownProfileViewModel: OwnProfileViewModel = koinViewModel()
     val profileState by ownProfileViewModel.state.collectAsState()
 
+    // Sincronizar el avatar del perfil con el estado del mapa
     LaunchedEffect(profileState.avatarConfig) {
         val mapAvatar     = mapState.avatarConfig
         val profileAvatar = profileState.avatarConfig
         if (mapAvatar != profileAvatar) {
-            mapViewModel.updateAvatarFromProfile(profileAvatar)
+            mapViewModel.onEvent(MapEvent.OnAvatarUpdated(profileAvatar))
         }
     }
 

@@ -44,46 +44,40 @@ class MapViewModel(
     private var lastSearchLon: Double = 0.0
 
     init {
-        loadUserProfile()
         onEvent(MapEvent.OnLoadMap)
     }
 
     fun onEvent(event: MapEvent) {
         when (event) {
-            MapEvent.OnLoadMap            -> { loadDiscoveredTiles(); startLocationUpdates() }
+            MapEvent.OnLoadMap            -> { 
+                loadUserProfile()
+                loadDiscoveredTiles() 
+                startLocationUpdates() 
+            }
             is MapEvent.OnLocationUpdated -> handleLocationUpdate(event.latitude, event.longitude)
             MapEvent.OnDismissError       -> _state.update { it.copy(errorMessage = null) }
             MapEvent.OnCenterOnUser       -> viewModelScope.launch { _effect.send(MapEffect.CenterMapOnUser) }
+            is MapEvent.OnAvatarUpdated   -> updateAvatarFromProfile(event.config)
         }
     }
 
-    /**
-     * Usa el mismo ProfileRepository que OwnProfileViewModel.
-     * observeProfile() ya funciona correctamente — emite el perfil al suscribirse
-     * (gracias al onStart { getProfile(uid)?.let { emit(it) } } en el repo).
-     *
-     * Solo tomamos el PRIMER valor con .first() para no mantener un listener
-     * activo que se cancele al navegar.
-     */
     private fun loadUserProfile() {
         val uid = Session.uid ?: return
-
         profileJob?.cancel()
         profileJob = viewModelScope.launch(Dispatchers.IO) {
             try {
-                // getProfile() es una llamada única — no se cancela al navegar
                 val profile = profileRepository.getProfile(uid)
                 if (profile != null) {
                     _state.update { it.copy(avatarConfig = profile.avatarConfig) }
-                    println("✅ MapViewModel: avatar cargado → ${profile.avatarConfig.body.name}|${profile.avatarConfig.hat.name}|${profile.avatarConfig.accessory.name}")
                 }
-            } catch (e: CancellationException) {
-                throw e // re-lanzar para que Coroutines maneje bien la cancelación
             } catch (e: Exception) {
-                println("MapViewModel: no se pudo cargar el avatar: ${e.message}")
-                // Silencioso — el marcador usará el avatar por defecto
+                if (e !is CancellationException) e.printStackTrace()
             }
         }
+    }
+
+    fun updateAvatarFromProfile(config: AvatarConfigModel) {
+        _state.update { it.copy(avatarConfig = config) }
     }
 
     private fun startLocationUpdates() {
@@ -129,10 +123,8 @@ class MapViewModel(
                 loadDiscoveredTiles()
                 _effect.send(MapEffect.NewTileDiscovered(tileX, tileY))
             }
-        } catch (e: CancellationException) {
-            throw e
         } catch (e: Exception) {
-            _effect.send(MapEffect.ShowSnackbar("Error: ${e.message}"))
+            if (e !is CancellationException) _effect.send(MapEffect.ShowSnackbar("Error: ${e.message}"))
         }
     }
 
@@ -148,23 +140,17 @@ class MapViewModel(
 
                 if (dist > 500 || lastSearchLat == 0.0) {
                     _state.update { it.copy(isLoadingTiles = true) }
-
                     val allPlaces = try {
                         getNearbyPlacesUseCase(currentLat, currentLon)
-                    } catch (e: CancellationException) {
-                        throw e
                     } catch (e: Exception) {
-                        println("❌ Overpass error: ${e.message}")
                         emptyList()
                     }
 
                     lastSearchLat = currentLat
                     lastSearchLon = currentLon
-
                     val filteredPlaces = allPlaces.filter { lugar ->
                         val (placeX, placeY) = TileUtils.latLngToTile(lugar.latitude, lugar.longitude)
-                        val enTile = tiles.any { it.tileX == placeX && it.tileY == placeY }
-                        enTile && lugar.name.isNotBlank() && lugar.name != "Lugar"
+                        tiles.any { it.tileX == placeX && it.tileY == placeY } && lugar.name.isNotBlank()
                     }
 
                     _state.update {
@@ -180,10 +166,8 @@ class MapViewModel(
                 } else {
                     _state.update { it.copy(discoveredTiles = tiles) }
                 }
-            } catch (e: CancellationException) {
-                throw e
             } catch (e: Exception) {
-                _state.update { it.copy(isLoadingTiles = false) }
+                if (e !is CancellationException) _state.update { it.copy(isLoadingTiles = false) }
             }
         }
     }
@@ -195,9 +179,6 @@ class MapViewModel(
         val a    = sin(dLat / 2).pow(2) +
                 cos(lat1 * PI / 180.0) * cos(lat2 * PI / 180.0) * sin(dLon / 2).pow(2)
         return r * 2 * atan2(sqrt(a), sqrt(1 - a))
-    }
-    fun updateAvatarFromProfile(config: AvatarConfigModel) {
-        _state.update { it.copy(avatarConfig = config) }
     }
 
     fun centerMapOnLocation(lat: Double, lon: Double) {
