@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.*
@@ -37,29 +38,24 @@ actual fun MapViewContainer(
     var hasLocationPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                context, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         )
     }
-
     val permissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        hasLocationPermission = isGranted
-    }
+        ActivityResultContracts.RequestPermission()
+    ) { hasLocationPermission = it }
 
     LaunchedEffect(Unit) {
         Configuration.getInstance().userAgentValue = context.packageName
-        if (!hasLocationPermission) {
-            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
+        if (!hasLocationPermission) permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
     }
 
-    // ── Estados actualizados para el overlay ──────────────────────────────
-    val currentLat = rememberUpdatedState(state.userLat)
-    val currentLon = rememberUpdatedState(state.userLng)
+    val currentLat      = rememberUpdatedState(state.userLat)
+    val currentLon      = rememberUpdatedState(state.userLng)
     val discoveredTiles = rememberUpdatedState(state.discoveredTiles)
+    val nearbyPlaces    = rememberUpdatedState(state.nearbyPlacesInMap)
+    val avatarConfig    = rememberUpdatedState(state.avatarConfig)
 
     // ── MapView ───────────────────────────────────────────────────────────
     val mapView = remember {
@@ -77,7 +73,71 @@ actual fun MapViewContainer(
     }
 
 
-    // ── Marcador del usuario ──────────────────────────────────────────────
+    // ── Helper: Bitmap de emoji ───────────────────────────────────────────
+    fun emojiBitmap(emoji: String, sizePx: Int = 120): Bitmap {
+        val bmp    = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+
+        // Fondo blanco redondeado
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            setShadowLayer(4f, 0f, 2f, Color.argb(80, 0, 0, 0))
+        }
+        canvas.drawRoundRect(
+            RectF(4f, 4f, sizePx - 4f, sizePx - 4f),
+            16f, 16f, bgPaint
+        )
+
+        // Emoji
+        val paint = Paint().apply {
+            textSize  = sizePx * 0.52f
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText(emoji, sizePx / 2f, sizePx * 0.72f, paint)
+        return bmp
+    }
+
+
+    // ── Helper: Bitmap del avatar (capas de drawables) ────────────────────
+    fun avatarBitmap(): Bitmap {
+        val size   = 180
+        val bmp    = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bmp)
+
+        // Fondo circular rojo (color primario de la app)
+        val bgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor("#D32F2F")
+        }
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f, bgPaint)
+
+        // Borde blanco
+        val borderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.WHITE
+            style = Paint.Style.STROKE
+            strokeWidth = 6f
+        }
+        canvas.drawCircle(size / 2f, size / 2f, size / 2f - 3f, borderPaint)
+
+        fun drawLayer(resName: String?) {
+            if (resName.isNullOrBlank()) return
+            val resId = context.resources.getIdentifier(resName, "drawable", context.packageName)
+            if (resId != 0) {
+                val d = ContextCompat.getDrawable(context, resId)
+                d?.let {
+                    it.setBounds(20, 20, size - 20, size - 20)
+                    it.draw(canvas)
+                }
+            }
+        }
+
+        drawLayer(avatarConfig.value.body.resourceName)
+        drawLayer(avatarConfig.value.hat.resourceName)
+        drawLayer(avatarConfig.value.accessory.resourceName)
+
+        return bmp
+    }
+
+    // ── Marcador del usuario (AVATAR) ─────────────────────────────────────
     val userMarker = remember {
         Marker(mapView).apply {
             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER)
@@ -85,38 +145,12 @@ actual fun MapViewContainer(
         }
     }
 
-// ── 🎨 GENERADOR DE BITMAP PARA EL AVATAR ──
-    val userAvatarBitmap = remember(state.avatarConfig) {
-        val size = 180 // Tamaño del marcador en pixeles
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-
-        // Función auxiliar para dibujar capas
-        fun drawLayer(resName: String?) {
-            if (resName.isNullOrBlank()) return
-            val resId = context.resources.getIdentifier(resName, "drawable", context.packageName)
-            if (resId != 0) {
-                val drawable = ContextCompat.getDrawable(context, resId)
-                drawable?.let {
-                    it.setBounds(0, 0, size, size)
-                    it.draw(canvas)
-                }
-            }
-        }
-
-        // Dibujamos en orden: Cuerpo -> Sombrero -> Accesorio
-        drawLayer(state.avatarConfig.body.resourceName)
-        drawLayer(state.avatarConfig.hat.resourceName)
-        drawLayer(state.avatarConfig.accessory.resourceName)
-
-        bitmap
-    }
-
-// Actualizamos el icono del marcador cada vez que el bitmap cambie
-    LaunchedEffect(userAvatarBitmap) {
-        userMarker.icon = android.graphics.drawable.BitmapDrawable(context.resources, userAvatarBitmap)
+    // Actualiza el ícono del avatar cuando cambia la configuración
+    LaunchedEffect(avatarConfig.value) {
+        userMarker.icon = BitmapDrawable(context.resources, avatarBitmap())
         mapView.invalidate()
     }
+
 
 // ── 🎯 MANEJAR "VER EN EL MAPA" (Centrado de cámara) ──
     LaunchedEffect(state.cameraTarget) {
@@ -235,49 +269,38 @@ actual fun MapViewContainer(
         if (!mapView.overlays.contains(userMarker)) mapView.overlays.add(userMarker)
     }
 
-    // ── 🌟 PINTRAR LUGARES CERCANOS FILTRADOS POR TILE DISPONIBLE 🌟 ──
-    // Se ejecuta de manera limpia cada vez que cambia el listado en el state de tu ViewModel
+    // ── Marcadores de lugares cercanos (con click → detalle) ──────────────
     val placeMarkers = remember { mutableStateListOf<Marker>() }
 
-    LaunchedEffect(state.nearbyPlacesInMap) {
-        // 1. Limpiamos los marcadores antiguos de lugares del mapa para no duplicar
+    LaunchedEffect(nearbyPlaces.value) {
+        // Quitar marcadores viejos
         placeMarkers.forEach { mapView.overlays.remove(it) }
         placeMarkers.clear()
 
-        // 2. Recorremos tu lista limpia de lugares permitidos por tus Tiles descubiertos
-        state.nearbyPlacesInMap.forEach { lugar ->
-            val placeMarker = Marker(mapView).apply {
-                position = GeoPoint(lugar.latitude, lugar.longitude)
-                title = lugar.name
-                snippet = lugar.category // Ej: "Estadio"
-
-                // Colocamos el anclaje abajo en el centro para que flote bien
+        nearbyPlaces.value.forEach { lugar ->
+            val marker = Marker(mapView).apply {
+                position  = GeoPoint(lugar.latitude, lugar.longitude)
+                title     = lugar.name
+                snippet   = lugar.category
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                icon = BitmapDrawable(context.resources, emojiBitmap(lugar.categoryIcon, 100))
 
-                // Convertir el emoji en un canvas legible e independiente para OsmDroid
-                val paint = Paint().apply {
-                    textSize = 90f // Tamaño del Emoji ideal para el mapa
-                    textAlign = Paint.Align.CENTER
-                }
-                val bitmap = Bitmap.createBitmap(140, 140, Bitmap.Config.ARGB_8888)
-                val canvas = Canvas(bitmap)
-                // Usamos el campo correspondiente a tu emoji de categoría (Ej: lugar.categoryIcon o lugar.emoji)
-                canvas.drawText(lugar.categoryIcon, 70f, 100f, paint)
-
-                icon = android.graphics.drawable.BitmapDrawable(context.resources, bitmap)
-
-                // 🎯 REGLA PRINCIPAL: Al presionar el Emoji, te manda a los Detalles (image_8cb5db.png)
-                setOnMarkerClickListener { marker, _ ->
-                    // Usamos la ruta tipada definida en tus rutas de Jetpack Navigation
+                // ← CLICK en marcador → navega al detalle del lugar
+                setOnMarkerClickListener { _, _ ->
                     navController.navigate(NavRoute.PlaceDetail(placeId = lugar.id))
                     true
                 }
             }
-
-            placeMarkers.add(placeMarker)
-            mapView.overlays.add(placeMarker)
+            placeMarkers.add(marker)
+            // Agregar ENCIMA del fog pero debajo del avatar del usuario
+            val userMarkerIndex = mapView.overlays.indexOf(userMarker)
+            if (userMarkerIndex >= 0) {
+                mapView.overlays.add(userMarkerIndex, marker)
+            } else {
+                mapView.overlays.add(marker)
+            }
         }
-        mapView.invalidate() // Forzar refresco visual
+        mapView.invalidate()
     }
 
     // ── GPS — solo si tiene permiso ───────────────────────────────────────

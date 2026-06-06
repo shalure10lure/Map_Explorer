@@ -2,7 +2,6 @@ package com.ucb.mapexplorer.map.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -26,52 +25,64 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MainScreen(
     navController: NavController
 ) {
-    // Iniciamos en la pestaña del Mapa por defecto
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.MAP) }
+
+    // ── ViewModels ─────────────────────────────────────────────────────────
+    val mapViewModel: MapViewModel = koinViewModel()
+    val mapState by mapViewModel.state.collectAsState()
+
     val ownProfileViewModel: OwnProfileViewModel = koinViewModel()
     val profileState by ownProfileViewModel.state.collectAsState()
 
-    val mapViewModel: MapViewModel = koinViewModel()
-    val mapState by mapViewModel.state.collectAsState() // Escucha la Latitud y Longitud viva del GPS
+    LaunchedEffect(profileState.avatarConfig) {
+        val mapAvatar     = mapState.avatarConfig
+        val profileAvatar = profileState.avatarConfig
+        if (mapAvatar != profileAvatar) {
+            mapViewModel.updateAvatarFromProfile(profileAvatar)
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(AppTheme.colors.background)
     ) {
-        
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTab) {
+
                 MainTab.MAP -> {
                     MapScreen(navController = navController, viewModel = mapViewModel)
                 }
-                
+
                 MainTab.SOCIAL -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-                        Spacer(modifier = Modifier.height(70.dp)) 
+                        Spacer(modifier = Modifier.height(70.dp))
                         SocialSpaceScreen(
-                            onBack = { selectedTab = MainTab.MAP },
-                            onNavigateToMessages = { /* TODO */ },
-                            onNavigateToNearby = { selectedTab = MainTab.NEARBY },
-                            onNavigateToProfile = { selectedTab = MainTab.PROFILE }
+                            onBack               = { selectedTab = MainTab.MAP },
+                            onNavigateToMessages = { },
+                            onNavigateToNearby   = { selectedTab = MainTab.NEARBY },
+                            onNavigateToProfile  = { selectedTab = MainTab.PROFILE }
                         )
                     }
                 }
 
                 MainTab.NEARBY -> {
-                    val mapViewModel: MapViewModel = koinViewModel()
                     val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
-
-                    NearbyPlacesScreen(
-                        mapViewModel = mapViewModel, // 👈 Pasamos el ViewModel del mapa
-                        viewModel = nearbyViewModel,
-                        onPlaceClick = { placeId ->
-                            navController.navigate(NavRoute.PlaceDetail(placeId))
-                        },
-                        onBack = { navController.popBackStack() }
-                    )
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+                        Spacer(modifier = Modifier.height(70.dp))
+                        NearbyPlacesScreen(
+                            mapViewModel = mapViewModel,
+                            viewModel    = nearbyViewModel,
+                            onPlaceClick = { placeId ->
+                                navController.navigate(NavRoute.PlaceDetail(placeId))
+                            },
+                            onBack = { selectedTab = MainTab.MAP }
+                        )
+                    }
                 }
-                
+
                 MainTab.PROFILE -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
@@ -88,17 +99,12 @@ fun MainScreen(
             }
         }
 
-        // La TopBar con las nuevas opciones: Social Media, Mapa y Lugares Cercanos
         MainTopBar(
             selectedTab   = selectedTab,
             avatarConfig  = profileState.avatarConfig,
-            onTabSelected = { tab ->
-                // "Lugares Cercanos" (NEARBY) está deshabilitado temporalmente si se desea
-                // Pero lo dejamos navegable para que se vea el placeholder
-                selectedTab = tab
-            },
+            onTabSelected = { tab -> selectedTab = tab },
             onAvatarClick = { selectedTab = MainTab.PROFILE },
-            modifier = Modifier
+            modifier      = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(10f)
         )

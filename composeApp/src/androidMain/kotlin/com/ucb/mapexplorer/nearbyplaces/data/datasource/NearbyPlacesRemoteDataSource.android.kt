@@ -6,7 +6,7 @@ import com.ucb.mapexplorer.nearbyplaces.data.service.OVERPASS_URL
 import com.ucb.mapexplorer.nearbyplaces.data.service.buildOverpassQuery
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
-import io.ktor.client.plugins.HttpTimeout // 🟢 NUEVO IMPORT PARA KTOR 3
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -16,12 +16,11 @@ import kotlinx.serialization.json.Json
 
 actual class NearbyPlacesRemoteDataSource actual constructor() {
 
-    // 🟢 Configuración adaptada y robusta para Ktor 3
-    private val client = HttpClient(OkHttp) { // 🟢 Cambia Android por OkHttp
+    private val client = HttpClient(OkHttp) {
         install(HttpTimeout) {
             connectTimeoutMillis = 15_000
             requestTimeoutMillis = 25_000
-            socketTimeoutMillis = 25_000
+            socketTimeoutMillis  = 25_000
         }
     }
 
@@ -32,26 +31,27 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
 
     private val firebaseDb = FirebaseDatabase.getInstance()
 
-    actual suspend fun fetchNearbyPlaces(
-        lat: Double,
-        lon: Double,
-        radius: Int
-    ): OverpassResponseDto {
+    actual suspend fun fetchNearbyPlaces(lat: Double, lon: Double, radius: Int): OverpassResponseDto {
         return try {
             val query = buildOverpassQuery(lat, lon, radius)
             val response = client.submitForm(
                 url = OVERPASS_URL,
-                formParameters = parameters {
-                    append("data", query)
-                }
+                formParameters = parameters { append("data", query) }
             )
             json.decodeFromString(response.bodyAsText())
         } catch (e: Exception) {
-            println("❌ Overpass error (Android): ${e.message}")
+            println("❌ Overpass error: ${e.message}")
             OverpassResponseDto(elements = emptyList())
         }
     }
 
+    /**
+     * Guarda lugar descubierto en Firebase usando el lugarId (estable, basado en OSM id)
+     * como clave del nodo — EVITA DUPLICADOS porque Firebase hace upsert con set().
+     *
+     * ANTES: se usaba .push() o un timestamp, que generaba nodos nuevos en cada llamada.
+     * AHORA: .child(lugarId) → si ya existe, sobreescribe (mismo dato); si no, crea.
+     */
     actual suspend fun saveLugarDescubierto(
         uid: String,
         lugarId: String,
@@ -62,17 +62,21 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
     ) {
         try {
             val now = Clock.System.now().toEpochMilliseconds()
+            // Sanitizamos el lugarId para que sea un nodo válido en Firebase
+            // (Firebase no acepta '.', '#', '$', '[', ']', '/')
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+
             firebaseDb.reference
                 .child("usuarios")
                 .child(uid)
                 .child("exploracion")
                 .child("lugares_descubiertos")
-                .child(lugarId)
+                .child(safeId)             // ← clave estable = sin duplicados
                 .setValue(mapOf(
-                    "nombre" to nombre,
-                    "categoria" to categoria,
-                    "latitud" to lat,
-                    "longitud" to lon,
+                    "nombre"       to nombre,
+                    "categoria"    to categoria,
+                    "latitud"      to lat,
+                    "longitud"     to lon,
                     "descubierto_en" to now,
                     "sincronizado" to true
                 )).await()
@@ -89,15 +93,17 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
     ) {
         try {
             val now = Clock.System.now().toEpochMilliseconds()
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+
             firebaseDb.reference
                 .child("usuarios")
                 .child(uid)
                 .child("exploracion")
                 .child("lugares_visitados")
-                .child(lugarId)
+                .child(safeId)
                 .setValue(mapOf(
-                    "nombre" to nombre,
-                    "categoria" to categoria,
+                    "nombre"       to nombre,
+                    "categoria"    to categoria,
                     "ultima_visita" to now,
                     "sincronizado" to true
                 )).await()
