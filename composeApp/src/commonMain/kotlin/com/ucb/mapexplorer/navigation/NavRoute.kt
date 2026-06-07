@@ -67,5 +67,7 @@ sealed class NavRoute {
     object FriendsRequests : NavRoute()
 
     @Serializable
+    data class FriendProfile(val friendUid: String) : NavRoute()
+    @Serializable
     object SearchUser : NavRoute()
 }

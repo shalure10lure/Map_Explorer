@@ -91,7 +91,9 @@ fun MainScreen(
                             onBack = { selectedTab = MainTab.MAP },
                             onEditProfile = { navController.navigate(NavRoute.EditProfile) },
                             onViewRequests = { navController.navigate(NavRoute.FriendsRequests) },
-                            onViewFriend = { }
+                            onViewFriend = { friendUid ->
+                                navController.navigate(NavRoute.FriendProfile(friendUid))
+                            }
                         )
                     }
                 }

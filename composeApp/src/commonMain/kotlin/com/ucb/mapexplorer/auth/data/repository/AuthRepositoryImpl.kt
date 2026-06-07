@@ -51,10 +51,15 @@ class AuthRepositoryImpl(
             firebase.saveData("usuarios/$uid/informacion/correo",     user.email)
             firebase.saveData("usuarios/$uid/informacion/password",   user.password)
             firebase.saveData("usuarios/$uid/informacion/descripcion",user.description ?: "")
+            firebase.saveData("usuarios/$uid/informacion/edad",          user.age.toString())
             firebase.saveData("usuarios/$uid/informacion/fecha_creacion", now.toString())
 
+            if (!user.photoUrl.isNullOrEmpty()) {
+                firebase.saveData("usuarios/$uid/informacion/avatar_id", user.photoUrl)
+            }
             // También registra el username como único en el nodo usernames
             firebase.saveData("usernames/$uid", user.username)
+
 
             // Guarda sesión local
             try {

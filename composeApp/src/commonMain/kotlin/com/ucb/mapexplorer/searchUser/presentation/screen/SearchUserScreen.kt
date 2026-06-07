@@ -11,16 +11,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ucb.designsystem.theme.AppTheme
+import com.ucb.mapexplorer.friends.domain.model.UserSearchModel
+import com.ucb.mapexplorer.searchUser.presentation.state.SearchUserEffect
 import com.ucb.mapexplorer.searchUser.presentation.state.SearchUserEvent
 import com.ucb.mapexplorer.searchUser.presentation.viewmodel.SearchUserViewModel
 
@@ -31,99 +32,186 @@ fun SearchUserScreen(
     onBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                SearchUserEffect.NavigateBack -> onBack()
+                is SearchUserEffect.ShowToast ->
+                    snackbarHostState.showSnackbar(effect.message)
+            }
+        }
+    }
+
+    // Diálogo de confirmación
     if (state.showConfirmationDialog && state.selectedUser != null) {
+        val user = state.selectedUser!!
         AlertDialog(
             onDismissRequest = { viewModel.onEvent(SearchUserEvent.OnDismissDialog) },
-            title = { Text("Enviar solicitud", color = AppTheme.colors.textPrimary) },
-            text = { Text("¿Deseas enviar una solicitud de amistad a ${state.selectedUser?.username}?", color = AppTheme.colors.textPrimary) },
+            containerColor = AppTheme.colors.surface,
+            title = {
+                Text(
+                    when {
+                        state.alreadyFriend -> "¡Ya son amigos!"
+                        state.requestSent   -> "Solicitud pendiente"
+                        else               -> "Enviar solicitud"
+                    },
+                    color = AppTheme.colors.textPrimary
+                )
+            },
+            text = {
+                Text(
+                    when {
+                        state.alreadyFriend -> "Ya eres amigo de ${user.username}."
+                        state.requestSent   -> "Ya enviaste una solicitud a ${user.username}. Espera su respuesta."
+                        else               -> "¿Deseas enviar una solicitud de amistad a ${user.username}?"
+                    },
+                    color = AppTheme.colors.textSecondary
+                )
+            },
             confirmButton = {
-                TextButton(onClick = { viewModel.onEvent(SearchUserEvent.OnConfirmSendRequest) }) {
-                    Text("Aceptar", color = Color(0xFF2196F3))
+                if (!state.alreadyFriend && !state.requestSent) {
+                    if (state.sendingRequest) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = AppTheme.colors.primary,
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        TextButton(onClick = { viewModel.onEvent(SearchUserEvent.OnConfirmSendRequest) }) {
+                            Text("Enviar", color = AppTheme.colors.primary, fontWeight = FontWeight.Bold)
+                        }
+                    }
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.onEvent(SearchUserEvent.OnDismissDialog) }) {
-                    Text("Cancelar", color = AppTheme.colors.error)
+                    Text(if (state.alreadyFriend || state.requestSent) "Cerrar" else "Cancelar",
+                        color = AppTheme.colors.textSecondary)
                 }
             },
-            shape = RoundedCornerShape(16.dp),
-            containerColor = AppTheme.colors.surface // Corregido: Ahora se adapta al tema
+            shape = RoundedCornerShape(16.dp)
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background)
-    ) {
-        // Header
-        Row(
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = AppTheme.colors.background
+    ) { padding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+                .fillMaxSize()
+                .padding(padding)
+                .background(AppTheme.colors.background)
         ) {
-            IconButton(onClick = onBack) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = AppTheme.colors.textPrimary
+            // Header
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(onClick = { viewModel.onEvent(SearchUserEvent.OnBackClick) }) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Volver",
+                        tint = AppTheme.colors.textPrimary
+                    )
+                }
+                Text(
+                    text = "Buscar personas",
+                    style = AppTheme.typography.headlineLarge.copy(fontSize = 20.sp),
+                    color = AppTheme.colors.textPrimary
                 )
             }
+
+            // Barra de búsqueda
+            OutlinedTextField(
+                value = state.searchQuery,
+                onValueChange = { viewModel.onEvent(SearchUserEvent.OnQueryChanged(it)) },
+                placeholder = {
+                    Text(
+                        "Buscar por usuario, correo o ID...",
+                        color = AppTheme.colors.textSecondary
+                    )
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, null, tint = AppTheme.colors.textSecondary)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = AppTheme.colors.surface,
+                    unfocusedContainerColor = AppTheme.colors.surface,
+                    focusedTextColor = AppTheme.colors.textPrimary,
+                    unfocusedTextColor = AppTheme.colors.textPrimary,
+                    cursorColor = AppTheme.colors.primary,
+                    focusedBorderColor = AppTheme.colors.primary,
+                    unfocusedBorderColor = AppTheme.colors.border
+                )
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             Text(
-                text = "Buscar Usuario",
-                style = AppTheme.typography.headlineLarge.copy(fontSize = 20.sp),
-                color = AppTheme.colors.textPrimary
+                text = "Busca por nombre de usuario, correo o ID",
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colors.textSecondary,
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
-        }
 
-        // Search Bar
-        OutlinedTextField(
-            value = state.searchQuery,
-            onValueChange = { viewModel.onEvent(SearchUserEvent.OnQueryChanged(it)) },
-            placeholder = { Text("Nombre de usuario...", color = AppTheme.colors.textSecondary) },
-            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = AppTheme.colors.textSecondary) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            shape = RoundedCornerShape(12.dp),
-            singleLine = true,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = AppTheme.colors.surface,
-                unfocusedContainerColor = AppTheme.colors.surface,
-                focusedTextColor = AppTheme.colors.textPrimary,
-                unfocusedTextColor = AppTheme.colors.textPrimary,
-                cursorColor = AppTheme.colors.primary,
-                focusedBorderColor = AppTheme.colors.primary,
-                unfocusedBorderColor = AppTheme.colors.border
-            )
-        )
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        if (state.isLoading) {
-            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = AppTheme.colors.primary)
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                if (state.searchResults.isEmpty() && state.searchQuery.isNotEmpty()) {
-                    item {
-                        Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                            Text("No se encontraron usuarios", color = AppTheme.colors.textSecondary)
+            when {
+                state.isLoading -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = AppTheme.colors.primary)
+                    }
+                }
+                state.searchQuery.length >= 2 && state.searchResults.isEmpty() -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("🔍", fontSize = 48.sp)
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "No se encontraron usuarios",
+                                color = AppTheme.colors.textSecondary,
+                                style = AppTheme.typography.bodyMedium
+                            )
                         }
                     }
                 }
-                items(state.searchResults) { user ->
-                    UserSearchItem(
-                        username = user.username,
-                        onClick = { viewModel.onEvent(SearchUserEvent.OnUserSelected(user)) }
-                    )
+                state.searchQuery.length < 2 && state.searchResults.isEmpty() -> {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("👥", fontSize = 48.sp)
+                            Spacer(Modifier.height(8.dp))
+                            Text(
+                                "Escribe al menos 2 caracteres",
+                                color = AppTheme.colors.textSecondary,
+                                style = AppTheme.typography.bodyMedium
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(state.searchResults, key = { it.uid }) { user ->
+                            UserSearchItem(
+                                user = user,
+                                onClick = { viewModel.onEvent(SearchUserEvent.OnUserSelected(user)) }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -131,8 +219,8 @@ fun SearchUserScreen(
 }
 
 @Composable
-fun UserSearchItem(
-    username: String,
+private fun UserSearchItem(
+    user: UserSearchModel,
     onClick: () -> Unit
 ) {
     Card(
@@ -151,21 +239,38 @@ fun UserSearchItem(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(AppTheme.colors.border.copy(alpha = 0.5f), CircleShape),
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(AppTheme.colors.primary.copy(alpha = 0.15f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = username.take(1).uppercase(),
-                    color = AppTheme.colors.textPrimary,
-                    fontWeight = FontWeight.Bold
+                    text = user.username.take(1).uppercase(),
+                    color = AppTheme.colors.primary,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 18.sp
                 )
             }
             Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = user.username,
+                    style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                    color = AppTheme.colors.textPrimary
+                )
+                if (user.description.isNotBlank()) {
+                    Text(
+                        text = user.description,
+                        style = AppTheme.typography.bodySmall,
+                        color = AppTheme.colors.textSecondary,
+                        maxLines = 1
+                    )
+                }
+            }
             Text(
-                text = username,
-                style = AppTheme.typography.bodyMedium,
-                color = AppTheme.colors.textPrimary,
+                text = "Agregar →",
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colors.primary,
                 fontWeight = FontWeight.Medium
             )
         }

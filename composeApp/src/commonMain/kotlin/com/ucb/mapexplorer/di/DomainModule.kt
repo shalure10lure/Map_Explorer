@@ -2,6 +2,16 @@ package com.ucb.mapexplorer.di
 
 import com.ucb.mapexplorer.auth.domain.usecase.LoginUseCase
 import com.ucb.mapexplorer.auth.domain.usecase.RegisterUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.AcceptFriendRequestUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.DeclineFriendRequestUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.GetFriendsUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.GetPendingRequestsUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.GetUserProfileUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.HasPendingRequestUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.IsFriendUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.RemoveFriendUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.SearchUsersUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.SendFriendRequestUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetCurrentLocationUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetDiscoveredTilesUseCase
 import com.ucb.mapexplorer.map.domain.usecase.SyncMapHistoryUseCase
@@ -57,4 +67,16 @@ val domainModule = module {
     singleOf(::PublishExperienceUseCase)
     singleOf(::GetAllPublicationsUseCase)
     singleOf(::GetPlaceAverageRatingUseCase)
+
+    //friend
+    singleOf(::GetFriendsUseCase)
+    singleOf(::SearchUsersUseCase)
+    singleOf(::SendFriendRequestUseCase)
+    singleOf(::GetPendingRequestsUseCase)
+    singleOf(::AcceptFriendRequestUseCase)
+    singleOf(::DeclineFriendRequestUseCase)
+    singleOf(::RemoveFriendUseCase)
+    singleOf(::GetUserProfileUseCase)
+    singleOf(::IsFriendUseCase)
+    singleOf(::HasPendingRequestUseCase)
 }

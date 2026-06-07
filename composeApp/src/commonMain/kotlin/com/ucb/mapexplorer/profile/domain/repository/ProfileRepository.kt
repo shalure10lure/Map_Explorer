@@ -9,7 +9,8 @@ data class ProfileModel(
     val email: String,
     val description: String,
     val avatarConfig: AvatarConfigModel,
-    val level: Int = 1
+    val level: Int = 1,
+    val age: Int = 0
 )
 
 interface ProfileRepository {

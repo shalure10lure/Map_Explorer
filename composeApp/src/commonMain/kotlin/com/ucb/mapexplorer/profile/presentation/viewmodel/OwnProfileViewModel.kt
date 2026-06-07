@@ -3,10 +3,13 @@ package com.ucb.mapexplorer.profile.presentation.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ucb.mapexplorer.core.session.Session
+import com.ucb.mapexplorer.friends.domain.usecase.GetFriendsUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.ObserveProfileUseCase
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEffect
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEvent
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileUIState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,7 +22,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class OwnProfileViewModel(
-    private val observeProfileUseCase: ObserveProfileUseCase
+    private val observeProfileUseCase: ObserveProfileUseCase,
+    private val getFriendsUseCase: GetFriendsUseCase
 ) : ViewModel() {
     private val _state = MutableStateFlow(OwnProfileUIState())
     val state = _state.asStateFlow()
@@ -59,6 +63,15 @@ class OwnProfileViewModel(
             }
             .catch { _state.update { it.copy(isLoading = false) } }
             .launchIn(viewModelScope)
+
+        // Cargar amigos reales
+        viewModelScope.launch(Dispatchers.IO) {
+            val friends = getFriendsUseCase(uid)
+            _state.update { it.copy(
+                friends     = friends.map { f -> f.username },
+                friendUids  = friends.associate { f -> f.username to f.uid }
+            )}
+        }
     }
 
     fun onEvent(event: OwnProfileEvent) {
@@ -72,9 +85,10 @@ class OwnProfileViewModel(
             OwnProfileEvent.OnViewRequestsClick -> {
                 viewModelScope.launch { _effect.emit(OwnProfileEffect.NavigateToRequests) }
             }
-            is OwnProfileEvent.OnFriendClick -> {
-                viewModelScope.launch { _effect.emit(OwnProfileEffect.NavigateToFriendProfile(event.friendName)) }
-            }
+            is OwnProfileEvent.OnFriendClick ->
+                viewModelScope.launch {
+                    _effect.emit(OwnProfileEffect.NavigateToFriendProfile(event.friendName))
+                }
         }
     }
 }

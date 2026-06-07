@@ -21,6 +21,8 @@ import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewM
 import com.ucb.mapexplorer.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
 import com.ucb.mapexplorer.favoritePlaces.presentation.screen.FavoritePlacesScreen
+import com.ucb.mapexplorer.friendProfile.presentation.screen.FriendProfileScreen
+import com.ucb.mapexplorer.friendProfile.presentation.viewmodel.FriendProfileViewModel
 import com.ucb.mapexplorer.friendsRequests.presentation.screen.FriendsRequestsScreen
 import com.ucb.mapexplorer.friendsRequests.presentation.viewmodel.FriendsRequestsViewModel
 import com.ucb.mapexplorer.map.presentation.screen.GuideMapScreen
@@ -74,7 +76,6 @@ fun AppNavHost() {
                 OnboardingScreen(navController = navController)
             }
 
-            // 🌐 Espacio Social
             composable<NavRoute.SocialSpace> {
                 SocialSpaceScreen(
                     onBack = { navController.popBackStack() },
@@ -101,7 +102,6 @@ fun AppNavHost() {
                 )
             }
 
-            // 📍 Pantalla de lista de lugares
             composable<NavRoute.NearbyPlaces> {
                 val mapViewModel: MapViewModel = koinViewModel()
 
@@ -116,9 +116,7 @@ fun AppNavHost() {
                 )
             }
 
-            // 👤 Perfil
             composable<NavRoute.Profile> {
-                // Aquí podrías navegar a una pantalla de perfil real
                 navController.navigate(NavRoute.Map)
             }
             composable<NavRoute.FavoritePlaces> {
@@ -138,7 +136,6 @@ fun AppNavHost() {
                 )
             }
 
-            // 🔍 Detalle del Lugar
             composable<NavRoute.PlaceDetail> { backStackEntry ->
                 val route: NavRoute.PlaceDetail = backStackEntry.toRoute()
                 val mapViewModel: MapViewModel = koinViewModel()
@@ -148,7 +145,7 @@ fun AppNavHost() {
                     placeId = route.placeId,
                     mapViewModel = mapViewModel,
                     nearbyViewModel = nearbyViewModel,
-                    navController = navController,   // ← AGREGAR ESTO
+                    navController = navController,
                     onBack = { navController.popBackStack() }
                 )
             }
@@ -176,7 +173,16 @@ fun AppNavHost() {
                     }
                 )
             }
-
+            composable<NavRoute.FriendProfile> { backStackEntry ->
+                val route: NavRoute.FriendProfile = backStackEntry.toRoute()
+                val vm: FriendProfileViewModel = koinViewModel()
+                FriendProfileScreen(
+                    friendUid = route.friendUid,
+                    viewModel = vm,
+                    onBack    = { navController.popBackStack() },
+                    onBackToProfile = { navController.popBackStack() }
+                )
+            }
 
         }
     }

@@ -28,30 +28,45 @@ class ProfileRepositoryImpl(
 
     override suspend fun getProfile(uid: String): ProfileModel? {
         return try {
-            val username = firebase.getData("usuarios/$uid/informacion/username")?.trim('"') ?: ""
-            val correo = firebase.getData("usuarios/$uid/informacion/correo")?.trim('"') ?: ""
-            val descripcion = firebase.getData("usuarios/$uid/informacion/descripcion")?.trim('"') ?: ""
-            val avatarId = firebase.getData("usuarios/$uid/informacion/avatar_id")?.trim('"') ?: ""
-            
+            val username    = firebase.getData("usuarios/$uid/informacion/username")
+                ?.trim('"') ?: ""
+            val correo      = firebase.getData("usuarios/$uid/informacion/correo")
+                ?.trim('"') ?: ""
+            val descripcion = firebase.getData("usuarios/$uid/informacion/descripcion")
+                ?.trim('"') ?: ""
+            val avatarId    = firebase.getData("usuarios/$uid/informacion/avatar_id")
+                ?.trim('"') ?: ""
+            val edad        = firebase.getData("usuarios/$uid/informacion/edad")
+                ?.trim('"')?.toIntOrNull() ?: 0
+
             val profile = ProfileModel(
-                uid = uid,
-                name = username,
-                email = correo,
+                uid         = uid,
+                name        = username,
+                email       = correo,
                 description = descripcion,
-                avatarConfig = if (avatarId.isNotEmpty()) AvatarConfigModel.fromId(avatarId) else AvatarConfigModel()
+                avatarConfig = if (avatarId.isNotEmpty())
+                    AvatarConfigModel.fromId(avatarId)
+                else
+                    AvatarConfigModel(),
+                age         = edad
             )
-            
+
+            // Actualizar caché local con los datos más recientes
             localDb.insert(UserEntity(correo, username, descripcion))
             profile
+
         } catch (e: Exception) {
+            println("Error obteniendo perfil de Firebase, usando cache local: ${e.message}")
+            // Fallback a Room si no hay conexión
             val local = localDb.getUserByEmail(uid.replace("_", "."))
             local?.let {
                 ProfileModel(
-                    uid = uid,
-                    name = it.username,
-                    email = it.email,
-                    description = it.description ?: "", // Corregido: de descripcion a description
-                    avatarConfig = AvatarConfigModel()
+                    uid         = uid,
+                    name        = it.username,
+                    email       = it.email,
+                    description = it.description ?: "",
+                    avatarConfig = AvatarConfigModel(), // sin avatar en fallback local
+                    age         = 0
                 )
             }
         }
@@ -60,17 +75,20 @@ class ProfileRepositoryImpl(
     override suspend fun updateProfile(profile: ProfileModel): Boolean {
         return try {
             val uid = profile.uid
-            firebase.saveData("usuarios/$uid/informacion/username", profile.name)
+            firebase.saveData("usuarios/$uid/informacion/username",    profile.name)
             firebase.saveData("usuarios/$uid/informacion/descripcion", profile.description)
-            firebase.saveData("usuarios/$uid/informacion/avatar_id", profile.avatarConfig.toId())
-            
+            firebase.saveData("usuarios/$uid/informacion/edad",        profile.age.toString())
+            firebase.saveData("usuarios/$uid/informacion/avatar_id",   profile.avatarConfig.toId())
+
+            // Actualizar caché local
             localDb.insert(UserEntity(profile.email, profile.name, profile.description))
+
+            // Notificar a los observadores (OwnProfileViewModel se actualiza automáticamente)
             profileUpdates.emit(profile)
             true
         } catch (e: Exception) {
-            println("Error updating profile: ${e.message}")
+            println("Error actualizando perfil: ${e.message}")
             false
         }
     }
-
 }

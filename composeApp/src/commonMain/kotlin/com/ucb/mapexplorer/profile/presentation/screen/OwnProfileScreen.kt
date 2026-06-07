@@ -41,7 +41,10 @@ fun OwnProfileScreen(
                 OwnProfileEffect.NavigateBack -> onBack()
                 OwnProfileEffect.NavigateToEditProfile -> onEditProfile()
                 OwnProfileEffect.NavigateToRequests -> onViewRequests()
-                is OwnProfileEffect.NavigateToFriendProfile -> onViewFriend(effect.friendName)
+                is OwnProfileEffect.NavigateToFriendProfile -> {
+                   val uid = state.friendUids[effect.friendName] ?: return@collect
+                    onViewFriend(uid)   // pasamos el UID real
+                }
             }
         }
     }

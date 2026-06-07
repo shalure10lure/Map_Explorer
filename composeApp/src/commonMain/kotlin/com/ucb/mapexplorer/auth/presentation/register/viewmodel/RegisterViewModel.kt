@@ -114,7 +114,8 @@ class RegisterViewModel(
                     email       = s.email,
                     password    = s.password,
                     description = s.description,
-                    photoUrl    = s.avatarConfig.toId() // Serializa a String estructurado "CUERPO|SOMBRERO|ACCESORIO"
+                    age         = s.age,                  // ← NUEVO
+                    photoUrl    = s.avatarConfig.toId()
                 )
             )
 
