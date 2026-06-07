@@ -5,10 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +28,7 @@ import org.jetbrains.compose.resources.stringResource
 import com.ucb.mapexplorer.map.presentation.state.MapEffect
 import com.ucb.mapexplorer.map.presentation.state.MapEvent
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
+import com.ucb.mapexplorer.navigation.NavRoute
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,7 +69,12 @@ fun MapScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        sheetContent = { MapSettingsContent() },
+        sheetContent = {
+            MapSettingsContent(
+                onNavigateToFavoritos = { navController.navigate(NavRoute.FavoritePlaces) },
+                onNavigateToGuardados = { navController.navigate(NavRoute.SavedPlaces) }
+            )
+        },
         sheetPeekHeight = 80.dp,
         sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         sheetContainerColor = AppTheme.colors.surface,
@@ -126,21 +137,20 @@ fun MapScreen(
         }
     }
 }
+
+
 @Composable
-private fun MapSettingsContent() {
-    // Valores globales actuales (reales)
+private fun MapSettingsContent(
+    onNavigateToFavoritos: () -> Unit,
+    onNavigateToGuardados: () -> Unit
+) {
     val globalLanguage = LocalAppLanguage.current
     val globalTheme = LocalThemeMode.current
-
-    // Controladores globales para aplicar cambios
     val changeLanguage = LocalLanguageController.current
     val changeTheme = LocalThemeController.current
 
-    // ESTADO TEMPORAL (Borrador del usuario)
     var tempLanguage by remember(globalLanguage) { mutableStateOf(globalLanguage) }
     var tempTheme by remember(globalTheme) { mutableStateOf(globalTheme) }
-
-    // Verificamos si el usuario ha movido algo respecto a lo guardado
     val hasChanges = tempLanguage != globalLanguage || tempTheme != globalTheme
 
     Column(
@@ -151,19 +161,15 @@ private fun MapSettingsContent() {
             .padding(bottom = 40.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        // --- SECCIÓN: CONFIGURACIÓN ---
         SectionHeader(stringResource(Res.string.moreOptions_tittle_configuration))
-
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Selector de Idioma
         Text(
             text = stringResource(Res.string.moreOptions_subtittle_language),
             style = AppTheme.typography.bodyMedium,
             color = AppTheme.colors.textPrimary,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -182,14 +188,12 @@ private fun MapSettingsContent() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Selector de Tema
         Text(
             text = stringResource(Res.string.moreOptions_subtittle_theme),
             style = AppTheme.typography.bodyMedium,
             color = AppTheme.colors.textPrimary,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -206,14 +210,12 @@ private fun MapSettingsContent() {
             )
         }
 
-        // BOTONES DE ACCIÓN (Solo aparecen si hay cambios pendientes)
         if (hasChanges) {
             Spacer(modifier = Modifier.height(32.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // BOTÓN REVERTIR
                 OutlinedButton(
                     onClick = {
                         tempLanguage = globalLanguage
@@ -228,8 +230,6 @@ private fun MapSettingsContent() {
                 ) {
                     Text(stringResource(Res.string.buttonText_cancel), style = AppTheme.typography.labelLarge)
                 }
-
-                // BOTÓN GUARDAR
                 PrimaryButton(
                     text = stringResource(Res.string.buttonText_save),
                     onClick = {
@@ -246,6 +246,73 @@ private fun MapSettingsContent() {
         // --- SECCIÓN: MIS GUARDADOS ---
         SectionHeader(stringResource(Res.string.moreOptions_tittle_mySaves))
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Botón Ver favoritos
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(AppTheme.colors.background)
+                .clickable { onNavigateToFavoritos() }
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = null,
+                tint = AppTheme.colors.primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                text = stringResource(Res.string.moreOptions_textSelector_favoritePlaces),
+                style = AppTheme.typography.bodyMedium,
+                color = AppTheme.colors.textPrimary,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = AppTheme.colors.textSecondary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Botón Ver guardados
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(AppTheme.colors.background)
+                .clickable { onNavigateToGuardados() }
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Bookmark,
+                contentDescription = null,
+                tint = AppTheme.colors.primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                text = stringResource(Res.string.moreOptions_textSelector_savedPlaces),
+                style = AppTheme.typography.bodyMedium,
+                color = AppTheme.colors.textPrimary,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = AppTheme.colors.textSecondary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 

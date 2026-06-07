@@ -20,8 +20,10 @@ import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
 import com.ucb.mapexplorer.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
+import com.ucb.mapexplorer.favoritePlaces.presentation.screen.FavoritePlacesScreen
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.onboarding.presentation.screen.OnboardingScreen
+import com.ucb.mapexplorer.savedPlaces.presentation.screen.SavedPlacesScreen
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -82,7 +84,7 @@ fun AppNavHost() {
 
                 val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
                 NearbyPlacesScreen(
-                    mapViewModel = mapViewModel, // 👈 Pasamos el ViewModel del mapa
+                    mapViewModel = mapViewModel,
                     viewModel = nearbyViewModel,
                     onPlaceClick = { placeId ->
                         navController.navigate(NavRoute.PlaceDetail(placeId))
@@ -109,6 +111,22 @@ fun AppNavHost() {
             composable<NavRoute.Profile> {
                 // Aquí podrías navegar a una pantalla de perfil real
                 navController.navigate(NavRoute.Map)
+            }
+            composable<NavRoute.FavoritePlaces> {
+                FavoritePlacesScreen(
+                    onBack              = { navController.popBackStack() },
+                    onNavigateToDetail  = { placeId ->
+                        navController.navigate(NavRoute.PlaceDetail(placeId))
+                    }
+                )
+            }
+            composable<NavRoute.SavedPlaces> {
+                SavedPlacesScreen(
+                    onBack              = { navController.popBackStack() },
+                    onNavigateToDetail  = { placeId ->
+                        navController.navigate(NavRoute.PlaceDetail(placeId))
+                    }
+                )
             }
         }
     }

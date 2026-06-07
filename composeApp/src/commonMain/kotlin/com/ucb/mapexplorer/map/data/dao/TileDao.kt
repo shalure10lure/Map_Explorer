@@ -28,6 +28,12 @@ interface TileDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTile(tile: TileEntity): Long
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertTiles(tiles: List<TileEntity>)
+
+    @Query("SELECT * FROM tiles_descubiertos WHERE uid = :uid")
+    suspend fun getAllTilesByUid(uid: String): List<TileEntity>
+
     /** Incrementa vecesVisitado y actualiza ultimoIngreso. */
     @Query("""
         UPDATE tiles_descubiertos

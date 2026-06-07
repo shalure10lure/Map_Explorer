@@ -8,9 +8,15 @@ import com.ucb.mapexplorer.map.data.datasource.MapRemoteDataSource
 import com.ucb.mapexplorer.map.data.repository.MapRepositoryImpl
 import com.ucb.mapexplorer.map.data.service.LocalitationService
 import com.ucb.mapexplorer.map.domain.repository.MapRepository
+import com.ucb.mapexplorer.nearbyplaces.data.datasource.LugarFavoritoLocalDataSource
+import com.ucb.mapexplorer.nearbyplaces.data.datasource.LugarGuardadoLocalDataSource
 import com.ucb.mapexplorer.nearbyplaces.data.datasource.NearbyPlacesLocalDataSource
 import com.ucb.mapexplorer.nearbyplaces.data.datasource.NearbyPlacesRemoteDataSource
+import com.ucb.mapexplorer.nearbyplaces.data.repository.FavoritosRepositoryImpl
+import com.ucb.mapexplorer.nearbyplaces.data.repository.GuardadosRepositoryImpl
 import com.ucb.mapexplorer.nearbyplaces.data.repository.NearbyPlacesRepositoryImpl
+import com.ucb.mapexplorer.nearbyplaces.domain.repository.FavoritosRepository
+import com.ucb.mapexplorer.nearbyplaces.domain.repository.GuardadosRepository
 import com.ucb.mapexplorer.nearbyplaces.domain.repository.NearbyPlacesRepository
 import com.ucb.mapexplorer.profile.data.repository.ProfileRepositoryImpl
 import com.ucb.mapexplorer.profile.domain.repository.ProfileRepository
@@ -26,12 +32,18 @@ val dataModule = module {
     single { LocalitationService() }
     singleOf(::MapRepositoryImpl).bind<MapRepository>()
 
-
-    // NearbyPlaces
+    // Profile
+    singleOf(::ProfileRepositoryImpl).bind<ProfileRepository>()
+// NearbyPlaces
     single { NearbyPlacesRemoteDataSource() }
     singleOf(::NearbyPlacesLocalDataSource)
     singleOf(::NearbyPlacesRepositoryImpl).bind<NearbyPlacesRepository>()
 
-    // Profile
-    singleOf(::ProfileRepositoryImpl).bind<ProfileRepository>()
+
+    single { LugarGuardadoLocalDataSource(get()) }
+    single { LugarFavoritoLocalDataSource(get()) }
+
+    // AQUÍ ESTABA EL ERROR: Faltaban estas dos definiciones
+    singleOf(::FavoritosRepositoryImpl).bind<FavoritosRepository>()
+    singleOf(::GuardadosRepositoryImpl).bind<GuardadosRepository>()
 }

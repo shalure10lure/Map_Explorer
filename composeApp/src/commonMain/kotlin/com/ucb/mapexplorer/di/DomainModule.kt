@@ -4,11 +4,18 @@ import com.ucb.mapexplorer.auth.domain.usecase.LoginUseCase
 import com.ucb.mapexplorer.auth.domain.usecase.RegisterUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetCurrentLocationUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetDiscoveredTilesUseCase
+import com.ucb.mapexplorer.map.domain.usecase.SyncMapHistoryUseCase
 import com.ucb.mapexplorer.map.domain.usecase.UnlockTileUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetFavoritosUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetGuardadosUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetNearbyPlacesUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.GetPlaceDetailUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.IsFavoritoUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.IsGuardadoUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarDescubiertoUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.SyncLugarVisitadoUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.ToggleFavoritoUseCase
+import com.ucb.mapexplorer.nearbyplaces.domain.usecase.ToggleGuardadoUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.GetProfileUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.ObserveProfileUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.UpdateProfileUseCase
@@ -27,6 +34,17 @@ val domainModule = module {
     singleOf(::GetPlaceDetailUseCase)
     singleOf(::SyncLugarDescubiertoUseCase)
     singleOf(::SyncLugarVisitadoUseCase)
+    singleOf(::SyncMapHistoryUseCase)
+
+    // Favoritos
+    singleOf(::GetFavoritosUseCase)
+    singleOf(::ToggleFavoritoUseCase)
+    singleOf(::IsFavoritoUseCase)
+
+    // Guardados
+    singleOf(::GetGuardadosUseCase)
+    singleOf(::ToggleGuardadoUseCase)
+    singleOf(::IsGuardadoUseCase)
 
     // Profile
     singleOf(::GetProfileUseCase)

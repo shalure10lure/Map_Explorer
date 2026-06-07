@@ -19,14 +19,6 @@ class MapRepositoryImpl(
     override fun observeLocation(): Flow<UserLocationModel> =
         locationService.observeLocation()
 
-    /**
-     * Flujo completo al descubrir un tile:
-     * 1. Convierte coordenadas GPS → tile OSM (zoom 17)
-     * 2. Guarda en Room (fuente de verdad local)
-     * 3. Si es NUEVO → sincroniza con Firebase async (best-effort)
-     *
-     * @return true si fue un tile nuevo.
-     */
     override suspend fun unlockTile(uid: String, location: UserLocationModel): Boolean {
         val (x, y) = TileUtils.latLngToTile(location.latitude, location.longitude)
         val isNew = localDataSource.unlockTile(uid, x, y)
@@ -53,7 +45,28 @@ class MapRepositoryImpl(
 
         return isNew
     }
+    override suspend fun downloadHistoryIfEmpty(uid: String) {
+        try {
+            // Obtenemos lo que hay en Room
+            val localTiles = localDataSource.getTiles(uid)
+
+            // SI NO HAY NADA (esto pasa cuando borras caché), descargamos de Firebase
+            if (localTiles.isEmpty()) {
+                println("🔄 Room vacío para $uid. Descargando de Firebase...")
+                val remoteTiles = remoteDataSource.getAllVisitedTiles(uid)
+
+                if (remoteTiles.isNotEmpty()) {
+                    // ESTA ES LA CLAVE: Guardamos en Room para que se pinte el mapa
+                    localDataSource.saveTilesToLocal(uid, remoteTiles)
+                }
+            }
+        } catch (e: Exception) {
+            println("❌ Error en downloadHistory: ${e.message}")
+        }
+    }
 
     override suspend fun getDiscoveredTiles(uid: String): List<TileModel> =
         localDataSource.getTiles(uid)
+
+
 }

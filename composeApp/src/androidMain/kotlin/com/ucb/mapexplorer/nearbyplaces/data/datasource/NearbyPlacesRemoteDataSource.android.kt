@@ -24,11 +24,7 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
         }
     }
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
-
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
     private val firebaseDb = FirebaseDatabase.getInstance()
 
     actual suspend fun fetchNearbyPlaces(lat: Double, lon: Double, radius: Int): OverpassResponseDto {
@@ -45,40 +41,20 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
         }
     }
 
-    /**
-     * Guarda lugar descubierto en Firebase usando el lugarId (estable, basado en OSM id)
-     * como clave del nodo — EVITA DUPLICADOS porque Firebase hace upsert con set().
-     *
-     * ANTES: se usaba .push() o un timestamp, que generaba nodos nuevos en cada llamada.
-     * AHORA: .child(lugarId) → si ya existe, sobreescribe (mismo dato); si no, crea.
-     */
     actual suspend fun saveLugarDescubierto(
-        uid: String,
-        lugarId: String,
-        nombre: String,
-        categoria: String,
-        lat: Double,
-        lon: Double
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
     ) {
         try {
             val now = Clock.System.now().toEpochMilliseconds()
-            // Sanitizamos el lugarId para que sea un nodo válido en Firebase
-            // (Firebase no acepta '.', '#', '$', '[', ']', '/')
             val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
-
             firebaseDb.reference
-                .child("usuarios")
-                .child(uid)
-                .child("exploracion")
-                .child("lugares_descubiertos")
-                .child(safeId)             // ← clave estable = sin duplicados
+                .child("usuarios").child(uid).child("exploracion")
+                .child("lugares_descubiertos").child(safeId)
                 .setValue(mapOf(
-                    "nombre"       to nombre,
-                    "categoria"    to categoria,
-                    "latitud"      to lat,
-                    "longitud"     to lon,
-                    "descubierto_en" to now,
-                    "sincronizado" to true
+                    "nombre" to nombre, "categoria" to categoria,
+                    "latitud" to lat, "longitud" to lon,
+                    "descubierto_en" to now, "sincronizado" to true
                 )).await()
         } catch (e: Exception) {
             println("❌ Firebase error (saveLugarDescubierto): ${e.message}")
@@ -86,29 +62,86 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
     }
 
     actual suspend fun saveLugarVisitado(
-        uid: String,
-        lugarId: String,
-        nombre: String,
-        categoria: String
+        uid: String, lugarId: String, nombre: String, categoria: String
     ) {
         try {
             val now = Clock.System.now().toEpochMilliseconds()
             val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
-
             firebaseDb.reference
-                .child("usuarios")
-                .child(uid)
-                .child("exploracion")
-                .child("lugares_visitados")
-                .child(safeId)
+                .child("usuarios").child(uid).child("exploracion")
+                .child("lugares_visitados").child(safeId)
                 .setValue(mapOf(
-                    "nombre"       to nombre,
-                    "categoria"    to categoria,
-                    "ultima_visita" to now,
-                    "sincronizado" to true
+                    "nombre" to nombre, "categoria" to categoria,
+                    "ultima_visita" to now, "sincronizado" to true
                 )).await()
         } catch (e: Exception) {
             println("❌ Firebase error (saveLugarVisitado): ${e.message}")
+        }
+    }
+
+    // ── NUEVOS: Favoritos y Guardados en Firebase ─────────────────────────
+
+    actual suspend fun saveFavorito(
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
+    ) {
+        try {
+            val now = Clock.System.now().toEpochMilliseconds()
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("lugares_favoritos").child(safeId)
+                .setValue(mapOf(
+                    "nombre" to nombre, "categoria" to categoria,
+                    "latitud" to lat, "longitud" to lon,
+                    "agregado_en" to now
+                )).await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (saveFavorito): ${e.message}")
+        }
+    }
+
+    actual suspend fun removeFavorito(uid: String, lugarId: String) {
+        try {
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("lugares_favoritos").child(safeId)
+                .removeValue().await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (removeFavorito): ${e.message}")
+        }
+    }
+
+    actual suspend fun saveGuardado(
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
+    ) {
+        try {
+            val now = Clock.System.now().toEpochMilliseconds()
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("ver_lugares_favoritos").child(safeId)
+                .setValue(mapOf(
+                    "nombre" to nombre, "categoria" to categoria,
+                    "latitud" to lat, "longitud" to lon,
+                    "guardado_en" to now
+                )).await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (saveGuardado): ${e.message}")
+        }
+    }
+
+    actual suspend fun removeGuardado(uid: String, lugarId: String) {
+        try {
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("ver_lugares_favoritos").child(safeId)
+                .removeValue().await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (removeGuardado): ${e.message}")
         }
     }
 }

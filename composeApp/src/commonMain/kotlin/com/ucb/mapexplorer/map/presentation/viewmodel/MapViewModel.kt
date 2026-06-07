@@ -7,6 +7,7 @@ import com.ucb.mapexplorer.core.utils.TileUtils
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import com.ucb.mapexplorer.map.domain.usecase.GetCurrentLocationUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetDiscoveredTilesUseCase
+import com.ucb.mapexplorer.map.domain.usecase.SyncMapHistoryUseCase
 import com.ucb.mapexplorer.map.domain.usecase.UnlockTileUseCase
 import com.ucb.mapexplorer.map.presentation.state.MapEffect
 import com.ucb.mapexplorer.map.presentation.state.MapEvent
@@ -28,6 +29,7 @@ class MapViewModel(
     private val unlockTileUseCase: UnlockTileUseCase,
     private val getDiscoveredTilesUseCase: GetDiscoveredTilesUseCase,
     private val getNearbyPlacesUseCase: GetNearbyPlacesUseCase,
+    private val syncMapHistoryUseCase: SyncMapHistoryUseCase,
     private val profileRepository: ProfileRepository
 ) : ViewModel() {
 
@@ -135,6 +137,8 @@ class MapViewModel(
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                syncMapHistoryUseCase(uid)
+
                 val tiles = getDiscoveredTilesUseCase(uid)
                 val dist  = haversine(currentLat, currentLon, lastSearchLat, lastSearchLon)
 
@@ -164,10 +168,18 @@ class MapViewModel(
                         )
                     }
                 } else {
-                    _state.update { it.copy(discoveredTiles = tiles) }
+                    _state.update {
+                        it.copy(
+                            discoveredTiles = tiles,
+                            totalTilesUnlocked = tiles.size
+                        )
+                    }
                 }
             } catch (e: Exception) {
-                if (e !is CancellationException) _state.update { it.copy(isLoadingTiles = false) }
+                if (e !is CancellationException) {
+                    e.printStackTrace()
+                    _state.update { it.copy(isLoadingTiles = false) }
+                }
             }
         }
     }

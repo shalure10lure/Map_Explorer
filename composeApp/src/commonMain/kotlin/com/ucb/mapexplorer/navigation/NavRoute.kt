@@ -43,6 +43,7 @@ sealed class NavRoute {
     @Serializable
     object NearbyPlaces : NavRoute()
 
-    @Serializable
-    data class PlaceDetail(val placeId: String) : NavRoute()
+    @Serializable object FavoritePlaces : NavRoute()
+    @Serializable object SavedPlaces : NavRoute()
+    @Serializable data class PlaceDetail(val placeId: String) : NavRoute()
 }

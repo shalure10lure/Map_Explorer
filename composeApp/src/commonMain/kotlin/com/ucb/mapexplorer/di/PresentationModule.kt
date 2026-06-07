@@ -6,7 +6,9 @@ import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
 import com.ucb.mapexplorer.social.presentation.viewmodel.SocialSpaceViewModel
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
+import com.ucb.mapexplorer.favoritePlaces.presentation.viewmodel.FavoritePlacesViewModel
 import com.ucb.mapexplorer.profile.presentation.viewmodel.OwnProfileViewModel
+import com.ucb.mapexplorer.savedPlaces.presentation.viewmodel.SavedPlacesViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -18,4 +20,8 @@ val presentationModule = module {
     viewModelOf(::SocialSpaceViewModel)
     viewModelOf(::EditProfileViewModel)
     viewModelOf(::OwnProfileViewModel)
+
+
+    viewModelOf(::FavoritePlacesViewModel)
+    viewModelOf(::SavedPlacesViewModel)
 }

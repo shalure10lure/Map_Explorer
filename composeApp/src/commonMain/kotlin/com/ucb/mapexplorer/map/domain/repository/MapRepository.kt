@@ -18,4 +18,5 @@ interface MapRepository {
 
     /** Tiles descubiertos del usuario, leídos desde Room (fuente de verdad local). */
     suspend fun getDiscoveredTiles(uid: String): List<TileModel>
+    suspend fun downloadHistoryIfEmpty(uid: String)
 }

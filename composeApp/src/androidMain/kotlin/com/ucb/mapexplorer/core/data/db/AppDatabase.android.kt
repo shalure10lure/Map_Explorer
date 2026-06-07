@@ -1,18 +1,14 @@
 package com.ucb.mapexplorer.core.data.db
 
-
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
-// Migración de versión 3 → 4:
-// - Se elimina columna porcentajeExplorado (no soportado en SQLite sin recrear tabla)
-// - Se recrea la tabla con el nuevo esquema
+/** Migración 3→6 ya existente (sin cambios) */
 val MIGRATION_3_6 = object : Migration(3, 6) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        // Crear tabla nueva con esquema correcto
         database.execSQL("""
             CREATE TABLE IF NOT EXISTS tiles_descubiertos_new (
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -25,20 +21,62 @@ val MIGRATION_3_6 = object : Migration(3, 6) {
                 sincronizado INTEGER NOT NULL DEFAULT 0
             )
         """)
-        // Copiar datos existentes (se pierde porcentajeExplorado, sin impacto)
         database.execSQL("""
             INSERT INTO tiles_descubiertos_new
             (id, uid, tileX, tileY, descubiertoEn, vecesVisitado, ultimoIngreso, sincronizado)
             SELECT id, uid, tileX, tileY, descubiertoEn, vecesVisitado, ultimoIngreso, sincronizado
             FROM tiles_descubiertos
         """)
-        // Eliminar tabla vieja y renombrar nueva
         database.execSQL("DROP TABLE tiles_descubiertos")
         database.execSQL("ALTER TABLE tiles_descubiertos_new RENAME TO tiles_descubiertos")
-        // Recrear el índice único
         database.execSQL("""
             CREATE UNIQUE INDEX IF NOT EXISTS index_tiles_uid_x_y
             ON tiles_descubiertos (uid, tileX, tileY)
+        """)
+    }
+}
+
+/** Migración 6→7: Crea las tablas de favoritos y guardados */
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        // Tabla lugares_favoritos
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS lugares_favoritos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                uid TEXT NOT NULL,
+                lugarId TEXT NOT NULL,
+                nombre TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                latitud REAL NOT NULL,
+                longitud REAL NOT NULL,
+                iconoCategoria TEXT NOT NULL,
+                agregadoEn INTEGER NOT NULL,
+                sincronizado INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        database.execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS index_favoritos_uid_lugarId
+            ON lugares_favoritos (uid, lugarId)
+        """)
+
+        // Tabla lugares_guardados
+        database.execSQL("""
+            CREATE TABLE IF NOT EXISTS lugares_guardados (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                uid TEXT NOT NULL,
+                lugarId TEXT NOT NULL,
+                nombre TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                latitud REAL NOT NULL,
+                longitud REAL NOT NULL,
+                iconoCategoria TEXT NOT NULL,
+                guardadoEn INTEGER NOT NULL,
+                sincronizado INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        database.execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS index_guardados_uid_lugarId
+            ON lugares_guardados (uid, lugarId)
         """)
     }
 }
@@ -49,7 +87,5 @@ actual fun getDatabaseBuilder(ctx: Any?): RoomDatabase.Builder<AppDatabase> {
     return Room.databaseBuilder<AppDatabase>(
         context = appContext,
         name = dbFile.absolutePath
-    ).addMigrations(MIGRATION_3_6
-
-    )
+    ).addMigrations(MIGRATION_3_6, MIGRATION_6_7)
 }
