@@ -12,6 +12,7 @@ data class SocialPost(
     val locationName: String,
     val rating: Int,
     val category: String,
+    val categoryIcon: String = "📍",
     val userExperience: String,
     val isFriend: Boolean,
     val imageUrl: String? = null

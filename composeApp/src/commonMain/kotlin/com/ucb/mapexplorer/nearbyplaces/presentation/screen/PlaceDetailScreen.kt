@@ -23,12 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
+import com.ucb.mapexplorer.navigation.NavRoute
 import com.ucb.mapexplorer.nearbyplaces.domain.model.PlaceModel
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.IsFavoritoUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.IsGuardadoUseCase
@@ -49,6 +51,7 @@ fun PlaceDetailScreen(
     placeId: String,
     mapViewModel: MapViewModel,
     nearbyViewModel: NearbyPlacesViewModel,
+    navController: NavController,
     onBack: () -> Unit
 ) {
     val mapState    by mapViewModel.state.collectAsStateWithLifecycle()
@@ -107,11 +110,27 @@ fun PlaceDetailScreen(
                     )
                 }
             else -> PlaceDetailContent(
-                lugar     = lugar,
-                onBack    = onBack,
+                lugar    = lugar,
+                onBack   = onBack,
                 onViewMap = {
                     mapViewModel.centerMapOnLocation(lugar.latitude, lugar.longitude)
                     onBack()
+                },
+                onGuideMe = {
+                    val userLat = mapViewModel.state.value.userLat
+                    val userLon = mapViewModel.state.value.userLng
+                    navController.navigate(
+                        NavRoute.GuideMap(
+                            userLat   = userLat,
+                            userLon   = userLon,
+                            destLat   = lugar.latitude,
+                            destLon   = lugar.longitude,
+                            placeName = lugar.name
+                        )
+                    )
+                },
+                onShareExperience = {
+                    navController.navigate(NavRoute.Publication(lugar.id))
                 }
             )
         }
@@ -122,7 +141,9 @@ fun PlaceDetailScreen(
 private fun PlaceDetailContent(
     lugar: PlaceModel,
     onBack: () -> Unit,
-    onViewMap: () -> Unit
+    onViewMap: () -> Unit,
+    onGuideMe: () -> Unit,
+    onShareExperience: () -> Unit
 ) {
     // Inyectamos use cases directamente — no necesitamos un ViewModel extra
     val toggleFavoritoUseCase: ToggleFavoritoUseCase = koinInject()
@@ -363,17 +384,13 @@ private fun PlaceDetailContent(
                     text     = stringResource(Res.string.placeDetails_guideMe),
                     fontSize = 22.sp,
                     color    = Color(0xFF4285F4),
-                    modifier = Modifier.clickable {
-                        // TODO: En el siguiente paso implementaremos navegación con intents
-                    }
+                    modifier = Modifier.clickable { onGuideMe() }  // ← conectado
                 )
                 Text(
                     text     = stringResource(Res.string.placeDetails_share),
                     fontSize = 22.sp,
                     color    = Color(0xFF4285F4),
-                    modifier = Modifier.clickable {
-                        // TODO: En el siguiente paso implementaremos publicar experiencia
-                    }
+                    modifier = Modifier.clickable { onShareExperience() }  // ← conectado
                 )
             }
         }

@@ -2,20 +2,46 @@ package com.ucb.mapexplorer.social.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ucb.mapexplorer.publication.domain.usecase.GetAllPublicationsUseCase
 import com.ucb.mapexplorer.social.presentation.state.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class SocialSpaceViewModel : ViewModel() {
-
+class SocialSpaceViewModel(
+    private val getAllPublicationsUseCase: GetAllPublicationsUseCase
+) : ViewModel() {
     private val _state = MutableStateFlow(SocialSpaceState())
     val state = _state.asStateFlow()
 
     private val _effect = MutableSharedFlow<SocialSpaceEffect>()
     val effect = _effect.asSharedFlow()
 
-    init {
-
+    init { loadPublications() }
+    private fun loadPublications() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _state.update { it.copy(isLoading = true) }
+            try {
+                val pubs = getAllPublicationsUseCase()
+                val posts = pubs.map { pub ->
+                    SocialPost(
+                        id             = pub.id,
+                        userName       = pub.userName,
+                        locationName   = pub.locationName,
+                        rating         = pub.rating,
+                        category       = pub.category,
+                        userExperience = pub.experience,
+                        isFriend       = false,
+                        imageUrl       = pub.imageUrl,
+                        categoryIcon   = pub.categoryIcon
+                    )
+                }
+                _state.update { it.copy(posts = posts, isLoading = false) }
+            } catch (e: Exception) {
+                _state.update { it.copy(isLoading = false) }
+            }
+        }
     }
 
     fun onEvent(event: SocialSpaceEvent) {

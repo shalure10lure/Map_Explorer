@@ -19,6 +19,9 @@ import com.ucb.mapexplorer.nearbyplaces.domain.usecase.ToggleGuardadoUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.GetProfileUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.ObserveProfileUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.UpdateProfileUseCase
+import com.ucb.mapexplorer.publication.domain.usecase.GetAllPublicationsUseCase
+import com.ucb.mapexplorer.publication.domain.usecase.GetPlaceAverageRatingUseCase
+import com.ucb.mapexplorer.publication.domain.usecase.PublishExperienceUseCase
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 
@@ -50,4 +53,8 @@ val domainModule = module {
     singleOf(::GetProfileUseCase)
     singleOf(::UpdateProfileUseCase)
     singleOf(::ObserveProfileUseCase)
+    //publicacion
+    singleOf(::PublishExperienceUseCase)
+    singleOf(::GetAllPublicationsUseCase)
+    singleOf(::GetPlaceAverageRatingUseCase)
 }

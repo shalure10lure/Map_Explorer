@@ -21,8 +21,10 @@ import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewM
 import com.ucb.mapexplorer.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
 import com.ucb.mapexplorer.favoritePlaces.presentation.screen.FavoritePlacesScreen
+import com.ucb.mapexplorer.map.presentation.screen.GuideMapScreen
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.onboarding.presentation.screen.OnboardingScreen
+import com.ucb.mapexplorer.publication.presentation.screen.PublicationScreen
 import com.ucb.mapexplorer.savedPlaces.presentation.screen.SavedPlacesScreen
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
 import org.koin.compose.viewmodel.koinViewModel
@@ -93,20 +95,6 @@ fun AppNavHost() {
                 )
             }
 
-            // 🔍 Detalle del Lugar
-            composable<NavRoute.PlaceDetail> { backStackEntry ->
-                val route: NavRoute.PlaceDetail = backStackEntry.toRoute()
-                val mapViewModel: MapViewModel = koinViewModel()
-                val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
-
-                PlaceDetailScreen(
-                    placeId = route.placeId,
-                    mapViewModel = mapViewModel,
-                    nearbyViewModel = nearbyViewModel,
-                    onBack = { navController.popBackStack() }
-                )
-            }
-
             // 👤 Perfil
             composable<NavRoute.Profile> {
                 // Aquí podrías navegar a una pantalla de perfil real
@@ -128,6 +116,47 @@ fun AppNavHost() {
                     }
                 )
             }
+
+            // 🔍 Detalle del Lugar
+            composable<NavRoute.PlaceDetail> { backStackEntry ->
+                val route: NavRoute.PlaceDetail = backStackEntry.toRoute()
+                val mapViewModel: MapViewModel = koinViewModel()
+                val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
+
+                PlaceDetailScreen(
+                    placeId = route.placeId,
+                    mapViewModel = mapViewModel,
+                    nearbyViewModel = nearbyViewModel,
+                    navController = navController,   // ← AGREGAR ESTO
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable<NavRoute.GuideMap> { backStackEntry ->
+                val route: NavRoute.GuideMap = backStackEntry.toRoute()
+                GuideMapScreen(
+                    userLat   = route.userLat,
+                    userLon   = route.userLon,
+                    destLat   = route.destLat,
+                    destLon   = route.destLon,
+                    placeName = route.placeName,
+                    onBack    = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoute.Publication> { backStackEntry ->
+                val route: NavRoute.Publication = backStackEntry.toRoute()
+                PublicationScreen(
+                    placeId     = route.placeId,
+                    onBack      = { navController.popBackStack() },
+                    onPublished = {
+                        navController.navigate(NavRoute.Main) {
+                            popUpTo(NavRoute.Main) { inclusive = false }
+                        }
+                    }
+                )
+            }
+
+
         }
     }
 }

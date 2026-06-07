@@ -20,6 +20,9 @@ import com.ucb.mapexplorer.nearbyplaces.domain.repository.GuardadosRepository
 import com.ucb.mapexplorer.nearbyplaces.domain.repository.NearbyPlacesRepository
 import com.ucb.mapexplorer.profile.data.repository.ProfileRepositoryImpl
 import com.ucb.mapexplorer.profile.domain.repository.ProfileRepository
+import com.ucb.mapexplorer.publication.data.datasource.PublicationRemoteDataSource
+import com.ucb.mapexplorer.publication.data.repository.PublicationRepositoryImpl
+import com.ucb.mapexplorer.publication.domain.repository.PublicationRepository
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -43,7 +46,10 @@ val dataModule = module {
     single { LugarGuardadoLocalDataSource(get()) }
     single { LugarFavoritoLocalDataSource(get()) }
 
-    // AQUÍ ESTABA EL ERROR: Faltaban estas dos definiciones
     singleOf(::FavoritosRepositoryImpl).bind<FavoritosRepository>()
     singleOf(::GuardadosRepositoryImpl).bind<GuardadosRepository>()
+
+    single { PublicationRemoteDataSource() }
+    singleOf(::PublicationRepositoryImpl).bind<PublicationRepository>()
+
 }
