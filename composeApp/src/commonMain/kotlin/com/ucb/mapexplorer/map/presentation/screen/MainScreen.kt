@@ -28,14 +28,12 @@ fun MainScreen(
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.MAP) }
 
-    // ── ViewModels ─────────────────────────────────────────────────────────
     val mapViewModel: MapViewModel = koinViewModel()
     val mapState by mapViewModel.state.collectAsState()
 
     val ownProfileViewModel: OwnProfileViewModel = koinViewModel()
     val profileState by ownProfileViewModel.state.collectAsState()
 
-    // Sincronizar el avatar del perfil con el estado del mapa
     LaunchedEffect(profileState.avatarConfig) {
         val mapAvatar     = mapState.avatarConfig
         val profileAvatar = profileState.avatarConfig
@@ -51,7 +49,6 @@ fun MainScreen(
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTab) {
-
                 MainTab.MAP -> {
                     MapScreen(navController = navController, viewModel = mapViewModel)
                 }
@@ -61,10 +58,10 @@ fun MainScreen(
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
                         Spacer(modifier = Modifier.height(70.dp))
                         SocialSpaceScreen(
-                            onBack               = { selectedTab = MainTab.MAP },
-                            onNavigateToMessages = { },
-                            onNavigateToNearby   = { selectedTab = MainTab.NEARBY },
-                            onNavigateToProfile  = { selectedTab = MainTab.PROFILE }
+                            onBack = { selectedTab = MainTab.MAP },
+                            onNavigateToFriendsRequests = { navController.navigate(NavRoute.FriendsRequests) },
+                            onNavigateToNearby = { selectedTab = MainTab.NEARBY },
+                            onNavigateToProfile = { selectedTab = MainTab.PROFILE }
                         )
                     }
                 }
@@ -76,7 +73,7 @@ fun MainScreen(
                         Spacer(modifier = Modifier.height(70.dp))
                         NearbyPlacesScreen(
                             mapViewModel = mapViewModel,
-                            viewModel    = nearbyViewModel,
+                            viewModel = nearbyViewModel,
                             onPlaceClick = { placeId ->
                                 navController.navigate(NavRoute.PlaceDetail(placeId))
                             },
@@ -90,11 +87,11 @@ fun MainScreen(
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
                         Spacer(modifier = Modifier.height(70.dp))
                         OwnProfileScreen(
-                            viewModel      = ownProfileViewModel,
-                            onBack         = { selectedTab = MainTab.MAP },
-                            onEditProfile  = { navController.navigate(NavRoute.EditProfile) },
-                            onViewRequests = { },
-                            onViewFriend   = { }
+                            viewModel = ownProfileViewModel,
+                            onBack = { selectedTab = MainTab.MAP },
+                            onEditProfile = { navController.navigate(NavRoute.EditProfile) },
+                            onViewRequests = { navController.navigate(NavRoute.FriendsRequests) },
+                            onViewFriend = { }
                         )
                     }
                 }
@@ -102,11 +99,11 @@ fun MainScreen(
         }
 
         MainTopBar(
-            selectedTab   = selectedTab,
-            avatarConfig  = profileState.avatarConfig,
+            selectedTab = selectedTab,
+            avatarConfig = profileState.avatarConfig,
             onTabSelected = { tab -> selectedTab = tab },
             onAvatarClick = { selectedTab = MainTab.PROFILE },
-            modifier      = Modifier
+            modifier = Modifier
                 .align(Alignment.TopCenter)
                 .zIndex(10f)
         )

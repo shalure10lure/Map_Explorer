@@ -35,7 +35,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun SocialSpaceScreen(
     onBack: () -> Unit,
-    onNavigateToMessages: () -> Unit,
+    onNavigateToFriendsRequests: () -> Unit,
     onNavigateToNearby: () -> Unit,
     onNavigateToProfile: () -> Unit,
     viewModel: SocialSpaceViewModel = koinViewModel()
@@ -46,7 +46,7 @@ fun SocialSpaceScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 SocialSpaceEffect.NavigateBack -> onBack()
-                SocialSpaceEffect.NavigateToMessages -> onNavigateToMessages()
+                SocialSpaceEffect.NavigateToMessages -> onNavigateToFriendsRequests()
                 is SocialSpaceEffect.ShowError -> { /* Mostrar error */ }
             }
         }
@@ -57,8 +57,6 @@ fun SocialSpaceScreen(
             .fillMaxSize()
             .background(AppTheme.colors.background)
     ) {
-        // La TopBar global ya está presente en MainScreen.
-        // Aquí solo manejamos el contenido del feed.
         Column(modifier = Modifier.padding(horizontal = 24.dp)) {
             Spacer(modifier = Modifier.height(16.dp))
             
@@ -78,7 +76,7 @@ fun SocialSpaceScreen(
                 IconButton(onClick = { viewModel.onEvent(SocialSpaceEvent.OnMessageClick) }) {
                     Icon(
                         imageVector = Icons.Default.Email,
-                        contentDescription = "Messages",
+                        contentDescription = "Friends Requests",
                         tint = AppTheme.colors.textPrimary
                     )
                 }

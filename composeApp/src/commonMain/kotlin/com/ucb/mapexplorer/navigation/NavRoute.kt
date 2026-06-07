@@ -62,4 +62,10 @@ sealed class NavRoute {
 
     @Serializable
     data class Publication(val placeId: String) : NavRoute()
+
+    @Serializable
+    object FriendsRequests : NavRoute()
+
+    @Serializable
+    object SearchUser : NavRoute()
 }

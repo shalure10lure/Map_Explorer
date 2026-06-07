@@ -21,12 +21,16 @@ import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewM
 import com.ucb.mapexplorer.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
 import com.ucb.mapexplorer.favoritePlaces.presentation.screen.FavoritePlacesScreen
+import com.ucb.mapexplorer.friendsRequests.presentation.screen.FriendsRequestsScreen
+import com.ucb.mapexplorer.friendsRequests.presentation.viewmodel.FriendsRequestsViewModel
 import com.ucb.mapexplorer.map.presentation.screen.GuideMapScreen
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.onboarding.presentation.screen.OnboardingScreen
 import com.ucb.mapexplorer.publication.presentation.screen.PublicationScreen
 import com.ucb.mapexplorer.savedPlaces.presentation.screen.SavedPlacesScreen
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
+import com.ucb.mapexplorer.searchUser.presentation.screen.SearchUserScreen
+import com.ucb.mapexplorer.searchUser.presentation.viewmodel.SearchUserViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -74,9 +78,26 @@ fun AppNavHost() {
             composable<NavRoute.SocialSpace> {
                 SocialSpaceScreen(
                     onBack = { navController.popBackStack() },
-                    onNavigateToMessages = { /* TODO */ },
+                    onNavigateToFriendsRequests = { navController.navigate(NavRoute.FriendsRequests) },
                     onNavigateToNearby = { navController.navigate(NavRoute.NearbyPlaces) },
                     onNavigateToProfile = { navController.navigate(NavRoute.Profile) }
+                )
+            }
+
+            composable<NavRoute.FriendsRequests> {
+                val viewModel: FriendsRequestsViewModel = koinViewModel()
+                FriendsRequestsScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToSearch = { navController.navigate(NavRoute.SearchUser) }
+                )
+            }
+
+            composable<NavRoute.SearchUser> {
+                val viewModel: SearchUserViewModel = koinViewModel()
+                SearchUserScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() }
                 )
             }
 
