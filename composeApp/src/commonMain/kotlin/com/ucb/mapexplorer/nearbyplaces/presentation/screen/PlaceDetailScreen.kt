@@ -38,6 +38,7 @@ import com.ucb.mapexplorer.nearbyplaces.domain.usecase.ToggleFavoritoUseCase
 import com.ucb.mapexplorer.nearbyplaces.domain.usecase.ToggleGuardadoUseCase
 import com.ucb.mapexplorer.nearbyplaces.presentation.state.NearbyPlacesEvent
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.publication.domain.usecase.GetPlaceAverageRatingUseCase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.launch
@@ -150,6 +151,8 @@ private fun PlaceDetailContent(
     val toggleGuardadoUseCase: ToggleGuardadoUseCase = koinInject()
     val isFavoritoUseCase: IsFavoritoUseCase         = koinInject()
     val isGuardadoUseCase: IsGuardadoUseCase         = koinInject()
+    val getAverageRatingUseCase: GetPlaceAverageRatingUseCase = koinInject()
+
 
     val scope  = rememberCoroutineScope()
     val uid    = Session.uid ?: ""
@@ -157,12 +160,20 @@ private fun PlaceDetailContent(
     var isFavorito by remember { mutableStateOf(false) }
     var isGuardado by remember { mutableStateOf(false) }
 
+    var dynamicRating by remember { mutableStateOf(lugar.rating) }
+    var ratingLoaded  by remember { mutableStateOf(false) }
+
     // Cargar estado inicial
     LaunchedEffect(lugar.id) {
         if (uid.isNotBlank()) {
             isFavorito = isFavoritoUseCase(uid, lugar.id)
             isGuardado = isGuardadoUseCase(uid, lugar.id)
         }
+        val avg = runCatching {
+            getAverageRatingUseCase(lugar.id)
+        }.getOrDefault(lugar.rating)
+        if (avg > 0f) dynamicRating = avg
+        ratingLoaded = true
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -350,17 +361,27 @@ private fun PlaceDetailContent(
             Spacer(modifier = Modifier.height(32.dp))
 
             // ── 5. Estrellas ───────────────────────────────────────────────
-            Row(
-                modifier = Modifier.padding(horizontal = 24.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                val filled = lugar.rating.toInt().coerceIn(0, 5)
-                repeat(filled) {
-                    Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(36.dp))
-                }
-                repeat(5 - filled) {
-                    Icon(Icons.Default.Star, null, tint = Color(0xFFE0E0E0), modifier = Modifier.size(36.dp))
+            Column(modifier = Modifier.padding(horizontal = 24.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val filled = dynamicRating.toInt().coerceIn(0, 5)
+                    repeat(filled) {
+                        Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(36.dp))
+                    }
+                    repeat(5 - filled) {
+                        Icon(Icons.Default.Star, null, tint = Color(0xFFE0E0E0), modifier = Modifier.size(36.dp))
+                    }
+                    Spacer(Modifier.width(4.dp))
+                    if (ratingLoaded) {
+                        val ratingText = (round(dynamicRating * 10) / 10).toString()
+                        Text(
+                            text = ratingText,
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.textSecondary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    } else {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp, color = AppTheme.colors.primary)
+                    }
                 }
             }
 

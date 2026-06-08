@@ -3,6 +3,9 @@ package com.ucb.mapexplorer.di
 import com.ucb.mapexplorer.auth.data.datasource.FirebaseManager
 import com.ucb.mapexplorer.auth.data.repository.AuthRepositoryImpl
 import com.ucb.mapexplorer.auth.domain.repository.AuthRepository
+import com.ucb.mapexplorer.dangerzone.data.datasource.DangerZoneRemoteDataSource
+import com.ucb.mapexplorer.dangerzone.data.repository.DangerZoneRepositoryImpl
+import com.ucb.mapexplorer.dangerzone.domain.repository.DangerZoneRepository
 import com.ucb.mapexplorer.friends.data.datasource.FriendsRemoteDataSource
 import com.ucb.mapexplorer.friends.data.repository.FriendsRepositoryImpl
 import com.ucb.mapexplorer.friends.domain.repository.FriendsRepository
@@ -58,4 +61,6 @@ val dataModule = module {
     single { FriendsRemoteDataSource() }
    singleOf(::FriendsRepositoryImpl).bind<FriendsRepository>()
 
+    single { DangerZoneRemoteDataSource() }
+    singleOf(::DangerZoneRepositoryImpl).bind<DangerZoneRepository>()
 }

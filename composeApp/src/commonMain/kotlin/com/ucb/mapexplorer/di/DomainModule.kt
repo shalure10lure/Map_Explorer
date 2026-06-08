@@ -2,6 +2,8 @@ package com.ucb.mapexplorer.di
 
 import com.ucb.mapexplorer.auth.domain.usecase.LoginUseCase
 import com.ucb.mapexplorer.auth.domain.usecase.RegisterUseCase
+import com.ucb.mapexplorer.dangerzone.domain.usecase.CheckDangerZoneUseCase
+import com.ucb.mapexplorer.dangerzone.domain.usecase.SyncDangerZonesUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.AcceptFriendRequestUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.DeclineFriendRequestUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.GetFriendsUseCase
@@ -79,4 +81,9 @@ val domainModule = module {
     singleOf(::GetUserProfileUseCase)
     singleOf(::IsFriendUseCase)
     singleOf(::HasPendingRequestUseCase)
+
+    //lugar peligroso
+    //singleOf(::GetDangerZonesUseCase)
+    singleOf(::SyncDangerZonesUseCase)
+    singleOf(::CheckDangerZoneUseCase)
 }

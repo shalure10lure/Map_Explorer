@@ -22,6 +22,7 @@ import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.designsystem.theme.ThemeMode
 import com.ucb.mapexplorer.core.*
+import com.ucb.mapexplorer.dangerzone.presentation.composable.DangerZoneAlertDialog
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 
@@ -49,11 +50,7 @@ fun MapScreen(
                 is MapEffect.NewTileDiscovered -> {
                     snackbarHostState.showSnackbar("¡Nueva zona descubierta! 🗺️")
                 }
-                is MapEffect.CenterMapOnLocation -> {
-                    // Aquí deberías tener una forma de mover la cámara de OsmDroid
-                    // Si usas un state para la cámara o el MapView directamente:
-                    // mapView.controller.animateTo(GeoPoint(effect.lat, effect.lon))
-                }
+                is MapEffect.CenterMapOnLocation -> {}
                 MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
             }
         }
@@ -132,6 +129,14 @@ fun MapScreen(
                     },
                     title = { Text("Error") },
                     text = { Text(error) }
+                )
+            }
+
+            // ← DANGER ZONE ALERT
+            if (state.showDangerAlert) {
+                DangerZoneAlertDialog(
+                    zona      = state.dangerZoneActual,
+                    onDismiss = { viewModel.onEvent(MapEvent.OnDismissDangerAlert) }
                 )
             }
         }

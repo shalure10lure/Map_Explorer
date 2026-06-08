@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.core.utils.TileUtils
+import com.ucb.mapexplorer.dangerzone.domain.usecase.CheckDangerZoneUseCase
+import com.ucb.mapexplorer.dangerzone.domain.usecase.SyncDangerZonesUseCase
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import com.ucb.mapexplorer.map.domain.usecase.GetCurrentLocationUseCase
 import com.ucb.mapexplorer.map.domain.usecase.GetDiscoveredTilesUseCase
@@ -30,7 +32,9 @@ class MapViewModel(
     private val getDiscoveredTilesUseCase: GetDiscoveredTilesUseCase,
     private val getNearbyPlacesUseCase: GetNearbyPlacesUseCase,
     private val syncMapHistoryUseCase: SyncMapHistoryUseCase,
-    private val profileRepository: ProfileRepository
+    private val profileRepository: ProfileRepository,
+    private val checkDangerZoneUseCase: CheckDangerZoneUseCase,
+    private val syncDangerZonesUseCase: SyncDangerZonesUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapUIState())
@@ -45,21 +49,44 @@ class MapViewModel(
     private var lastSearchLat: Double = 0.0
     private var lastSearchLon: Double = 0.0
 
+    private var lastDangerAlertTile: String? = null
+    private var tilesLoaded  = false    // ← NUEVO: evita la segunda carga al inicio
+    private var syncDone     = false    // ← NUEVO: sincronización solo una vez por sesión
+
     init {
         onEvent(MapEvent.OnLoadMap)
     }
 
     fun onEvent(event: MapEvent) {
         when (event) {
-            MapEvent.OnLoadMap            -> { 
+            MapEvent.OnLoadMap            -> {
                 loadUserProfile()
-                loadDiscoveredTiles() 
-                startLocationUpdates() 
+                if (!tilesLoaded) loadDiscoveredTiles()
+                startLocationUpdates()
+                syncDangerZones()
             }
             is MapEvent.OnLocationUpdated -> handleLocationUpdate(event.latitude, event.longitude)
             MapEvent.OnDismissError       -> _state.update { it.copy(errorMessage = null) }
             MapEvent.OnCenterOnUser       -> viewModelScope.launch { _effect.send(MapEffect.CenterMapOnUser) }
             is MapEvent.OnAvatarUpdated   -> updateAvatarFromProfile(event.config)
+            MapEvent.OnDismissDangerAlert -> _state.update { it.copy(showDangerAlert = false) }
+        }
+    }
+
+    private fun syncDangerZones() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try { syncDangerZonesUseCase() } catch (e: Exception) { /* best effort */ }
+        }
+    }
+
+    private suspend fun checkDanger(lat: Double, lon: Double) {
+        val tileKey = "${TileUtils.lonToTileX(lon)}_${TileUtils.latToTileY(lat)}"
+        if (tileKey == lastDangerAlertTile) return  // ya alertamos en este tile
+
+        val zona = checkDangerZoneUseCase(lat, lon)
+        if (zona != null) {
+            lastDangerAlertTile = tileKey
+            _state.update { it.copy(dangerZoneActual = zona, showDangerAlert = true) }
         }
     }
 
@@ -100,6 +127,7 @@ class MapViewModel(
                         )
                     }
                     tryUnlockTile(location.latitude, location.longitude)
+                    checkDanger(location.latitude, location.longitude)
                 }
         }
     }
@@ -108,6 +136,7 @@ class MapViewModel(
         _state.update { it.copy(userLat = lat, userLng = lon, isLoadingLocation = false) }
         viewModelScope.launch(Dispatchers.IO) {
             tryUnlockTile(lat, lon)
+            checkDanger(lat, lon)
             loadDiscoveredTiles()
         }
     }
