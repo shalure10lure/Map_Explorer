@@ -20,18 +20,21 @@ import androidx.compose.ui.unit.dp
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.components.input.BasicInput
 import com.ucb.designsystem.theme.AppTheme
+import mapexplorer.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import com.ucb.mapexplorer.profile.domain.model.*
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
 import com.ucb.mapexplorer.profile.presentation.composable.AvatarDisplay
-import com.ucb.mapexplorer.profile.presentation.composable.toResource
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.foundation.Image
 import androidx.compose.ui.text.style.TextAlign
 import com.ucb.mapexplorer.editProfile.presentation.state.AvatarTab
 import com.ucb.mapexplorer.editProfile.presentation.state.EditProfileEffect
 import com.ucb.mapexplorer.editProfile.presentation.state.EditProfileEvent
+import com.ucb.mapexplorer.profile.data.mapper.toResource
 import org.jetbrains.compose.resources.DrawableResource
-
+import com.ucb.mapexplorer.editProfile.presentation.composable.AvatarPartSelector
+import com.ucb.mapexplorer.editProfile.presentation.composable.AvatarPartSelectorNullable
 @Composable
 fun EditProfileScreen(
     viewModel: EditProfileViewModel,
@@ -59,7 +62,7 @@ fun EditProfileScreen(
     ) {
         // ── TÍTULO ─────────────────────────────────────────
         Text(
-            "PERFIL",
+            stringResource(Res.string.navigationBar_profile_textSelection).uppercase(),
             style = AppTheme.typography.headlineLarge,
             color = AppTheme.colors.textPrimary
         )
@@ -67,7 +70,11 @@ fun EditProfileScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         // ── DATOS DEL USUARIO ──────────────────────────────
-        Text("Nombre", style = AppTheme.typography.bodySmall, color = AppTheme.colors.textSecondary)
+        Text(
+            stringResource(Res.string.editingProfile_subtittle_name),
+            style = AppTheme.typography.bodySmall,
+            color = AppTheme.colors.textSecondary
+        )
         BasicInput(
             value = state.name,
             onValueChange = { viewModel.onEvent(EditProfileEvent.OnNameChange(it)) },
@@ -77,7 +84,11 @@ fun EditProfileScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text("Descripción", style = AppTheme.typography.bodySmall, color = AppTheme.colors.textSecondary)
+        Text(
+            stringResource(Res.string.editingProfile_subtittle_description),
+            style = AppTheme.typography.bodySmall,
+            color = AppTheme.colors.textSecondary
+        )
         BasicInput(
             value = state.description,
             onValueChange = { viewModel.onEvent(EditProfileEvent.OnDescriptionChange(it)) },
@@ -90,7 +101,7 @@ fun EditProfileScreen(
 
         // ── SECCIÓN AVATAR ─────────────────────────────────
         Text(
-            "EDITAR AVATAR",
+            stringResource(Res.string.editingProfile_subtittle_editingAvatar).uppercase(),
             style = AppTheme.typography.labelLarge,
             color = AppTheme.colors.textSecondary
         )
@@ -196,19 +207,15 @@ fun EditProfileScreen(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedButton(
+            PrimaryButton(
+                text = stringResource(Res.string.buttonText_cancel),
                 onClick = { viewModel.onEvent(EditProfileEvent.OnCancelClick) },
                 modifier = Modifier.weight(1f).height(48.dp),
-                shape = RoundedCornerShape(8.dp),
-                border = BorderStroke(
-                    1.dp, AppTheme.colors.border
-                )
-            ) {
-                Text("Cancelar", color = AppTheme.colors.textPrimary)
-            }
+                isPrimary = false
+            )
 
             PrimaryButton(
-                text = "Guardar",
+                text = stringResource(Res.string.buttonText_save),
                 onClick = { viewModel.onEvent(EditProfileEvent.OnSaveClick) },
                 modifier = Modifier.weight(1f).height(48.dp),
                 isLoading = state.isLoading,
@@ -217,84 +224,5 @@ fun EditProfileScreen(
         }
 
         Spacer(modifier = Modifier.height(40.dp))
-    }
-}
-
-// ── SELECTOR PARA PARTES SIN NULLABLE ─────────────────
-@Composable
-private fun AvatarPartSelector(
-    items: List<Pair<String, DrawableResource>>,
-    selectedName: String,
-    onSelect: (String) -> Unit
-) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(items) { (name, resource) ->
-            val isSelected = name == selectedName
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(AppTheme.colors.surface)
-                    .border(
-                        width = if (isSelected) 3.dp else 1.dp,
-                        color = if (isSelected) AppTheme.colors.primary else AppTheme.colors.border,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .clickable { onSelect(name) },
-                contentAlignment = Alignment.Center
-            ) {
-                Image(
-                    painter = painterResource(resource),
-                    contentDescription = name,
-                    modifier = Modifier.size(60.dp)
-                )
-            }
-        }
-    }
-}
-
-// ── SELECTOR PARA PARTES CON NULLABLE (sombrero/accesorio) ──
-@Composable
-private fun AvatarPartSelectorNullable(
-    items: List<Pair<String, DrawableResource?>>,
-    selectedName: String,
-    onSelect: (String) -> Unit
-) {
-    LazyRow(
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(items) { (name, resource) ->
-            val isSelected = name == selectedName
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(AppTheme.colors.surface)
-                    .border(
-                        width = if (isSelected) 3.dp else 1.dp,
-                        color = if (isSelected) AppTheme.colors.primary else AppTheme.colors.border,
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                    .clickable { onSelect(name) },
-                contentAlignment = Alignment.Center
-            ) {
-                if (resource != null) {
-                    Image(
-                        painter = painterResource(resource),
-                        contentDescription = name,
-                        modifier = Modifier.size(60.dp)
-                    )
-                } else {
-                    // Opción "ninguno"
-                    Text(
-                        "✕",
-                        style = AppTheme.typography.headlineLarge,
-                        color = AppTheme.colors.textSecondary
-                    )
-                }
-            }
-        }
     }
 }

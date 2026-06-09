@@ -21,17 +21,5 @@ data class SocialPost(
     val requestSent: Boolean    = false
 )
 
-sealed interface SocialSpaceEvent {
-    data class OnSearchQueryChanged(val query: String) : SocialSpaceEvent
-    data object OnBackClick : SocialSpaceEvent
-    data object OnMessageClick : SocialSpaceEvent
-    data class OnAddFriendClick(val authorUid: String) : SocialSpaceEvent
-    data class OnViewOnMapClick(val postId: String) : SocialSpaceEvent
-}
 
-sealed interface SocialSpaceEffect {
-    data object NavigateBack : SocialSpaceEffect
-    data object NavigateToMessages : SocialSpaceEffect
-    data class ShowError(val message: String) : SocialSpaceEffect
-    data class ShowToast(val message: String) : SocialSpaceEffect
-}
+

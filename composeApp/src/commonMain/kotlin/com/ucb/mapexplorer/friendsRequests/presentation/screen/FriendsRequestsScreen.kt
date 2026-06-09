@@ -25,6 +25,8 @@ import com.ucb.mapexplorer.friends.domain.model.FriendRequestModel
 import com.ucb.mapexplorer.friendsRequests.presentation.state.FriendsRequestsEffect
 import com.ucb.mapexplorer.friendsRequests.presentation.state.FriendsRequestsEvent
 import com.ucb.mapexplorer.friendsRequests.presentation.viewmodel.FriendsRequestsViewModel
+import com.ucb.mapexplorer.friendsRequests.presentation.composable.FriendRequestItem
+
 
 @Composable
 fun FriendsRequestsScreen(
@@ -165,92 +167,6 @@ fun FriendsRequestsScreen(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FriendRequestItem(
-    request: FriendRequestModel,
-    onAccept: () -> Unit,
-    onDecline: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = AppTheme.colors.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Avatar inicial
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .clip(CircleShape)
-                    .background(AppTheme.colors.primary.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = request.emisorUsername.take(1).uppercase(),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = AppTheme.colors.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = request.emisorUsername,
-                    style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                    color = AppTheme.colors.textPrimary
-                )
-                Text(
-                    text = "Quiere ser tu amigo",
-                    style = AppTheme.typography.bodySmall,
-                    color = AppTheme.colors.textSecondary
-                )
-            }
-
-            // Botón rechazar (✕)
-            IconButton(
-                onClick = onDecline,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Color.Red.copy(alpha = 0.1f))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Close,
-                    contentDescription = "Rechazar",
-                    tint = Color.Red,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            // Botón aceptar (✓)
-            IconButton(
-                onClick = onAccept,
-                modifier = Modifier
-                    .size(36.dp)
-                    .clip(CircleShape)
-                    .background(Color(0xFF2196F3).copy(alpha = 0.1f))
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Check,
-                    contentDescription = "Aceptar",
-                    tint = Color(0xFF2196F3),
-                    modifier = Modifier.size(18.dp)
-                )
             }
         }
     }

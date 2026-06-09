@@ -19,13 +19,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ucb.designsystem.components.navigation.DsTopAppBar
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.nearbyplaces.domain.model.LugarSavedModel
 import com.ucb.mapexplorer.savedPlaces.presentation.state.SavedPlacesEffect
 import com.ucb.mapexplorer.savedPlaces.presentation.state.SavedPlacesEvent
 import com.ucb.mapexplorer.savedPlaces.presentation.viewmodel.SavedPlacesViewModel
 import org.koin.compose.viewmodel.koinViewModel
-
+import com.ucb.mapexplorer.savedPlaces.presentation.composable.EmptyGuardadosContent
+import com.ucb.mapexplorer.savedPlaces.presentation.composable.GuardadoItem
 @Composable
 fun SavedPlacesScreen(
     onBack: () -> Unit,
@@ -51,34 +53,12 @@ fun SavedPlacesScreen(
             .background(AppTheme.colors.background)
     ) {
         // ── Header ────────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
-                tint = AppTheme.colors.textPrimary,
-                modifier = Modifier.size(22.dp).clickable { viewModel.onEvent(SavedPlacesEvent.OnBackClick) }
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Ver mis guardados",
-                style = AppTheme.typography.headlineLarge.copy(fontSize = 20.sp),
-                color = AppTheme.colors.textPrimary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Outlined.Bookmark,
-                contentDescription = null,
-                tint = AppTheme.colors.primary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
+        DsTopAppBar(
+            title = "Ver mis guardados",
+            onBackClick = { viewModel.onEvent(SavedPlacesEvent.OnBackClick) },
+            backIcon = Icons.AutoMirrored.Filled.ArrowBack,
+            actionIcon = Icons.Outlined.Bookmark
+        )
 
         HorizontalDivider(color = AppTheme.colors.border.copy(alpha = 0.3f), thickness = 0.5.dp)
 
@@ -121,83 +101,3 @@ fun SavedPlacesScreen(
     }
 }
 
-@Composable
-private fun GuardadoItem(
-    lugar: LugarSavedModel,
-    onClick: () -> Unit,
-    onRemove: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(46.dp)
-                .clip(CircleShape)
-                .background(AppTheme.colors.primary.copy(alpha = 0.08f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(text = lugar.iconoCategoria, fontSize = 22.sp)
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = lugar.nombre,
-                style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = AppTheme.colors.textPrimary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = lugar.categoria,
-                style = AppTheme.typography.bodySmall,
-                color = AppTheme.colors.textSecondary
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        IconButton(
-            onClick = onRemove,
-            modifier = Modifier.size(36.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Bookmark,
-                contentDescription = "Quitar de guardados",
-                tint = AppTheme.colors.primary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun EmptyGuardadosContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text("🔖", fontSize = 56.sp)
-            Text(
-                "Aún no tienes guardados",
-                style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = AppTheme.colors.textPrimary
-            )
-            Text(
-                "Guarda lugares para visitarlos\nmás tarde desde el detalle",
-                style = AppTheme.typography.bodySmall,
-                color = AppTheme.colors.textSecondary
-            )
-        }
-    }
-}

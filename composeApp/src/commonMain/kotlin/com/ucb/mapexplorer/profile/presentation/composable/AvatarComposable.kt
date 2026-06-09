@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.ucb.mapexplorer.profile.data.mapper.toResource
 import com.ucb.mapexplorer.profile.domain.model.AvatarAccessory
 import com.ucb.mapexplorer.profile.domain.model.AvatarBody
 import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
@@ -18,25 +19,11 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 // Mapea el enum al recurso drawable
-fun AvatarBody.toResource(): DrawableResource = when (this) {
-    AvatarBody.GATO    -> Res.drawable.avatar_cu_gato
-    AvatarBody.GALLINA -> Res.drawable.avatar_cu_gall
-    AvatarBody.PATO    -> Res.drawable.avatar_cu_pato
-}
 
-fun AvatarHat.toResource(): DrawableResource? = when (this) {
-    AvatarHat.NONE      -> null
-    AvatarHat.BANANA    -> Res.drawable.avatar_som_banan
-    AvatarHat.HOJA      -> Res.drawable.avatar_som_hoja
-    AvatarHat.ICE_CREAM -> Res.drawable.avatar_som_ice_c
-}
 
-fun AvatarAccessory.toResource(): DrawableResource? = when (this) {
-    AvatarAccessory.NONE    -> null
-    AvatarAccessory.BOOBA   -> Res.drawable.avatar_acc_booba
-    AvatarAccessory.CAKE    -> Res.drawable.avatar_acc_cake
-    AvatarAccessory.MONSTER -> Res.drawable.avatar_acc_monster
-}
+
+
+
 
 // Composable principal — superpone las 3 capas
 @Composable

@@ -1,17 +1,10 @@
 package com.ucb.mapexplorer.profile.domain.repository
 
 import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
+import com.ucb.mapexplorer.profile.domain.model.ProfileModel
 import kotlinx.coroutines.flow.Flow
 
-data class ProfileModel(
-    val uid: String,
-    val name: String,
-    val email: String,
-    val description: String,
-    val avatarConfig: AvatarConfigModel,
-    val level: Int = 1,
-    val age: Int = 0
-)
+
 
 interface ProfileRepository {
     /** Observa los cambios del perfil en tiempo real. */

@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ucb.designsystem.components.navigation.DsTopAppBar
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.favoritePlaces.presentation.state.FavoritePlacesEffect
 import com.ucb.mapexplorer.favoritePlaces.presentation.state.FavoritePlacesEvent
@@ -52,34 +53,12 @@ fun FavoritePlacesScreen(
             .background(AppTheme.colors.background)
     ) {
         // ── Header ────────────────────────────────────────────────────────
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
-                tint = AppTheme.colors.textPrimary,
-                modifier = Modifier.size(22.dp).clickable { viewModel.onEvent(FavoritePlacesEvent.OnBackClick) }
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = "Lugares Favoritos",
-                style = AppTheme.typography.headlineLarge.copy(fontSize = 20.sp),
-                color = AppTheme.colors.textPrimary,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = null,
-                tint = AppTheme.colors.primary,
-                modifier = Modifier.size(22.dp)
-            )
-        }
+        DsTopAppBar(
+            title = "Lugares Favoritos",
+            onBackClick = { viewModel.onEvent(FavoritePlacesEvent.OnBackClick) },
+            backIcon = Icons.AutoMirrored.Filled.ArrowBack,
+            actionIcon = Icons.Default.Favorite
+        )
 
         HorizontalDivider(color = AppTheme.colors.border.copy(alpha = 0.3f), thickness = 0.5.dp)
 

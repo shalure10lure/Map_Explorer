@@ -13,8 +13,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.components.input.BasicInput
+import com.ucb.designsystem.components.input.DsPasswordInput
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEffect
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEvent
@@ -101,10 +105,12 @@ fun LoginScreen(
                     style = AppTheme.typography.bodyMedium,
                     color = AppTheme.colors.textPrimary
                 )
-                BasicInput(
+                DsPasswordInput(
                     value = state.password,
                     onValueChange = { viewModel.onEvent(LoginEvent.OnPasswordChanged(it)) },
-                    label = "", 
+                    label = "",
+                    visibilityIcon = Icons.Default.Visibility,
+                    visibilityOffIcon = Icons.Default.VisibilityOff,
                     modifier = Modifier.fillMaxWidth()
                 )
 

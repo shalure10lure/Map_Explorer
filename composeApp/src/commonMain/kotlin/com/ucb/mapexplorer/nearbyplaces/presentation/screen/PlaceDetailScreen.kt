@@ -27,6 +27,9 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import com.ucb.designsystem.components.button.PrimaryButton
+import com.ucb.designsystem.components.navigation.DsTopAppBar
+import com.ucb.designsystem.components.rating.DsRatingBar
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
@@ -75,27 +78,11 @@ fun PlaceDetailScreen(
             .fillMaxSize()
             .background(AppTheme.colors.background)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Volver",
-                tint               = AppTheme.colors.textPrimary,
-                modifier           = Modifier.size(22.dp).clickable { onBack() }
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text     = stringResource(Res.string.navigationSelector_seeNearbyPlaces),
-                style    = AppTheme.typography.bodyMedium,
-                color    = AppTheme.colors.textPrimary,
-                modifier = Modifier.clickable { onBack() }
-            )
-        }
+        DsTopAppBar(
+            title = stringResource(Res.string.navigationSelector_seeNearbyPlaces),
+            onBackClick = onBack,
+            backIcon = Icons.AutoMirrored.Filled.ArrowBack
+        )
 
         when {
             lugar == null && detailState.isLoading ->
@@ -363,13 +350,11 @@ private fun PlaceDetailContent(
             // ── 5. Estrellas ───────────────────────────────────────────────
             Column(modifier = Modifier.padding(horizontal = 24.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    val filled = dynamicRating.toInt().coerceIn(0, 5)
-                    repeat(filled) {
-                        Icon(Icons.Default.Star, null, tint = Color(0xFFFFC107), modifier = Modifier.size(36.dp))
-                    }
-                    repeat(5 - filled) {
-                        Icon(Icons.Default.Star, null, tint = Color(0xFFE0E0E0), modifier = Modifier.size(36.dp))
-                    }
+                    DsRatingBar(
+                        rating = dynamicRating.toInt().coerceIn(0, 5),
+                        starIcon = Icons.Default.Star,
+                        starSize = 36.dp
+                    )
                     Spacer(Modifier.width(4.dp))
                     if (ratingLoaded) {
                         val ratingText = (round(dynamicRating * 10) / 10).toString()
@@ -393,25 +378,25 @@ private fun PlaceDetailContent(
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
                     .padding(bottom = 48.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text     = stringResource(Res.string.placeDetails_seeOnMap),
-                    fontSize = 22.sp,
-                    color    = Color(0xFF4285F4),
-                    modifier = Modifier.clickable { onViewMap() }
+                PrimaryButton(
+                    text = stringResource(Res.string.placeDetails_seeOnMap),
+                    onClick = onViewMap,
+                    modifier = Modifier.fillMaxWidth(),
+                    isPrimary = false
                 )
-                Text(
-                    text     = stringResource(Res.string.placeDetails_guideMe),
-                    fontSize = 22.sp,
-                    color    = Color(0xFF4285F4),
-                    modifier = Modifier.clickable { onGuideMe() }  // ← conectado
+                PrimaryButton(
+                    text = stringResource(Res.string.placeDetails_guideMe),
+                    onClick = onGuideMe,
+                    modifier = Modifier.fillMaxWidth(),
+                    isPrimary = true
                 )
-                Text(
-                    text     = stringResource(Res.string.placeDetails_share),
-                    fontSize = 22.sp,
-                    color    = Color(0xFF4285F4),
-                    modifier = Modifier.clickable { onShareExperience() }  // ← conectado
+                PrimaryButton(
+                    text = stringResource(Res.string.placeDetails_share),
+                    onClick = onShareExperience,
+                    modifier = Modifier.fillMaxWidth(),
+                    isPrimary = false
                 )
             }
         }

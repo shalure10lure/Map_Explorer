@@ -23,7 +23,13 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.compose.LocalPlatformContext
 import coil3.request.ImageRequest
+import com.ucb.designsystem.components.button.PrimaryButton
+import com.ucb.designsystem.components.input.DsTextArea
+import com.ucb.designsystem.components.navigation.DsTopAppBar
+import com.ucb.designsystem.components.rating.DsRatingBar
 import com.ucb.designsystem.theme.AppTheme
+import mapexplorer.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import com.ucb.mapexplorer.publication.presentation.state.PublicationEffect
 import com.ucb.mapexplorer.publication.presentation.state.PublicationEvent
 import com.ucb.mapexplorer.publication.presentation.viewmodel.PublicationViewModel
@@ -69,27 +75,11 @@ fun PublicationScreen(
                 .verticalScroll(rememberScrollState())
         ) {
             // ── Header ────────────────────────────────────────────────────
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .statusBarsPadding()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
-                    tint = AppTheme.colors.textPrimary,
-                    modifier = Modifier.size(22.dp).clickable { onBack() }
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "Ver lugares cercanos a mi",
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textPrimary,
-                    modifier = Modifier.clickable { onBack() }
-                )
-            }
+            DsTopAppBar(
+                title = stringResource(Res.string.navigationSelector_seeNearbyPlaces),
+                onBackClick = onBack,
+                backIcon = Icons.AutoMirrored.Filled.ArrowBack
+            )
 
             // ── Imagen del lugar ──────────────────────────────────────────
             Box(
@@ -146,7 +136,7 @@ fun PublicationScreen(
             // ── Califica el lugar ─────────────────────────────────────────
             Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
                 Text(
-                    text = "Califica el lugar",
+                    text = stringResource(Res.string.publishExperience_rating),
                     style = AppTheme.typography.labelLarge,
                     color = Color(0xFF00796B),
                     fontWeight = FontWeight.Bold,
@@ -154,20 +144,11 @@ fun PublicationScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    (1..5).forEach { star ->
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "$star estrellas",
-                            tint = if (star <= state.rating) Color(0xFFFFC107) else Color(0xFFE0E0E0),
-                            modifier = Modifier
-                                .size(44.dp)
-                                .clickable {
-                                    viewModel.onEvent(PublicationEvent.OnRatingSelected(star))
-                                }
-                        )
-                    }
-                }
+                DsRatingBar(
+                    rating = state.rating,
+                    onRatingSelected = { viewModel.onEvent(PublicationEvent.OnRatingSelected(it)) },
+                    starIcon = Icons.Default.Star
+                )
 
                 if (state.rating > 0) {
                     Spacer(modifier = Modifier.height(4.dp))
@@ -195,7 +176,7 @@ fun PublicationScreen(
             // ── Escribe tu opinión ────────────────────────────────────────
             Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 20.dp)) {
                 Text(
-                    text = "Escribe tu opinión",
+                    text = stringResource(Res.string.publishExperience_writeOpinion),
                     style = AppTheme.typography.labelLarge,
                     color = Color(0xFF00796B),
                     fontWeight = FontWeight.Bold,
@@ -203,32 +184,10 @@ fun PublicationScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
 
-                OutlinedTextField(
+                DsTextArea(
                     value = state.experienceText,
-                    onValueChange = {
-                        viewModel.onEvent(PublicationEvent.OnExperienceChanged(it))
-                    },
-                    placeholder = {
-                        Text(
-                            "Cuéntanos tu experiencia en este lugar...",
-                            style = AppTheme.typography.bodyMedium,
-                            color = AppTheme.colors.textSecondary
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(140.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color(0xFF00796B),
-                        unfocusedBorderColor = AppTheme.colors.border,
-                        focusedContainerColor = AppTheme.colors.surface,
-                        unfocusedContainerColor = AppTheme.colors.surface
-                    ),
-                    textStyle = AppTheme.typography.bodyMedium.copy(
-                        color = AppTheme.colors.textPrimary
-                    ),
-                    maxLines = 6
+                    onValueChange = { viewModel.onEvent(PublicationEvent.OnExperienceChanged(it)) },
+                    placeholder = "Cuéntanos tu experiencia en este lugar..."
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -244,7 +203,7 @@ fun PublicationScreen(
 
             // ── Experiencia del usuario (label) ───────────────────────────
             Text(
-                text = "Experiencia del usuario",
+                text = stringResource(Res.string.socialMedia_subtittle_myExperience),
                 style = AppTheme.typography.bodyMedium,
                 color = AppTheme.colors.textPrimary,
                 fontWeight = FontWeight.Bold,
@@ -261,40 +220,20 @@ fun PublicationScreen(
                     .padding(bottom = 40.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                OutlinedButton(
+                PrimaryButton(
+                    text = stringResource(Res.string.buttonText_cancel),
                     onClick = { viewModel.onEvent(PublicationEvent.OnCancelClick) },
                     modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = AppTheme.colors.textPrimary
-                    )
-                ) {
-                    Text("Cancelar", style = AppTheme.typography.labelLarge)
-                }
+                    isPrimary = false
+                )
 
-                Button(
+                PrimaryButton(
+                    text = "Publicar", // 'Publicar' doesn't have a direct key in strings.xml yet, keeping it or adding one if needed.
                     onClick = { viewModel.onEvent(PublicationEvent.OnPublishClick) },
-                    enabled = !state.isPublishing,
+                    isLoading = state.isPublishing,
                     modifier = Modifier.weight(1f).height(52.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = AppTheme.colors.primary
-                    )
-                ) {
-                    if (state.isPublishing) {
-                        CircularProgressIndicator(
-                            color = Color.White,
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Text(
-                            "Publicar",
-                            style = AppTheme.typography.labelLarge,
-                            color = Color.White
-                        )
-                    }
-                }
+                    isPrimary = true
+                )
             }
         }
     }

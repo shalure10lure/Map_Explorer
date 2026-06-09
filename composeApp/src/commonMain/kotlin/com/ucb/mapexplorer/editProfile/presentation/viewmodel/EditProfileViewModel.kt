@@ -6,7 +6,7 @@ import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.editProfile.presentation.state.EditProfileEffect
 import com.ucb.mapexplorer.editProfile.presentation.state.EditProfileEvent
 import com.ucb.mapexplorer.editProfile.presentation.state.EditProfileUIState
-import com.ucb.mapexplorer.profile.domain.repository.ProfileModel
+import com.ucb.mapexplorer.profile.domain.model.ProfileModel
 import com.ucb.mapexplorer.profile.domain.usecase.GetProfileUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.UpdateProfileUseCase
 import kotlinx.coroutines.flow.MutableSharedFlow

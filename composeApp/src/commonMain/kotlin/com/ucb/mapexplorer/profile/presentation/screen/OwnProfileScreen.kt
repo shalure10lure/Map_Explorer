@@ -15,7 +15,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ucb.designsystem.components.button.PrimaryButton
+import com.ucb.designsystem.components.navigation.DsTopAppBar
 import com.ucb.designsystem.theme.AppTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEffect
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEvent
 import com.ucb.mapexplorer.profile.presentation.viewmodel.OwnProfileViewModel
@@ -55,20 +58,11 @@ fun OwnProfileScreen(
             .background(AppTheme.colors.background)
     ) {
         // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(onClick = { viewModel.onEvent(OwnProfileEvent.OnBackClick) }) {
-                Text(
-                    text = "← ${stringResource(Res.string.navigationSelector_backToMap)}",
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textPrimary
-                )
-            }
-        }
+        DsTopAppBar(
+            title = stringResource(Res.string.navigationSelector_backToMap),
+            onBackClick = { viewModel.onEvent(OwnProfileEvent.OnBackClick) },
+            backIcon = Icons.AutoMirrored.Filled.ArrowBack
+        )
 
         if (state.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

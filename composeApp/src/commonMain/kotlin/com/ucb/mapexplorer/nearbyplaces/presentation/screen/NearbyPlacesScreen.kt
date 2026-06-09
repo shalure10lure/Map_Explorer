@@ -28,7 +28,8 @@ import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.nearbyplaces.domain.model.PlaceModel
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-
+import com.ucb.mapexplorer.nearbyplaces.presentation.composable.PlaceListItem
+import com.ucb.mapexplorer.nearbyplaces.presentation.composable.NoPlacesFoundContent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NearbyPlacesScreen(
@@ -155,128 +156,6 @@ fun NearbyPlacesScreen(
                     )
                 }
             }
-        }
-    }
-}
-
-// ── PlaceListItem — fiel al Figma ─────────────────────────────────────────────
-@Composable
-fun PlaceListItem(
-    place: PlaceModel,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Ícono circular de categoría
-        Box(
-            modifier = Modifier
-                .size(46.dp)
-                .clip(CircleShape)
-                .background(AppTheme.colors.primary.copy(alpha = 0.08f)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text     = place.categoryIcon,
-                fontSize = 22.sp
-            )
-        }
-
-        Spacer(modifier = Modifier.width(12.dp))
-
-        // Textos: Tipo, Nombre, Descripción
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text  = place.category,
-                style = AppTheme.typography.bodySmall,
-                color = AppTheme.colors.textSecondary
-            )
-            Text(
-                text       = place.name,
-                style      = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color      = AppTheme.colors.textPrimary,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis
-            )
-            Text(
-                text     = place.description.ifBlank { place.category },
-                style    = AppTheme.typography.bodySmall,
-                color    = AppTheme.colors.textSecondary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Estrellas + flecha derecha
-        Column(horizontalAlignment = Alignment.End) {
-            StarRatingRow(rating = place.rating, starSize = 14.dp)
-        }
-
-        Spacer(modifier = Modifier.width(4.dp))
-
-        Icon(
-            imageVector     = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint            = AppTheme.colors.textSecondary,
-            modifier        = Modifier.size(20.dp)
-        )
-    }
-}
-
-// ── Estrellas reutilizables ────────────────────────────────────────────────────
-@Composable
-fun StarRatingRow(
-    rating: Float,
-    starSize: androidx.compose.ui.unit.Dp = 16.dp
-) {
-    Row(horizontalArrangement = Arrangement.spacedBy(1.dp)) {
-        val filled = rating.toInt().coerceIn(0, 5)
-        repeat(filled) {
-            Icon(
-                imageVector     = Icons.Default.Star,
-                contentDescription = null,
-                tint            = Color(0xFFFFC107),
-                modifier        = Modifier.size(starSize)
-            )
-        }
-        repeat(5 - filled) {
-            Icon(
-                imageVector     = Icons.Default.Star,
-                contentDescription = null,
-                tint            = Color(0xFFE0E0E0),
-                modifier        = Modifier.size(starSize)
-            )
-        }
-    }
-}
-// ── Estado vacío ──────────────────────────────────────────────────────────────
-@Composable
-private fun NoPlacesFoundContent() {
-    Box(
-        modifier          = Modifier.fillMaxSize(),
-        contentAlignment  = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Text(text = "🗺️", fontSize = 56.sp)
-            Text(
-                text  = "Sigue explorando el mapa",
-                style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
-                color = AppTheme.colors.textPrimary
-            )
-            Text(
-                text  = "Los lugares aparecen cuando\ndescubres nuevas zonas",
-                style = AppTheme.typography.bodySmall,
-                color = AppTheme.colors.textSecondary
-            )
         }
     }
 }

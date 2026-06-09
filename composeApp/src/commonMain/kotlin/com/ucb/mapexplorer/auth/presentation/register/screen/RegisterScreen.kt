@@ -13,8 +13,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.components.input.BasicInput
+import com.ucb.designsystem.components.input.DsPasswordInput
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.auth.presentation.register.state.*
 import com.ucb.mapexplorer.auth.presentation.register.viewmodel.RegisterViewModel
@@ -193,13 +197,13 @@ private fun RegisterStep1(
                     style = AppTheme.typography.bodySmall,
                     color = AppTheme.colors.textSecondary
                 )
-                OutlinedTextField(
+                DsPasswordInput(
                     value = state.password,
                     onValueChange = { onEvent(RegisterEvent.OnPasswordChanged(it)) },
-                    label = { Text("Al menos 8 caracteres") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                    label = "Al menos 8 caracteres",
+                    visibilityIcon = Icons.Default.Visibility,
+                    visibilityOffIcon = Icons.Default.VisibilityOff,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -210,13 +214,13 @@ private fun RegisterStep1(
                     style = AppTheme.typography.bodySmall,
                     color = AppTheme.colors.textSecondary
                 )
-                OutlinedTextField(
+                DsPasswordInput(
                     value = state.confirmPassword,
                     onValueChange = { onEvent(RegisterEvent.OnConfirmPasswordChanged(it)) },
-                    label = { Text("Mínimo 8 caracteres") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                    label = "Mínimo 8 caracteres",
+                    visibilityIcon = Icons.Default.Visibility,
+                    visibilityOffIcon = Icons.Default.VisibilityOff,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
