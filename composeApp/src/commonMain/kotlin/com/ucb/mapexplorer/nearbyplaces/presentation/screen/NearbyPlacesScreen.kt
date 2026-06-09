@@ -86,7 +86,7 @@ fun NearbyPlacesScreen(
             onValueChange = { searchQuery = it },
             placeholder = {
                 Text(
-                    text = "Buscar lugar...",
+                    text = stringResource(Res.string.nearby_search_hint),
                     style = AppTheme.typography.bodyMedium,
                     color = AppTheme.colors.textSecondary
                 )
@@ -134,11 +134,24 @@ fun NearbyPlacesScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No hay resultados para \"$searchQuery\"",
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textSecondary
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier.offset(y = (-40).dp) // Sube un poco el contenido para que no se vea tan vacío abajo
+                ) {
+                    Text(
+                        text = "🔍",
+                        fontSize = 48.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+                    Text(
+                        text = stringResource(Res.string.nearby_no_results, searchQuery),
+                        style = AppTheme.typography.bodyMedium,
+                        color = AppTheme.colors.textSecondary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 32.dp)
+                    )
+                }
             }
         } else {
             LazyColumn(

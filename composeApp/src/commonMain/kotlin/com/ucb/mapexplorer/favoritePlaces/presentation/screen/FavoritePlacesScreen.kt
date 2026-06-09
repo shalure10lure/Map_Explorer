@@ -28,6 +28,12 @@ import com.ucb.mapexplorer.favoritePlaces.presentation.viewmodel.FavoritePlacesV
 import com.ucb.mapexplorer.nearbyplaces.domain.model.LugarSavedModel
 import org.koin.compose.viewmodel.koinViewModel
 
+import mapexplorer.composeapp.generated.resources.Res
+import mapexplorer.composeapp.generated.resources.favorites_empty_desc
+import mapexplorer.composeapp.generated.resources.favorites_empty_title
+import mapexplorer.composeapp.generated.resources.moreOptions_textSelector_favoritePlaces
+import org.jetbrains.compose.resources.stringResource
+
 @Composable
 fun FavoritePlacesScreen(
     onBack: () -> Unit,
@@ -54,7 +60,7 @@ fun FavoritePlacesScreen(
     ) {
         // ── Header ────────────────────────────────────────────────────────
         DsTopAppBar(
-            title = "Lugares Favoritos",
+            title = stringResource(Res.string.moreOptions_textSelector_favoritePlaces),
             onBackClick = { viewModel.onEvent(FavoritePlacesEvent.OnBackClick) },
             backIcon = Icons.AutoMirrored.Filled.ArrowBack,
             actionIcon = Icons.Default.Favorite
@@ -167,16 +173,17 @@ private fun EmptyFavoritosContent() {
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.offset(y = (-40).dp)
         ) {
             Text("❤️", fontSize = 56.sp)
             Text(
-                "Aún no tienes favoritos",
+                stringResource(Res.string.favorites_empty_title),
                 style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
                 color = AppTheme.colors.textPrimary
             )
             Text(
-                "Marca lugares como favoritos\ndesde el detalle del lugar",
+                stringResource(Res.string.favorites_empty_desc),
                 style = AppTheme.typography.bodySmall,
                 color = AppTheme.colors.textSecondary
             )

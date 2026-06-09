@@ -25,6 +25,24 @@ import com.ucb.mapexplorer.searchUser.presentation.state.SearchUserEffect
 import com.ucb.mapexplorer.searchUser.presentation.state.SearchUserEvent
 import com.ucb.mapexplorer.searchUser.presentation.viewmodel.SearchUserViewModel
 
+import mapexplorer.composeapp.generated.resources.Res
+import mapexplorer.composeapp.generated.resources.buttonText_cancel
+import mapexplorer.composeapp.generated.resources.searchUser_add
+import mapexplorer.composeapp.generated.resources.searchUser_already_friends
+import mapexplorer.composeapp.generated.resources.searchUser_already_friends_desc
+import mapexplorer.composeapp.generated.resources.searchUser_close
+import mapexplorer.composeapp.generated.resources.searchUser_hint
+import mapexplorer.composeapp.generated.resources.searchUser_minimum_chars
+import mapexplorer.composeapp.generated.resources.searchUser_no_results
+import mapexplorer.composeapp.generated.resources.searchUser_request_sent
+import mapexplorer.composeapp.generated.resources.searchUser_request_sent_desc
+import mapexplorer.composeapp.generated.resources.searchUser_send
+import mapexplorer.composeapp.generated.resources.searchUser_send_request
+import mapexplorer.composeapp.generated.resources.searchUser_send_request_confirm
+import mapexplorer.composeapp.generated.resources.searchUser_subhint
+import mapexplorer.composeapp.generated.resources.searchUser_title
+import org.jetbrains.compose.resources.stringResource
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchUserScreen(
@@ -53,9 +71,9 @@ fun SearchUserScreen(
             title = {
                 Text(
                     when {
-                        state.alreadyFriend -> "¡Ya son amigos!"
-                        state.requestSent   -> "Solicitud pendiente"
-                        else               -> "Enviar solicitud"
+                        state.alreadyFriend -> stringResource(Res.string.searchUser_already_friends)
+                        state.requestSent   -> stringResource(Res.string.searchUser_request_sent)
+                        else               -> stringResource(Res.string.searchUser_send_request)
                     },
                     color = AppTheme.colors.textPrimary
                 )
@@ -63,9 +81,9 @@ fun SearchUserScreen(
             text = {
                 Text(
                     when {
-                        state.alreadyFriend -> "Ya eres amigo de ${user.username}."
-                        state.requestSent   -> "Ya enviaste una solicitud a ${user.username}. Espera su respuesta."
-                        else               -> "¿Deseas enviar una solicitud de amistad a ${user.username}?"
+                        state.alreadyFriend -> stringResource(Res.string.searchUser_already_friends_desc, user.username)
+                        state.requestSent   -> stringResource(Res.string.searchUser_request_sent_desc, user.username)
+                        else               -> stringResource(Res.string.searchUser_send_request_confirm, user.username)
                     },
                     color = AppTheme.colors.textSecondary
                 )
@@ -80,14 +98,14 @@ fun SearchUserScreen(
                         )
                     } else {
                         TextButton(onClick = { viewModel.onEvent(SearchUserEvent.OnConfirmSendRequest) }) {
-                            Text("Enviar", color = AppTheme.colors.primary, fontWeight = FontWeight.Bold)
+                            Text(stringResource(Res.string.searchUser_send), color = AppTheme.colors.primary, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.onEvent(SearchUserEvent.OnDismissDialog) }) {
-                    Text(if (state.alreadyFriend || state.requestSent) "Cerrar" else "Cancelar",
+                    Text(if (state.alreadyFriend || state.requestSent) stringResource(Res.string.searchUser_close) else stringResource(Res.string.buttonText_cancel),
                         color = AppTheme.colors.textSecondary)
                 }
             },
@@ -121,7 +139,7 @@ fun SearchUserScreen(
                     )
                 }
                 Text(
-                    text = "Buscar personas",
+                    text = stringResource(Res.string.searchUser_title),
                     style = AppTheme.typography.headlineLarge.copy(fontSize = 20.sp),
                     color = AppTheme.colors.textPrimary
                 )
@@ -133,7 +151,7 @@ fun SearchUserScreen(
                 onValueChange = { viewModel.onEvent(SearchUserEvent.OnQueryChanged(it)) },
                 placeholder = {
                     Text(
-                        "Buscar por usuario, correo o ID...",
+                        stringResource(Res.string.searchUser_hint),
                         color = AppTheme.colors.textSecondary
                     )
                 },
@@ -159,7 +177,7 @@ fun SearchUserScreen(
             Spacer(modifier = Modifier.height(4.dp))
 
             Text(
-                text = "Busca por nombre de usuario, correo o ID",
+                text = stringResource(Res.string.searchUser_subhint),
                 style = AppTheme.typography.bodySmall,
                 color = AppTheme.colors.textSecondary,
                 modifier = Modifier.padding(horizontal = 20.dp)
@@ -175,11 +193,14 @@ fun SearchUserScreen(
                 }
                 state.searchQuery.length >= 2 && state.searchResults.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.offset(y = (-40).dp)
+                        ) {
                             Text("🔍", fontSize = 48.sp)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "No se encontraron usuarios",
+                                stringResource(Res.string.searchUser_no_results),
                                 color = AppTheme.colors.textSecondary,
                                 style = AppTheme.typography.bodyMedium
                             )
@@ -188,11 +209,14 @@ fun SearchUserScreen(
                 }
                 state.searchQuery.length < 2 && state.searchResults.isEmpty() -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.offset(y = (-40).dp)
+                        ) {
                             Text("👥", fontSize = 48.sp)
                             Spacer(Modifier.height(8.dp))
                             Text(
-                                "Escribe al menos 2 caracteres",
+                                stringResource(Res.string.searchUser_minimum_chars),
                                 color = AppTheme.colors.textSecondary,
                                 style = AppTheme.typography.bodyMedium
                             )
@@ -268,7 +292,7 @@ private fun UserSearchItem(
                 }
             }
             Text(
-                text = "Agregar →",
+                text = stringResource(Res.string.searchUser_add),
                 style = AppTheme.typography.bodySmall,
                 color = AppTheme.colors.primary,
                 fontWeight = FontWeight.Medium

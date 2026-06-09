@@ -26,6 +26,17 @@ import com.ucb.mapexplorer.friendProfile.presentation.viewmodel.FriendProfileVie
 import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
 import com.ucb.mapexplorer.profile.presentation.composable.AvatarDisplay
 
+import mapexplorer.composeapp.generated.resources.Res
+import mapexplorer.composeapp.generated.resources.buttonText_breakFriend
+import mapexplorer.composeapp.generated.resources.buttonText_cancel
+import mapexplorer.composeapp.generated.resources.friendProfile_all_friends
+import mapexplorer.composeapp.generated.resources.friendProfile_back
+import mapexplorer.composeapp.generated.resources.friendProfile_mutual_friends
+import mapexplorer.composeapp.generated.resources.friendProfile_title
+import mapexplorer.composeapp.generated.resources.optionalData_subtittle_description
+import mapexplorer.composeapp.generated.resources.profileView_subtittle_description
+import org.jetbrains.compose.resources.stringResource
+
 @Composable
 fun FriendProfileScreen(
     friendUid: String,
@@ -58,7 +69,7 @@ fun FriendProfileScreen(
             onDismissRequest = { viewModel.onEvent(FriendProfileEvent.OnDismissRemoveDialog) },
             containerColor = AppTheme.colors.surface,
             title = {
-                Text("¿Romper amistad?", color = AppTheme.colors.textPrimary)
+                Text(stringResource(Res.string.buttonText_breakFriend), color = AppTheme.colors.textPrimary)
             },
             text = {
                 Text(
@@ -73,7 +84,7 @@ fun FriendProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = { viewModel.onEvent(FriendProfileEvent.OnDismissRemoveDialog) }) {
-                    Text("Cancelar", color = AppTheme.colors.textSecondary)
+                    Text(stringResource(Res.string.buttonText_cancel), color = AppTheme.colors.textSecondary)
                 }
             },
             shape = RoundedCornerShape(16.dp)
@@ -112,74 +123,118 @@ fun FriendProfileScreen(
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Volver",
+                    contentDescription = stringResource(Res.string.friendProfile_back),
                     tint = AppTheme.colors.textPrimary,
                     modifier = Modifier.size(22.dp).clickable { onBack() }
                 )
                 Spacer(Modifier.width(12.dp))
                 Text(
-                    text = "Perfil de amigo",
+                    text = stringResource(Res.string.friendProfile_title),
                     style = AppTheme.typography.headlineLarge.copy(fontSize = 18.sp),
                     color = AppTheme.colors.textPrimary
                 )
             }
 
-            Column(
+            LazyColumn(
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment = Alignment.CenterHorizontally,
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                Spacer(Modifier.height(8.dp))
+                item {
+                    Spacer(Modifier.height(8.dp))
 
-                // Avatar + datos
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = state.friendName.ifBlank { "Usuario" },
-                            style = AppTheme.typography.headlineLarge,
-                            color = AppTheme.colors.textPrimary,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            text = "Descripción",
-                            style = AppTheme.typography.bodySmall,
-                            color = AppTheme.colors.textSecondary
-                        )
-                        Text(
-                            text = state.description.ifBlank { "Sin descripción" },
-                            style = AppTheme.typography.bodyMedium,
-                            color = AppTheme.colors.textPrimary
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = "Nivel: ${state.level}",
-                            style = AppTheme.typography.bodyMedium,
-                            color = AppTheme.colors.textPrimary,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    // Avatar + datos
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = state.friendName.ifBlank { "Usuario" },
+                                style = AppTheme.typography.headlineLarge,
+                                color = AppTheme.colors.textPrimary,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = stringResource(Res.string.optionalData_subtittle_description),
+                                style = AppTheme.typography.bodySmall,
+                                color = AppTheme.colors.textSecondary
+                            )
+                            Text(
+                                text = state.description.ifBlank { "Sin descripción" },
+                                style = AppTheme.typography.bodyMedium,
+                                color = AppTheme.colors.textPrimary
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = "Nivel: ${state.level}",
+                                style = AppTheme.typography.bodyMedium,
+                                color = AppTheme.colors.textPrimary,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+
+                        // Avatar
+                        val avatarConfig = remember(state.avatarId) {
+                            if (state.avatarId.isNotBlank())
+                                AvatarConfigModel.fromId(state.avatarId)
+                            else AvatarConfigModel()
+                        }
+                        AvatarDisplay(config = avatarConfig, size = 90.dp)
                     }
 
-                    // Avatar (usa AvatarConfigModel si tienes avatar_id guardado)
-                    val avatarConfig = remember(state.avatarId) {
-                        if (state.avatarId.isNotBlank())
-                            AvatarConfigModel.fromId(state.avatarId)
-                        else AvatarConfigModel()
-                    }
-                    AvatarDisplay(config = avatarConfig, size = 90.dp)
+                    Spacer(Modifier.height(24.dp))
                 }
-
-                Spacer(Modifier.height(24.dp))
 
                 // Amigos en común
                 if (state.mutualFriends.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = stringResource(Res.string.friendProfile_mutual_friends, state.mutualFriends.size),
+                            modifier = Modifier.fillMaxWidth(),
+                            style = AppTheme.typography.bodyMedium,
+                            color = AppTheme.colors.textPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        ElevatedCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = CardDefaults.elevatedCardColors(containerColor = AppTheme.colors.surface)
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                state.mutualFriends.take(5).forEach { name ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(28.dp)
+                                                .clip(CircleShape)
+                                                .background(AppTheme.colors.primary.copy(alpha = 0.15f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(name.take(1).uppercase(), color = AppTheme.colors.primary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        }
+                                        Spacer(Modifier.width(8.dp))
+                                        Text(text = name, style = AppTheme.typography.bodyMedium, color = AppTheme.colors.textPrimary)
+                                    }
+                                }
+                            }
+                        }
+                        Spacer(Modifier.height(16.dp))
+                    }
+                }
+
+                // Sus amigos
+                item {
                     Text(
-                        text = "Amigos en común (${state.mutualFriends.size})",
-                        modifier = Modifier.align(Alignment.Start),
+                        text = stringResource(Res.string.friendProfile_all_friends, state.friendsList.size),
+                        modifier = Modifier.fillMaxWidth(),
                         style = AppTheme.typography.bodyMedium,
                         color = AppTheme.colors.textPrimary,
                         fontWeight = FontWeight.Bold
@@ -188,144 +243,63 @@ fun FriendProfileScreen(
                     ElevatedCard(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.elevatedCardColors(
-                            containerColor = AppTheme.colors.surface
-                        )
+                        colors = CardDefaults.elevatedCardColors(containerColor = AppTheme.colors.surface)
                     ) {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 120.dp)
-                                .padding(8.dp)
-                        ) {
-                            items(state.mutualFriends) { name ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(28.dp)
-                                            .clip(CircleShape)
-                                            .background(AppTheme.colors.primary.copy(alpha = 0.15f)),
-                                        contentAlignment = Alignment.Center
+                        if (state.friendsList.isEmpty()) {
+                            Text("Aún no tiene amigos", modifier = Modifier.padding(16.dp), style = AppTheme.typography.bodySmall, color = AppTheme.colors.textSecondary)
+                        } else {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                state.friendsList.take(5).forEach { friend ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            name.take(1).uppercase(),
-                                            color = AppTheme.colors.primary,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 12.sp
-                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(AppTheme.colors.primary.copy(alpha = 0.12f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(friend.username.take(1).uppercase(), color = AppTheme.colors.primary, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                                        }
+                                        Spacer(Modifier.width(10.dp))
+                                        Text(text = friend.username, style = AppTheme.typography.bodyMedium, color = AppTheme.colors.textPrimary)
                                     }
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        text = name,
-                                        style = AppTheme.typography.bodyMedium,
-                                        color = AppTheme.colors.textPrimary
-                                    )
                                 }
                             }
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(32.dp))
                 }
-
-                // Lista de amigos del usuario
-                Text(
-                    text = "Sus amigos (${state.friendsList.size})",
-                    modifier = Modifier.align(Alignment.Start),
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(Modifier.height(8.dp))
-                ElevatedCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.elevatedCardColors(
-                        containerColor = AppTheme.colors.surface
-                    )
-                ) {
-                    if (state.friendsList.isEmpty()) {
-                        Text(
-                            "Aún no tiene amigos",
-                            modifier = Modifier.padding(16.dp),
-                            style = AppTheme.typography.bodySmall,
-                            color = AppTheme.colors.textSecondary
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 160.dp)
-                                .padding(8.dp)
-                        ) {
-                            items(state.friendsList) { friend ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(32.dp)
-                                            .clip(CircleShape)
-                                            .background(AppTheme.colors.primary.copy(alpha = 0.12f)),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            friend.username.take(1).uppercase(),
-                                            color = AppTheme.colors.primary,
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 14.sp
-                                        )
-                                    }
-                                    Spacer(Modifier.width(10.dp))
-                                    Text(
-                                        text = friend.username,
-                                        style = AppTheme.typography.bodyMedium,
-                                        color = AppTheme.colors.textPrimary
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-
-                Spacer(Modifier.weight(1f))
 
                 // Botones
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    PrimaryButton(
-                        text = "Volver al perfil",
-                        onClick = { viewModel.onEvent(FriendProfileEvent.OnBackToProfileClick) },
-                        modifier = Modifier.weight(1f),
-                        isPrimary = true
-                    )
-                    OutlinedButton(
-                        onClick = { viewModel.onEvent(FriendProfileEvent.OnRemoveFriendClick) },
-                        modifier = Modifier.weight(1f).height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        enabled = !state.isRemoving,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Color.Red
-                        )
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        if (state.isRemoving) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                color = Color.Red,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Text("Romper amistad", color = Color.Red)
+                        PrimaryButton(
+                            text = stringResource(Res.string.friendProfile_back),
+                            onClick = { viewModel.onEvent(FriendProfileEvent.OnBackToProfileClick) },
+                            modifier = Modifier.weight(1f),
+                            isPrimary = true
+                        )
+                        OutlinedButton(
+                            onClick = { viewModel.onEvent(FriendProfileEvent.OnRemoveFriendClick) },
+                            modifier = Modifier.weight(1f).height(48.dp),
+                            shape = RoundedCornerShape(8.dp),
+                            enabled = !state.isRemoving,
+                            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Red)
+                        ) {
+                            if (state.isRemoving) {
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.Red, strokeWidth = 2.dp)
+                            } else {
+                                Text(stringResource(Res.string.buttonText_breakFriend), color = Color.Red)
+                            }
                         }
                     }
                 }
-
-                Spacer(Modifier.height(24.dp))
             }
         }
     }

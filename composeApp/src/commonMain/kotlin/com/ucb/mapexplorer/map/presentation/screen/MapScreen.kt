@@ -48,7 +48,7 @@ fun MapScreen(
                 is MapEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.NewTileDiscovered -> {
-                    snackbarHostState.showSnackbar("¡Nueva zona descubierta! 🗺️")
+                    snackbarHostState.showSnackbar(stringResource(Res.string.map_discovery_new_zone))
                 }
                 is MapEffect.CenterMapOnLocation -> {}
                 MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
@@ -110,7 +110,7 @@ fun MapScreen(
                         CircularProgressIndicator(color = AppTheme.colors.primary)
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Obteniendo tu ubicación...",
+                            text = stringResource(Res.string.map_loading_location),
                             style = AppTheme.typography.bodyMedium,
                             color = AppTheme.colors.textPrimary
                         )
@@ -124,10 +124,10 @@ fun MapScreen(
                     onDismissRequest = { viewModel.onEvent(MapEvent.OnDismissError) },
                     confirmButton = {
                         TextButton(onClick = { viewModel.onEvent(MapEvent.OnDismissError) }) {
-                            Text("OK")
+                            Text(stringResource(Res.string.common_ok))
                         }
                     },
-                    title = { Text("Error") },
+                    title = { Text(stringResource(Res.string.common_error)) },
                     text = { Text(error) }
                 )
             }

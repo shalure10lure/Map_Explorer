@@ -24,6 +24,13 @@ import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.dangerzone.domain.model.NivelPeligro
 import com.ucb.mapexplorer.dangerzone.domain.model.ZonaPeligrosaModel
 
+import mapexplorer.composeapp.generated.resources.Res
+import mapexplorer.composeapp.generated.resources.danger_zone_button
+import mapexplorer.composeapp.generated.resources.danger_zone_default_desc
+import mapexplorer.composeapp.generated.resources.danger_zone_level
+import mapexplorer.composeapp.generated.resources.danger_zone_title
+import org.jetbrains.compose.resources.stringResource
+
 @Composable
 fun DangerZoneAlertDialog(
     zona: ZonaPeligrosaModel?,
@@ -80,7 +87,7 @@ fun DangerZoneAlertDialog(
                     }
 
                     Text(
-                        text       = "¡ZONA PELIGROSA!",
+                        text       = stringResource(Res.string.danger_zone_title),
                         style      = AppTheme.typography.headlineLarge,
                         color      = nivelColor,
                         fontWeight = FontWeight.Bold,
@@ -93,7 +100,7 @@ fun DangerZoneAlertDialog(
                         color = nivelColor.copy(alpha = 0.15f)
                     ) {
                         Text(
-                            text      = "Nivel: ${zona.nivel.label}",
+                            text      = stringResource(Res.string.danger_zone_level, zona.nivel.label),
                             modifier  = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
                             style     = AppTheme.typography.bodySmall,
                             color     = nivelColor,
@@ -111,7 +118,7 @@ fun DangerZoneAlertDialog(
 
                     Text(
                         text      = zona.descripcion.ifBlank {
-                            "Has entrado en una zona reportada como ${zona.tipo}. Mantente alerta y actúa con precaución."
+                            stringResource(Res.string.danger_zone_default_desc, zona.tipo)
                         },
                         style     = AppTheme.typography.bodyMedium,
                         color     = AppTheme.colors.textSecondary,
@@ -130,7 +137,7 @@ fun DangerZoneAlertDialog(
                         )
                     ) {
                         Text(
-                            text  = "Entendido, tener precaución",
+                            text  = stringResource(Res.string.danger_zone_button),
                             color = Color.White,
                             fontWeight = FontWeight.SemiBold
                         )
