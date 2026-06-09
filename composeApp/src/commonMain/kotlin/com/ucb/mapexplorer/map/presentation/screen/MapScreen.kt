@@ -40,6 +40,7 @@ fun MapScreen(
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val mapDiscoveryNewZoneMessage = stringResource(Res.string.map_discovery_new_zone)
 
     // Manejar efectos del ViewModel
     LaunchedEffect(Unit) {
@@ -48,7 +49,7 @@ fun MapScreen(
                 is MapEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.NewTileDiscovered -> {
-                    snackbarHostState.showSnackbar(stringResource(Res.string.map_discovery_new_zone))
+                    snackbarHostState.showSnackbar(mapDiscoveryNewZoneMessage)
                 }
                 is MapEffect.CenterMapOnLocation -> {}
                 MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
