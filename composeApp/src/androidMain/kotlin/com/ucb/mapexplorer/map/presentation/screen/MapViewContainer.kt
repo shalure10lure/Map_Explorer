@@ -26,7 +26,7 @@ import com.google.android.gms.location.*
 import com.ucb.mapexplorer.core.utils.TileUtils
 import com.ucb.mapexplorer.map.presentation.state.MapUIState
 import com.ucb.mapexplorer.navigation.NavRoute
-import com.ucb.mapexplorer.profile.presentation.composable.toResource
+import com.ucb.mapexplorer.profile.data.mapper.toResource
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.osmdroid.config.Configuration

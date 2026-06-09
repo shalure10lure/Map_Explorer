@@ -36,7 +36,7 @@ import org.koin.compose.viewmodel.koinViewModel
 @Composable
 fun MapScreen(
     navController: NavController,
-    viewModel: MapViewModel = koinViewModel()
+    viewModel: MapViewModel
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }

@@ -13,3 +13,6 @@ expect fun getLanguageSetting(): String?
 
 expect fun saveThemeSetting(isDark: Boolean)
 expect fun getThemeSetting(): Boolean?
+expect fun saveSessionUid(uid: String)
+expect fun getSessionUid(): String?
+expect fun clearSessionUid()

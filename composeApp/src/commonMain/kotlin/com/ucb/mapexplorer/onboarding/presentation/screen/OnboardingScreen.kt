@@ -14,7 +14,7 @@ import androidx.navigation.NavController
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.navigation.NavRoute
-import com.ucb.mapexplorer.onboarding.presentation.viewmodel.OnboardingEvent
+import com.ucb.mapexplorer.onboarding.presentation.state.OnboardingEvent
 import com.ucb.mapexplorer.onboarding.presentation.viewmodel.OnboardingViewModel
 import org.koin.compose.viewmodel.koinViewModel
 

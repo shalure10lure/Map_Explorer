@@ -23,6 +23,8 @@ class DangerZoneRepositoryImpl(
     override suspend fun syncZonas() {
         try {
             val zonas = remote.getZonasActivas()
+            println("🌐 Firebase devolvió ${zonas.size} zonas")  // ← debug
+
             val entities = zonas.map { z ->
                 ZonaPeligrosaEntity(
                     zonaId = z.zonaId,
@@ -39,6 +41,8 @@ class DangerZoneRepositoryImpl(
             }
             dao.clearAll()
             dao.insertAll(entities)
+            val count = dao.getZonasActivas().size
+            println("✅ Room ahora tiene $count zonas guardadas")
         } catch (e: Exception) {
             println("❌ DangerZone sync failed: ${e.message}")
         }
@@ -50,14 +54,19 @@ class DangerZoneRepositoryImpl(
     override suspend fun getZonasCerca(
         lat: Double, lon: Double, radioMetros: Double
     ): List<ZonaPeligrosaModel> {
-        val delta = radioMetros / 111_000.0
-        val zonas = dao.getZonasCerca(
-            minLat = lat - delta, maxLat = lat + delta,
-            minLon = lon - delta, maxLon = lon + delta
-        )
-        return zonas
+        // Traemos TODAS las zonas activas, sin filtro bbox
+        // (son pocas filas, no hay problema de performance)
+        val todasLasZonas = dao.getZonasActivas()
+
+        println("🗄️ Total zonas en Room: ${todasLasZonas.size}")
+
+        return todasLasZonas
             .map { it.toModel() }
-            .filter { haversine(lat, lon, it.latitud, it.longitud) <= (it.radio + radioMetros) }
+            .filter { zona ->
+                val distancia = haversine(lat, lon, zona.latitud, zona.longitud)
+                println("📏 ${zona.nombre}: dist=${distancia.toInt()}m, radio=${zona.radio}m")
+                distancia <= (zona.radio + radioMetros)
+            }
     }
 
     private fun ZonaPeligrosaEntity.toModel() = ZonaPeligrosaModel(

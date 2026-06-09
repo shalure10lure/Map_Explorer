@@ -9,7 +9,7 @@ class CheckDangerZoneUseCase(private val repository: DangerZoneRepository) {
      * @param radioUsuario metros extra de margen para detectar la zona antes de entrar.
      */
     suspend operator fun invoke(
-        lat: Double, lon: Double, radioUsuario: Double = 0.0
+        lat: Double, lon: Double, radioUsuario: Double = 10.0
     ): ZonaPeligrosaModel? {
         return repository.getZonasCerca(lat, lon, radioUsuario)
             .maxByOrNull { it.nivel.ordinal }

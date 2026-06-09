@@ -17,6 +17,7 @@ import com.ucb.mapexplorer.navigation.NavRoute
 import com.ucb.mapexplorer.navigation.composable.MainTopBar
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
 import com.ucb.mapexplorer.profile.presentation.screen.OwnProfileScreen
 import com.ucb.mapexplorer.profile.presentation.viewmodel.OwnProfileViewModel
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
@@ -35,10 +36,9 @@ fun MainScreen(
     val profileState by ownProfileViewModel.state.collectAsState()
 
     LaunchedEffect(profileState.avatarConfig) {
-        val mapAvatar     = mapState.avatarConfig
-        val profileAvatar = profileState.avatarConfig
-        if (mapAvatar != profileAvatar) {
-            mapViewModel.onEvent(MapEvent.OnAvatarUpdated(profileAvatar))
+        // Solo actualiza si el perfil ya cargó (no es el default vacío)
+        if (profileState.avatarConfig != AvatarConfigModel()) {
+            mapViewModel.onEvent(MapEvent.OnAvatarUpdated(profileState.avatarConfig))
         }
     }
 
@@ -91,8 +91,11 @@ fun MainScreen(
                             onBack = { selectedTab = MainTab.MAP },
                             onEditProfile = { navController.navigate(NavRoute.EditProfile) },
                             onViewRequests = { navController.navigate(NavRoute.FriendsRequests) },
-                            onViewFriend = { friendUid ->
-                                navController.navigate(NavRoute.FriendProfile(friendUid))
+                            onViewFriend = { friendUid -> navController.navigate(NavRoute.FriendProfile(friendUid)) },
+                            onLogout = {
+                                navController.navigate(NavRoute.Login) {
+                                    popUpTo(0) { inclusive = true }
+                                }
                             }
                         )
                     }

@@ -7,4 +7,5 @@ sealed interface OwnProfileEffect {
     data object NavigateToEditProfile : OwnProfileEffect
     data object NavigateToRequests : OwnProfileEffect
     data class NavigateToFriendProfile(val friendName: String) : OwnProfileEffect
+    data object NavigateToLogin : OwnProfileEffect
 }

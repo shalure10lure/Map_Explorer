@@ -19,6 +19,9 @@ import com.ucb.designsystem.components.navigation.DsTopAppBar
 import com.ucb.designsystem.theme.AppTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
+import com.ucb.mapexplorer.navigation.NavRoute
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEffect
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEvent
 import com.ucb.mapexplorer.profile.presentation.viewmodel.OwnProfileViewModel
@@ -32,7 +35,8 @@ fun OwnProfileScreen(
     onBack: () -> Unit,
     onEditProfile: () -> Unit,
     onViewRequests: () -> Unit,
-    onViewFriend: (String) -> Unit
+    onViewFriend: (String) -> Unit,
+    onLogout: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -48,6 +52,8 @@ fun OwnProfileScreen(
                    val uid = state.friendUids[effect.friendName] ?: return@collect
                     onViewFriend(uid)   // pasamos el UID real
                 }
+                OwnProfileEffect.NavigateToLogin -> onLogout()
+
             }
         }
     }
@@ -197,6 +203,21 @@ fun OwnProfileScreen(
                         modifier = Modifier.weight(1f),
                         isPrimary = true
                     )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { viewModel.onEvent(OwnProfileEvent.OnLogoutClick) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 0.dp)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.Red
+                    )
+                ) {
+                    Text("Cerrar sesión", color = Color.Red)
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))

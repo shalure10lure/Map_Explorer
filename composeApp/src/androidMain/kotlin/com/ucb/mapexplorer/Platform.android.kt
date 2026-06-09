@@ -37,3 +37,28 @@ actual fun getThemeSetting(): Boolean? {
         prefs.getBoolean("is_dark_theme", false)
     } else null
 }
+// Al final del archivo, después de getThemeSetting()
+actual fun saveSessionUid(uid: String) {
+    val prefs = AppContext.value.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val expiresAt = System.currentTimeMillis() + (2 * 24 * 60 * 60 * 1000L) // 2 días en ms
+    prefs.edit()
+        .putString("session_uid", uid)
+        .putLong("session_expires_at", expiresAt)
+        .apply()
+}
+
+actual fun getSessionUid(): String? {
+    val prefs = AppContext.value.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val expiresAt = prefs.getLong("session_expires_at", 0L)
+    if (System.currentTimeMillis() > expiresAt) {
+        // Sesión expirada — limpiar
+        prefs.edit().remove("session_uid").remove("session_expires_at").apply()
+        return null
+    }
+    return prefs.getString("session_uid", null)
+}
+
+actual fun clearSessionUid() {
+    val prefs = AppContext.value.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    prefs.edit().remove("session_uid").remove("session_expires_at").apply()
+}

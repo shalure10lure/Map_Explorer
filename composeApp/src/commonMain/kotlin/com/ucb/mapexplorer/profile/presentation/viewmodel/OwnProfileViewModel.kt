@@ -2,6 +2,7 @@ package com.ucb.mapexplorer.profile.presentation.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ucb.mapexplorer.clearSessionUid
 import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.friends.domain.usecase.GetFriendsUseCase
 import com.ucb.mapexplorer.profile.domain.usecase.ObserveProfileUseCase
@@ -89,6 +90,13 @@ class OwnProfileViewModel(
                 viewModelScope.launch {
                     _effect.emit(OwnProfileEffect.NavigateToFriendProfile(event.friendName))
                 }
+            OwnProfileEvent.OnLogoutClick -> {
+                viewModelScope.launch {
+                    clearSessionUid()        // borra SharedPreferences
+                    Session.uid = null       // limpia memoria
+                    _effect.emit(OwnProfileEffect.NavigateToLogin)
+                }
+            }
         }
     }
 }

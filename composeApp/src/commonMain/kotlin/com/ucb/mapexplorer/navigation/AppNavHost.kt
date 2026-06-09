@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.ucb.mapexplorer.auth.presentation.login.screen.LoginScreen
 import com.ucb.mapexplorer.auth.presentation.register.screen.RegisterScreen
+import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.map.presentation.screen.MainScreen
 import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
@@ -25,6 +26,7 @@ import com.ucb.mapexplorer.friendProfile.presentation.screen.FriendProfileScreen
 import com.ucb.mapexplorer.friendProfile.presentation.viewmodel.FriendProfileViewModel
 import com.ucb.mapexplorer.friendsRequests.presentation.screen.FriendsRequestsScreen
 import com.ucb.mapexplorer.friendsRequests.presentation.viewmodel.FriendsRequestsViewModel
+import com.ucb.mapexplorer.getSessionUid
 import com.ucb.mapexplorer.map.presentation.screen.GuideMapScreen
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.onboarding.presentation.screen.OnboardingScreen
@@ -40,13 +42,23 @@ fun AppNavHost() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Restaurar sesión si existe
+    val startDest: Any = remember {
+        val savedUid = getSessionUid()
+        if (savedUid != null) {
+            Session.uid = savedUid
+            NavRoute.Main
+        } else {
+            NavRoute.Login
+        }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { _ ->
         NavHost(
             navController = navController,
-            startDestination = NavRoute.Login,
+            startDestination = startDest,
             modifier = Modifier.fillMaxSize()
         ) {
             composable<NavRoute.Login> {
@@ -70,7 +82,8 @@ fun AppNavHost() {
                 MainScreen(navController = navController)
             }
             composable<NavRoute.Map> {
-                MapScreen(navController = navController)
+                val vm: MapViewModel = koinViewModel()
+                MapScreen(navController = navController, viewModel = vm)
             }
             composable<NavRoute.Onboarding> {
                 OnboardingScreen(navController = navController)

@@ -4,7 +4,7 @@ import com.ucb.mapexplorer.auth.data.dao.AuthDao
 import com.ucb.mapexplorer.auth.data.datasource.FirebaseManager
 import com.ucb.mapexplorer.auth.data.entity.UserEntity
 import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
-import com.ucb.mapexplorer.profile.domain.repository.ProfileModel
+import com.ucb.mapexplorer.profile.domain.model.ProfileModel
 import com.ucb.mapexplorer.profile.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow

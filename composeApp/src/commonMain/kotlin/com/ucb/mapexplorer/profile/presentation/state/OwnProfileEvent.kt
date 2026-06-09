@@ -7,4 +7,5 @@ sealed interface OwnProfileEvent {
     data object OnEditProfileClick : OwnProfileEvent
     data object OnViewRequestsClick : OwnProfileEvent
     data class OnFriendClick(val friendName: String) : OwnProfileEvent
+    data object OnLogoutClick : OwnProfileEvent
 }
