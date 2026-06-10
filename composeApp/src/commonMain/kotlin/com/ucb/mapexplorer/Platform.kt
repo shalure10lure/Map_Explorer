@@ -16,3 +16,8 @@ expect fun getThemeSetting(): Boolean?
 expect fun saveSessionUid(uid: String)
 expect fun getSessionUid(): String?
 expect fun clearSessionUid()
+
+/**
+ * Dispara una notificación local y vibración para alertas de peligro.
+ */
+expect fun triggerDangerNotification(title: String, message: String)
