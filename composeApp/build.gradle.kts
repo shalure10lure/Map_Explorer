@@ -109,6 +109,8 @@ kotlin {
         }
         androidInstrumentedTest.dependencies {
             implementation(libs.ui.test.junit4)
+            implementation(libs.androidx.runner)
+            implementation(libs.androidx.core)
         }
     }
 }

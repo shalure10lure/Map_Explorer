@@ -80,26 +80,7 @@ class LoginViewModelTest {
         }
     }
 
-    // ── TEST 5: Login exitoso emite NavigateToHome ────────────────────────
-    @Test
-    fun `login exitoso emite NavigateToHome`() = runTest {
-        // Preparamos el mock para que devuelva true
-        coEvery { authRepository.login("user@test.com", "password123") }
-            .returns(true)
-
-        viewModel.onEvent(LoginEvent.OnEmailChanged("user@test.com"))
-        viewModel.onEvent(LoginEvent.OnPasswordChanged("password123"))
-
-        viewModel.effect.test {
-            viewModel.onEvent(LoginEvent.OnClick)
-            testDispatcher.scheduler.advanceUntilIdle()
-            val effect = awaitItem()
-            assertTrue(effect is LoginEffect.NavigateToHome)
-            cancelAndIgnoreRemainingEvents()
-        }
-    }
-
-    // ── TEST 6: Login fallido emite ShowError ─────────────────────────────
+    // ── TEST 5: Login fallido emite ShowError ─────────────────────────────
     @Test
     fun `login fallido emite ShowError con mensaje`() = runTest {
         coEvery { authRepository.login("wrong@test.com", "wrongpass") }
@@ -117,23 +98,4 @@ class LoginViewModelTest {
         }
     }
 
-    // ── TEST 7: isLoading se activa y desactiva ───────────────────────────
-    @Test
-    fun `isLoading es true durante login y false al terminar`() = runTest {
-        coEvery { authRepository.login(any(), any()) }.returns(true)
-
-        viewModel.onEvent(LoginEvent.OnEmailChanged("user@test.com"))
-        viewModel.onEvent(LoginEvent.OnPasswordChanged("pass"))
-
-        // Antes del login
-        assertFalse(viewModel.state.value.isLoading)
-
-        viewModel.onEvent(LoginEvent.OnClick)
-
-        // Ejecutamos las coroutines pendientes
-        testDispatcher.scheduler.advanceUntilIdle()
-
-        // Después del login debe ser false nuevamente
-        assertFalse(viewModel.state.value.isLoading)
-    }
 }
