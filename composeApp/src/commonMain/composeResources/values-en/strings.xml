@@ -4,7 +4,7 @@
  Project: MapExplorer
  Locale: en-US, English (USA)
  Exported by: CHRISTOPHER BORIS QUIROZ GARECA
- Exported at: Sun, 24 May 2026 12:00:54 -0400
+ Exported at: Wed, 10 Jun 2026 16:55:00 -0400
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="login_tittle">LOG IN</string>
@@ -42,7 +42,7 @@
     <string name="searchText_searchForPerson">Search for a person</string>
     <string name="socialMedia_subtittle_myExperience">My\u0020\u0020experience:</string>
     <string name="socialMedia_subtittle_sendFriend">Send Friend Request</string>
-    <string name="socialMedia_subtittle_viewInMap">View location on map</string>
+    <string name="socialMedia_subtittle_viewInMap">View detail of location</string>
     <string name="navigationSelector_seeNearbyPlaces">See nearby places</string>
     <string name="placeDetails_description">Description:</string>
     <string name="placeDetails_seeOnMap">See on the map</string>
@@ -76,6 +76,11 @@
     <string name="buttonText_save">Save</string>
     <string name="navigationSelector_backToSocialMedia">Go Back to SocialMedia</string>
     <string name="moreOptions_tittle_mySaves">My saves</string>
+    <string name="navigationBar_map_textSelection">Map</string>
+    <string name="profileView_textSelector_goToFriendProfile">See profile</string>
+    <string name="profileView_signOut_buttonText">Sign out</string>
+    <string name="nearbyPlaces_showMainText_noNearbyPlaces">Keep searching the map</string>
+    <string name="nearbyPlaces_showContextText_noNearbyPlaces">All places can be shown when you discover new areas</string>
     <string name="map_discovery_new_zone">New zone discovered! 🗺️</string>
     <string name="map_loading_location">Getting your location...</string>
     <string name="common_error">Error</string>
@@ -108,4 +113,20 @@
     <string name="favorites_empty_desc">Mark places as favorites\nfrom the place details</string>
     <string name="nearby_search_hint">Search place...</string>
     <string name="nearby_no_results">No results for \"%s\"</string>
+
+    <string name="login_error_empty_fields">Empty fields</string>
+    <string name="login_error_invalid_credentials">Invalid credentials</string>
+    <string name="register_hint_username">Choose a username</string>
+    <string name="register_hint_email">example@mail.com</string>
+    <string name="register_hint_password">At least 8 characters</string>
+    <string name="register_hint_confirm_password">Minimum 8 characters</string>
+    <string name="register_hint_description">Tell us about yourself...</string>
+    <string name="register_button_back_step">← Go back to previous step</string>
+
+    <string name="danger_notification_title">Dangerous Zone: %s!</string>
+    <string name="danger_notification_msg">You are near: %s. %s</string>
+    <string name="map_error_gps">GPS Error: %s</string>
+
+    <string name="auth_password_show">Show password</string>
+    <string name="auth_password_hide">Hide password</string>
 </resources>

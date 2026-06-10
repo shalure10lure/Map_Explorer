@@ -35,6 +35,11 @@ fun LoginScreen(
     viewModel: LoginViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    val errorEmptyFields = stringResource(Res.string.login_error_empty_fields)
+    val errorInvalidCredentials = stringResource(Res.string.login_error_invalid_credentials)
+    val commonError = stringResource(Res.string.common_error)
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
@@ -47,110 +52,122 @@ fun LoginScreen(
                 LoginEffect.NavigateToRegister -> {
                     navController.navigate(NavRoute.Register)
                 }
-                is LoginEffect.ShowError -> { /* Mostrar error */ }
+                is LoginEffect.ShowError -> {
+                    val message = when(effect.message) {
+                        "empty_fields" -> errorEmptyFields
+                        "invalid_credentials" -> errorInvalidCredentials
+                        else -> effect.message
+                    }
+                    snackbarHostState.showSnackbar(message)
+                }
             }
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(AppTheme.colors.background)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-
-        Image(
-            painter = painterResource(Res.drawable.logo_map_explorer),
-            contentDescription = null,
-            modifier = Modifier.size(160.dp)
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        ElevatedCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = AppTheme.colors.surface // DINÁMICO
-            )
+    Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(AppTheme.colors.background)
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp)
+
+            Image(
+                painter = painterResource(Res.drawable.logo_map_explorer),
+                contentDescription = null,
+                modifier = Modifier.size(160.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = AppTheme.colors.surface
+                )
             ) {
-                Text(
-                    text = stringResource(Res.string.login_tittle), 
-                    style = AppTheme.typography.headlineLarge,
-                    color = AppTheme.colors.textPrimary
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+                Column(
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Text(
+                        text = stringResource(Res.string.login_tittle), 
+                        style = AppTheme.typography.headlineLarge,
+                        color = AppTheme.colors.textPrimary
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(Res.string.login_subtittle_email), 
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textPrimary
-                )
-                BasicInput(
-                    value = state.email,
-                    onValueChange = { viewModel.onEvent(LoginEvent.OnEmailChanged(it)) },
-                    label = "", 
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    Text(
+                        text = stringResource(Res.string.login_subtittle_email), 
+                        style = AppTheme.typography.bodyMedium,
+                        color = AppTheme.colors.textPrimary
+                    )
+                    BasicInput(
+                        value = state.email,
+                        onValueChange = { viewModel.onEvent(LoginEvent.OnEmailChanged(it)) },
+                        label = "", 
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Text(
-                    text = stringResource(Res.string.login_subtittle_password), 
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textPrimary
-                )
-                DsPasswordInput(
-                    value = state.password,
-                    onValueChange = { viewModel.onEvent(LoginEvent.OnPasswordChanged(it)) },
-                    label = "",
-                    visibilityIcon = Icons.Default.Visibility,
-                    visibilityOffIcon = Icons.Default.VisibilityOff,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    Text(
+                        text = stringResource(Res.string.login_subtittle_password), 
+                        style = AppTheme.typography.bodyMedium,
+                        color = AppTheme.colors.textPrimary
+                    )
+                    DsPasswordInput(
+                        value = state.password,
+                        onValueChange = { viewModel.onEvent(LoginEvent.OnPasswordChanged(it)) },
+                        label = "",
+                        visibilityIcon = Icons.Default.Visibility,
+                        visibilityOffIcon = Icons.Default.VisibilityOff,
+                        modifier = Modifier.fillMaxWidth()
+                    )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
-                PrimaryButton(
-                    text = stringResource(Res.string.login_buttonText_login),
-                    onClick = { viewModel.onEvent(LoginEvent.OnClick) },
-                    modifier = Modifier.fillMaxWidth(),
-                    isLoading = state.isLoading,
-                    isPrimary = true
-                )
+                    PrimaryButton(
+                        text = stringResource(Res.string.login_buttonText_login),
+                        onClick = { viewModel.onEvent(LoginEvent.OnClick) },
+                        modifier = Modifier.fillMaxWidth(),
+                        isLoading = state.isLoading,
+                        isPrimary = true
+                    )
 
-                Text(
-                    text = stringResource(Res.string.login_forgotPassword_question),
-                    style = AppTheme.typography.bodySmall.copy(
-                        textDecoration = TextDecoration.Underline
-                    ),
-                    color = AppTheme.colors.textSecondary,
-                    modifier = Modifier
-                        .padding(top = 12.dp)
-                        .clickable { /* Acción */ }
-                )
+                    Text(
+                        text = stringResource(Res.string.login_forgotPassword_question),
+                        style = AppTheme.typography.bodySmall.copy(
+                            textDecoration = TextDecoration.Underline
+                        ),
+                        color = AppTheme.colors.textSecondary,
+                        modifier = Modifier
+                            .padding(top = 12.dp)
+                            .clickable { /* Acción */ }
+                    )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(32.dp))
 
-                Text(
-                    text = stringResource(Res.string.login_dontHaveAccount_question),
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textPrimary
-                )
+                    Text(
+                        text = stringResource(Res.string.login_dontHaveAccount_question),
+                        style = AppTheme.typography.bodyMedium,
+                        color = AppTheme.colors.textPrimary
+                    )
 
-                Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                PrimaryButton(
-                    text = stringResource(Res.string.login_buttonText_createAccount),
-                    onClick = { viewModel.onEvent(LoginEvent.OnClickRegister) },
-                    modifier = Modifier.fillMaxWidth(),
-                    isPrimary = true
-                )
+                    PrimaryButton(
+                        text = stringResource(Res.string.login_buttonText_createAccount),
+                        onClick = { viewModel.onEvent(LoginEvent.OnClickRegister) },
+                        modifier = Modifier.fillMaxWidth(),
+                        isPrimary = true
+                    )
+                }
             }
         }
     }
