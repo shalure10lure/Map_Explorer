@@ -21,3 +21,8 @@ expect fun clearSessionUid()
  * Dispara una notificación local y vibración para alertas de peligro.
  */
 expect fun triggerDangerNotification(title: String, message: String)
+
+/**
+ * Dispara una notificación local para eventos de amistad.
+ */
+expect fun triggerFriendNotification(title: String, message: String)
