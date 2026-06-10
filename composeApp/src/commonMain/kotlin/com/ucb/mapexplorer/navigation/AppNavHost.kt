@@ -94,7 +94,10 @@ fun AppNavHost() {
                     onBack = { navController.popBackStack() },
                     onNavigateToFriendsRequests = { navController.navigate(NavRoute.FriendsRequests) },
                     onNavigateToNearby = { navController.navigate(NavRoute.NearbyPlaces) },
-                    onNavigateToProfile = { navController.navigate(NavRoute.Profile) }
+                    onNavigateToProfile = { navController.navigate(NavRoute.Profile) },
+                    onNavigateToPlaceDetail = { placeId ->   // ← NUEVO
+                        navController.navigate(NavRoute.PlaceDetail(placeId))
+                    }
                 )
             }
 

@@ -18,6 +18,8 @@ class ProfileRepositoryImpl(
 
     private val profileUpdates = MutableSharedFlow<ProfileModel>(replay = 1)
 
+    private val profileCache = mutableMapOf<String, ProfileModel>()
+
     override fun observeProfile(uid: String): Flow<ProfileModel?> {
         return profileUpdates
             .filter { it.uid == uid }
@@ -25,6 +27,7 @@ class ProfileRepositoryImpl(
                 getProfile(uid)?.let { emit(it) }
             }
     }
+
 
     override suspend fun getProfile(uid: String): ProfileModel? {
         return try {

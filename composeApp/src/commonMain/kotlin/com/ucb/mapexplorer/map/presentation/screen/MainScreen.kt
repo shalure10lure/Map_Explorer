@@ -61,7 +61,10 @@ fun MainScreen(
                             onBack = { selectedTab = MainTab.MAP },
                             onNavigateToFriendsRequests = { navController.navigate(NavRoute.FriendsRequests) },
                             onNavigateToNearby = { selectedTab = MainTab.NEARBY },
-                            onNavigateToProfile = { selectedTab = MainTab.PROFILE }
+                            onNavigateToProfile = { selectedTab = MainTab.PROFILE },
+                            onNavigateToPlaceDetail = { placeId ->   // ← NUEVO
+                                navController.navigate(NavRoute.PlaceDetail(placeId))
+                            }
                         )
                     }
                 }

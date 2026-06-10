@@ -5,5 +5,5 @@ sealed interface SocialSpaceEvent {
     data object OnBackClick : SocialSpaceEvent
     data object OnMessageClick : SocialSpaceEvent
     data class OnAddFriendClick(val authorUid: String) : SocialSpaceEvent
-    data class OnViewOnMapClick(val postId: String) : SocialSpaceEvent
+    data class OnViewPlaceDetail(val lugarId: String) : SocialSpaceEvent
 }

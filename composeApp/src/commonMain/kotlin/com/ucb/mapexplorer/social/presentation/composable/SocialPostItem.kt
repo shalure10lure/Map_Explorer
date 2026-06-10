@@ -46,7 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 fun SocialPostItem(
     post: SocialPost,
     onAddFriend: (String) -> Unit,
-    onViewMap: (String) -> Unit
+    onViewPlaceDetail: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         // ── Header: avatar + nombre ────────────────────────────────────────
@@ -136,7 +136,7 @@ fun SocialPostItem(
 
             // Botón contextual: "Ver en mapa" si es amigo, "Agregar" si no
             val actionText = when {
-                post.isFriend   -> stringResource(Res.string.socialMedia_subtittle_viewInMap)
+                post.isFriend   -> stringResource(Res.string.socialMedia_subtittle_viewInMap)//cambiar por ver lugar
                 post.requestSent -> "Solicitud enviada"
                 else            -> stringResource(Res.string.socialMedia_subtittle_sendFriend)
             }
@@ -147,7 +147,7 @@ fun SocialPostItem(
                 fontWeight = FontWeight.SemiBold,
                 fontSize   = 12.sp,
                 modifier   = Modifier.clickable(enabled = !post.requestSent) {
-                    if (post.isFriend) onViewMap(post.id) else onAddFriend(post.authorUid)
+                    if (post.isFriend) onViewPlaceDetail(post.lugarId) else onAddFriend(post.authorUid)
                 }
             )
         }

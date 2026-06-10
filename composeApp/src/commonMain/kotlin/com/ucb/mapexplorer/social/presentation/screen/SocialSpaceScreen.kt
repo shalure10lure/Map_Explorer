@@ -38,6 +38,7 @@ fun SocialSpaceScreen(
     onNavigateToFriendsRequests: () -> Unit,
     onNavigateToNearby: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToPlaceDetail: (String) -> Unit,
     viewModel: SocialSpaceViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -50,6 +51,7 @@ fun SocialSpaceScreen(
                 SocialSpaceEffect.NavigateToMessages -> onNavigateToFriendsRequests()
                 is SocialSpaceEffect.ShowError       -> snackbarHostState.showSnackbar(effect.message)
                 is SocialSpaceEffect.ShowToast       -> snackbarHostState.showSnackbar(effect.message)
+                is SocialSpaceEffect.NavigateToPlaceDetail ->  onNavigateToPlaceDetail(effect.lugarId)
             }
         }
     }
@@ -103,7 +105,9 @@ fun SocialSpaceScreen(
                         SocialPostItem(
                             post      = post,
                             onAddFriend = { viewModel.onEvent(SocialSpaceEvent.OnAddFriendClick(post.authorUid)) },
-                            onViewMap   = { viewModel.onEvent(SocialSpaceEvent.OnViewOnMapClick(it)) }
+                            onViewPlaceDetail = { lugarId ->   // ← RENOMBRADO
+                                viewModel.onEvent(SocialSpaceEvent.OnViewPlaceDetail(lugarId))
+                            }
                         )
                     }
                 }

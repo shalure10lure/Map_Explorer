@@ -2,11 +2,11 @@ package com.ucb.mapexplorer.nearbyplaces.data.service
 
 internal const val OVERPASS_URL = "https://overpass-api.de/api/interpreter"
 
-internal const val DEFAULT_RADIUS = 1500
+internal const val DEFAULT_RADIUS = 200
 
 
 internal fun buildOverpassQuery(lat: Double, lon: Double, radius: Int = DEFAULT_RADIUS): String = """
-    [out:json][timeout:30];
+    [out:json][timeout:15];
     (
       nwr["amenity"~"restaurant|cafe|bar|fast_food|pub|food_court|ice_cream"]["name"](around:$radius,$lat,$lon);
       nwr["amenity"~"hotel|hostel|guest_house"]["name"](around:$radius,$lat,$lon);

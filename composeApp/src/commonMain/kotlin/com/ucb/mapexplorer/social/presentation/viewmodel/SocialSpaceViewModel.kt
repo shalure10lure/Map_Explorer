@@ -30,45 +30,92 @@ class SocialSpaceViewModel(
     private val _effect = MutableSharedFlow<SocialSpaceEffect>()
     val effect = _effect.asSharedFlow()
 
+    private var friendUidSet: Set<String>? = null
+
     init { loadPublications() }
 
     private fun loadPublications() {
         viewModelScope.launch(Dispatchers.IO) {
             _state.update { it.copy(isLoading = true) }
             try {
-                val myUid   = Session.uid ?: ""
-                val pubs    = getAllPublicationsUseCase()
+                val myUid = Session.uid ?: ""
 
-                // Cargamos avatar + estado de amistad en paralelo
-                val posts = pubs.map { pub ->
-                    async {
-                        val isFriend = if (myUid.isNotBlank() && pub.uid != myUid)
-                            isFriendUseCase(myUid, pub.uid) else true
+                // CAMBIO 1: Cargar lista de amigos UNA SOLA VEZ en paralelo con publicaciones
+                // Antes: isFriendUseCase se llamaba por CADA publicación (N llamadas a Firebase)
+                // Ahora: UNA sola llamada para obtener todos los amigos
+                val friendsDeferred = async {
+                    if (myUid.isNotBlank()) {
+                        getFriendsUseCase(myUid).map { it.uid }.toSet()
+                    } else emptySet()
+                }
+                val pubsDeferred = async { getAllPublicationsUseCase() }
 
-                        // Obtener avatarId del publicador
-                        val profile   = runCatching { getProfileUseCase(pub.uid) }.getOrNull()
-                        val avatarId  = profile?.avatarConfig?.toId() ?: ""
+                // Esperar ambas en paralelo
+                val friendSet = friendsDeferred.await()
+                val pubs = pubsDeferred.await()
+                friendUidSet = friendSet
 
-                        SocialPost(
-                            id            = pub.id,
-                            authorUid     = pub.uid,
-                            userName      = pub.userName,
-                            locationName  = pub.locationName,
-                            rating        = pub.rating,
-                            category      = pub.category,
-                            categoryIcon  = pub.categoryIcon,
-                            userExperience = pub.experience,
-                            isFriend      = isFriend,
-                            imageUrl      = pub.imageUrl,
-                            avatarId      = avatarId
-                        )
-                    }
-                }.awaitAll()
+                // CAMBIO 2: Mostrar publicaciones inmediatamente sin avatar
+                // (avatar se carga en background y actualiza el estado)
+                val postsBasic = pubs.map { pub ->
+                    SocialPost(
+                        id = pub.id,
+                        authorUid = pub.uid,
+                        userName = pub.userName,
+                        locationName = pub.locationName,
+                        rating = pub.rating,
+                        category = pub.category,
+                        categoryIcon = pub.categoryIcon,
+                        userExperience = pub.experience,
+                        // CAMBIO: lookup O(1) en lugar de llamada Firebase por post
+                        isFriend = pub.uid == myUid || friendSet.contains(pub.uid),
+                        imageUrl = pub.imageUrl,
+                        avatarId = "" ,
+                        lugarId        = pub.lugarId
+                    )
+                }
 
-                _state.update { it.copy(posts = posts, isLoading = false) }
+                // Mostrar posts SIN esperar avatares (experiencia inmediata)
+                _state.update { it.copy(posts = postsBasic, isLoading = false) }
+
+                // CAMBIO 3: Cargar avatares en background solo para los primeros 10 visibles
+                // Los avatares no son críticos para la funcionalidad
+                loadAvatarsInBackground(pubs.take(10), myUid)
+
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
             }
+        }
+    }
+    private fun loadAvatarsInBackground(
+        pubs: List<com.ucb.mapexplorer.publication.domain.model.PublicationModel>,
+        myUid: String
+    ) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Obtener solo UIDs únicos para no duplicar llamadas
+                val uniqueUids = pubs.map { it.uid }.distinct()
+
+                val avatarMap = uniqueUids.map { uid ->
+                    async {
+                        try {
+                            val profile = getProfileUseCase(uid)
+                            uid to (profile?.avatarConfig?.toId() ?: "")
+                        } catch (_: Exception) {
+                            uid to ""
+                        }
+                    }
+                }.awaitAll().toMap()
+
+                // Actualizar posts con avatares sin cambiar isLoading
+                _state.update { current ->
+                    current.copy(
+                        posts = current.posts.map { post ->
+                            post.copy(avatarId = avatarMap[post.authorUid] ?: post.avatarId)
+                        }
+                    )
+                }
+            } catch (_: Exception) { }
         }
     }
 
@@ -85,7 +132,10 @@ class SocialSpaceViewModel(
 
             is SocialSpaceEvent.OnAddFriendClick -> sendRequest(event.authorUid)
 
-            is SocialSpaceEvent.OnViewOnMapClick -> { /* navegar al mapa */ }
+            is SocialSpaceEvent.OnViewPlaceDetail ->
+                viewModelScope.launch {
+                    _effect.emit(SocialSpaceEffect.NavigateToPlaceDetail(event.lugarId))
+                }
         }
     }
 

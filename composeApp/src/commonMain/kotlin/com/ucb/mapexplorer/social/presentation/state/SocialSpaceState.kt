@@ -18,7 +18,8 @@ data class SocialPost(
     val isFriend: Boolean,
     val imageUrl: String?       = null,
     val avatarId: String        = "",
-    val requestSent: Boolean    = false
+    val requestSent: Boolean    = false,
+    val lugarId: String         = ""
 )
 
 

@@ -46,34 +46,36 @@ class MapViewModel(
     private val _effect = Channel<MapEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
 
-    // ── Jobs ──────────────────────────────────────────────────────────────────
+    // ── Jobs ──────────────────────────────────────────────────────────────
     private var locationJob: Job? = null
-    private var profileJob:  Job? = null
-    private var placesJob:   Job? = null   // Job separado para lugares, cancelable
+    private var profileJob: Job? = null
+    private var placesJob: Job? = null
 
-    // ── Guards: evitan trabajo duplicado ─────────────────────────────────────
-    private var lastProcessedTileKey:  String? = null
-    private val lastDangerAlerts = mutableMapOf<String, Long>() // zonaId -> timestamp
-    private val ALERT_INTERVAL_MS = 15 * 60 * 1000L // 15 minutos
-    private var lastPlacesSearchLat:   Double  = 0.0
-    private var lastPlacesSearchLon:   Double  = 0.0
+    // ── Guards ────────────────────────────────────────────────────────────
+    private var lastProcessedTileKey: String? = null
+    private val lastDangerAlerts = mutableMapOf<String, Long>()
+    private val ALERT_INTERVAL_MS = 15 * 60 * 1000L
+    private var lastPlacesSearchLat: Double = 0.0
+    private var lastPlacesSearchLon: Double = 0.0
 
-    // ── Flags de estado de carga ──────────────────────────────────────────────
-    private var initialSyncDone:       Boolean = false  // Firebase sync solo 1 vez
-    private var initialLoadDone:       Boolean = false  // carga de tiles solo 1 vez al inicio
-    private var placesLoadedOnce:      Boolean = false  // lugares cargados al menos 1 vez
+    // ── Flags ─────────────────────────────────────────────────────────────
+    private var initialSyncDone: Boolean = false
+    private var initialLoadDone: Boolean = false
+    private var placesLoadedOnce: Boolean = false
+
+    private val PLACES_RADIUS_METERS = 200
+
+    private val PLACES_REFRESH_DISTANCE_METERS = 50.0
 
     companion object {
-        // Caché estático: sobrevive recomposiciones y navegaciones
-        // Se limpia solo cuando cambia el uid (logout)
         private var cachedTiles: List<TileModel>? = null
         private var cachedPlaces: List<PlaceModel>? = null
         private var cachedUid: String? = null
 
         fun invalidateCache() {
-            cachedTiles  = null
+            cachedTiles = null
             cachedPlaces = null
-            cachedUid    = null
+            cachedUid = null
         }
     }
 
@@ -81,37 +83,30 @@ class MapViewModel(
         onEvent(MapEvent.OnLoadMap)
     }
 
-    // ── Entrada de eventos ────────────────────────────────────────────────────
-
     fun onEvent(event: MapEvent) {
         when (event) {
             MapEvent.OnLoadMap -> {
                 loadProfileIfNeeded()
                 loadTilesIfNeeded()
                 startLocationUpdatesIfNeeded()
-                // Sync primero, LUEGO arrancar location
                 viewModelScope.launch(Dispatchers.IO) {
                     try {
                         syncDangerZonesUseCase()
-                        println("✅ Sync peligro completado, arrancando GPS")
                     } catch (_: Exception) { }
-                    // El GPS ya corre independiente, esto solo asegura que el sync ocurra
                 }
             }
             is MapEvent.OnLocationUpdated -> handleLocationUpdate(event.latitude, event.longitude)
-            MapEvent.OnDismissError       -> _state.update { it.copy(errorMessage = null) }
-            MapEvent.OnCenterOnUser       -> viewModelScope.launch { _effect.send(MapEffect.CenterMapOnUser) }
-            is MapEvent.OnAvatarUpdated   -> _state.update { it.copy(avatarConfig = event.config) }
+            MapEvent.OnDismissError -> _state.update { it.copy(errorMessage = null) }
+            MapEvent.OnCenterOnUser -> viewModelScope.launch { _effect.send(MapEffect.CenterMapOnUser) }
+            is MapEvent.OnAvatarUpdated -> _state.update { it.copy(avatarConfig = event.config) }
             MapEvent.OnDismissDangerAlert -> {
                 _state.update { it.copy(showDangerAlert = false, dangerZoneActual = null) }
             }
         }
     }
 
-    // ── 1. Perfil / Avatar ────────────────────────────────────────────────────
-
+    // ── 1. Perfil ─────────────────────────────────────────────────────────
     private fun loadProfileIfNeeded() {
-        // Si el avatar ya es distinto al default, ya fue cargado (o actualizado por EditProfile)
         if (_state.value.avatarConfig != AvatarConfigModel()) return
         val uid = Session.uid ?: return
 
@@ -126,73 +121,88 @@ class MapViewModel(
         }
     }
 
-    // Llamado desde MainScreen cuando OwnProfileViewModel actualiza el perfil
     fun updateAvatarFromProfile(config: AvatarConfigModel) {
         _state.update { it.copy(avatarConfig = config) }
     }
 
-    // ── 2. Carga inicial de tiles ─────────────────────────────────────────────
-    //
-    // Se ejecuta UNA SOLA VEZ por sesión de usuario.
-    // Si hay caché (mismo uid), usa los datos en memoria — sin Room, sin Firebase.
-    // Solo si no hay caché hace: Firebase sync → Room read.
-
+    // ── 2. Carga inicial de tiles ─────────────────────────────────────────
+    // CAMBIO CLAVE 3: Se muestra Room inmediatamente, Firebase sync en background
     private fun loadTilesIfNeeded() {
         if (initialLoadDone) return
         val uid = Session.uid ?: return
 
-        initialLoadDone = true  // marcar antes del launch para que recomposiciones no relancen
+        initialLoadDone = true
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _state.update { it.copy(isLoadingTiles = true) }
 
-                val tiles: List<TileModel> = if (cachedTiles != null && cachedUid == uid) {
-                    // Caso rápido: caché en memoria, 0 I/O
+                // PASO 1: Leer Room inmediatamente (sin esperar Firebase)
+                // Esto hace que el mapa se muestre al instante con datos locales
+                val localTiles = if (cachedTiles != null && cachedUid == uid) {
                     cachedTiles!!
                 } else {
-                    // Primera vez en esta sesión: sync Firebase → Room → leer Room
-                    if (!initialSyncDone) {
-                        initialSyncDone = true
-                        try { syncMapHistoryUseCase(uid) } catch (_: Exception) { /* sin red */ }
+                    getDiscoveredTilesUseCase(uid)
+                }
+
+                // PASO 2: Mostrar tiles locales en UI sin esperar sync
+                if (localTiles.isNotEmpty()) {
+                    cachedTiles = localTiles
+                    cachedUid = uid
+                    _state.update {
+                        it.copy(
+                            discoveredTiles = localTiles,
+                            totalTilesUnlocked = localTiles.size,
+                            experience = localTiles.size * 10,
+                            level = (localTiles.size / 10) + 1,
+                            isLoadingTiles = false
+                        )
                     }
-                    val t = getDiscoveredTilesUseCase(uid)
-                    cachedTiles = t
-                    cachedUid   = uid
-                    t
                 }
 
-                // Actualizar tiles en el estado inmediatamente (el mapa ya puede pintar fog)
-                _state.update {
-                    it.copy(
-                        discoveredTiles    = tiles,
-                        totalTilesUnlocked = tiles.size,
-                        experience         = tiles.size * 10,
-                        level              = (tiles.size / 10) + 1,
-                        isLoadingTiles     = false
-                    )
+                // PASO 3: Sync Firebase en background SOLO si Room estaba vacío
+                if (localTiles.isEmpty() && !initialSyncDone) {
+                    initialSyncDone = true
+                    try {
+                        syncMapHistoryUseCase(uid)
+                        // Re-leer Room después del sync
+                        val syncedTiles = getDiscoveredTilesUseCase(uid)
+                        cachedTiles = syncedTiles
+                        cachedUid = uid
+                        _state.update {
+                            it.copy(
+                                discoveredTiles = syncedTiles,
+                                totalTilesUnlocked = syncedTiles.size,
+                                experience = syncedTiles.size * 10,
+                                level = (syncedTiles.size / 10) + 1,
+                                isLoadingTiles = false
+                            )
+                        }
+                    } catch (_: Exception) {
+                        _state.update { it.copy(isLoadingTiles = false) }
+                    }
+                } else {
+                    initialSyncDone = true
+                    _state.update { it.copy(isLoadingTiles = false) }
                 }
 
-                // Si ya tenemos GPS, cargar lugares ahora mismo
+                // PASO 4: Cargar lugares si ya tenemos GPS
                 val lat = state.value.userLat
                 val lon = state.value.userLng
                 if (lat != 0.0 && lon != 0.0 && !placesLoadedOnce) {
-                    loadNearbyPlaces(tiles, lat, lon)
+                    loadNearbyPlaces(state.value.discoveredTiles, lat, lon, forceRefresh = true)
                 }
-                // Si no hay GPS todavía, los lugares se cargarán en handleLocationUpdate
-                // cuando llegue la primera ubicación válida
 
             } catch (e: Exception) {
                 if (e !is CancellationException) {
-                    initialLoadDone = false  // permitir reintento si falla
+                    initialLoadDone = false
                     _state.update { it.copy(isLoadingTiles = false) }
                 }
             }
         }
     }
 
-    // ── 3. GPS ────────────────────────────────────────────────────────────────
-
+    // ── 3. GPS ────────────────────────────────────────────────────────────
     private fun startLocationUpdatesIfNeeded() {
         if (locationJob?.isActive == true) return
 
@@ -205,8 +215,8 @@ class MapViewModel(
                 .collectLatest { location ->
                     _state.update {
                         it.copy(
-                            userLat           = location.latitude,
-                            userLng           = location.longitude,
+                            userLat = location.latitude,
+                            userLng = location.longitude,
                             isLoadingLocation = false
                         )
                     }
@@ -216,7 +226,6 @@ class MapViewModel(
         }
     }
 
-    // Llamado desde MapViewContainer (Android) cuando llega ubicación por el canal nativo
     private fun handleLocationUpdate(lat: Double, lon: Double) {
         _state.update { it.copy(userLat = lat, userLng = lon, isLoadingLocation = false) }
 
@@ -224,24 +233,21 @@ class MapViewModel(
             tryUnlockTile(lat, lon)
             checkDangerIfNeeded(lat, lon)
 
-            // Primera ubicación válida: cargar lugares si aún no se hizo
+            // Cargar lugares en la primera ubicación válida
             if (!placesLoadedOnce && initialLoadDone) {
                 val tiles = state.value.discoveredTiles
-                if (tiles.isNotEmpty()) {
-                    loadNearbyPlaces(tiles, lat, lon)
-                }
+                loadNearbyPlaces(tiles, lat, lon, forceRefresh = true)
             }
         }
     }
 
-    // ── 4. Desbloqueo de tiles ────────────────────────────────────────────────
-
+    // ── 4. Desbloqueo de tiles ────────────────────────────────────────────
     private suspend fun tryUnlockTile(lat: Double, lon: Double) {
         val uid = Session.uid ?: return
         val (tileX, tileY) = TileUtils.latLngToTile(lat, lon)
         val tileKey = "${tileX}_${tileY}"
 
-        if (tileKey == lastProcessedTileKey) return  // mismo tile, ignorar
+        if (tileKey == lastProcessedTileKey) return
         lastProcessedTileKey = tileKey
 
         try {
@@ -255,34 +261,29 @@ class MapViewModel(
         }
     }
 
-    // Se llama solo cuando hay un tile genuinamente nuevo
     private fun onNewTileDiscovered(tileX: Int, tileY: Int, lat: Double, lon: Double) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                // 1. Leer tiles actualizados de Room (operación local, rápida)
-                val uid   = Session.uid ?: return@launch
+                val uid = Session.uid ?: return@launch
                 val tiles = getDiscoveredTilesUseCase(uid)
-                cachedTiles = tiles   // actualizar caché
-                cachedUid   = uid
+                cachedTiles = tiles
+                cachedUid = uid
 
-                // 2. Actualizar estado con nuevos tiles
                 _state.update {
                     it.copy(
-                        discoveredTiles    = tiles,
+                        discoveredTiles = tiles,
                         totalTilesUnlocked = tiles.size,
-                        experience         = tiles.size * 10,
-                        level              = (tiles.size / 10) + 1
+                        experience = tiles.size * 10,
+                        level = (tiles.size / 10) + 1
                     )
                 }
 
-                // 3. Recargar lugares SOLO si el usuario se movió lo suficiente
-                //    (evita llamar a Overpass en cada tile nuevo)
+                // CAMBIO: usar PLACES_REFRESH_DISTANCE_METERS reducido
                 val dist = haversine(lat, lon, lastPlacesSearchLat, lastPlacesSearchLon)
-                if (dist > 500 || !placesLoadedOnce) {
-                    loadNearbyPlaces(tiles, lat, lon)
+                if (dist > PLACES_REFRESH_DISTANCE_METERS || !placesLoadedOnce) {
+                    loadNearbyPlaces(tiles, lat, lon, forceRefresh = false)
                 }
 
-                // 4. Efecto visual/háptico de tile nuevo
                 _effect.send(MapEffect.NewTileDiscovered(tileX, tileY))
 
             } catch (e: Exception) {
@@ -291,26 +292,23 @@ class MapViewModel(
         }
     }
 
-    // ── 5. Lugares cercanos ───────────────────────────────────────────────────
-    //
-    // Reglas:
-    //   - Solo se llama si el usuario se movió > 500m desde la última búsqueda
-    //   - Cancela la búsqueda anterior si todavía estaba en curso
-    //   - Usa caché de lugares si están disponibles (mismo uid, misma zona)
-    //   - Filtra solo los lugares que están en tiles descubiertos
-
-    private fun loadNearbyPlaces(tiles: List<TileModel>, lat: Double, lon: Double) {
+    // ── 5. Lugares cercanos ───────────────────────────────────────────────
+    // CAMBIO CLAVE 4: Radio de búsqueda reducido a 200m, refresh más inteligente
+    private fun loadNearbyPlaces(
+        tiles: List<TileModel>,
+        lat: Double,
+        lon: Double,
+        forceRefresh: Boolean = false
+    ) {
         val dist = haversine(lat, lon, lastPlacesSearchLat, lastPlacesSearchLon)
 
-        // Si ya tenemos lugares cargados del caché Y no nos movimos mucho, no volver a pedir
-        if (placesLoadedOnce && dist < 500 && cachedPlaces != null) {
-            // Solo re-filtrar con los tiles actuales (puede haber tiles nuevos)
+        // Si ya tenemos caché y no nos movimos más de PLACES_REFRESH_DISTANCE_METERS
+        if (!forceRefresh && placesLoadedOnce && dist < PLACES_REFRESH_DISTANCE_METERS && cachedPlaces != null) {
             val filtered = filterPlacesByTiles(cachedPlaces!!, tiles)
             _state.update { it.copy(nearbyPlacesInMap = filtered) }
             return
         }
 
-        // Cancelar búsqueda anterior si sigue corriendo
         placesJob?.cancel()
 
         placesJob = viewModelScope.launch(Dispatchers.IO) {
@@ -318,13 +316,10 @@ class MapViewModel(
                 lastPlacesSearchLat = lat
                 lastPlacesSearchLon = lon
 
-                // Llamada a Overpass API (puede tardar 2-5 segundos)
-                val allPlaces = getNearbyPlacesUseCase(lat, lon)
+                // CAMBIO: Radio reducido a 200m en lugar de 1500m
+                val allPlaces = getNearbyPlacesUseCase(lat, lon, PLACES_RADIUS_METERS)
 
-                // Guardar en caché para reutilizar
                 cachedPlaces = allPlaces
-
-                // Filtrar: solo mostrar lugares en zonas ya descubiertas
                 val filtered = filterPlacesByTiles(allPlaces, tiles)
 
                 placesLoadedOnce = true
@@ -332,8 +327,7 @@ class MapViewModel(
 
             } catch (e: Exception) {
                 if (e !is CancellationException) {
-                    // Silencioso: si falla Overpass, el mapa sigue funcionando
-                    println("⚠️ Overpass falló: ${e.message}")
+                    println("Overpass falló: ${e.message}")
                 }
             }
         }
@@ -341,57 +335,42 @@ class MapViewModel(
 
     private fun filterPlacesByTiles(places: List<PlaceModel>, tiles: List<TileModel>): List<PlaceModel> {
         if (tiles.isEmpty()) return emptyList()
-
-        // Construir set de claves de tiles para O(1) lookup en vez de O(n*m)
         val tileKeys = tiles.map { "${it.tileX}_${it.tileY}" }.toHashSet()
-
         return places.filter { lugar ->
             val (px, py) = TileUtils.latLngToTile(lugar.latitude, lugar.longitude)
-            val key = "${px}_${py}"
-            key in tileKeys && lugar.name.isNotBlank()
+            "${px}_${py}" in tileKeys && lugar.name.isNotBlank()
         }
     }
 
-    // ── 6. Zonas peligrosas ───────────────────────────────────────────────────
-
-    private fun syncDangerZonesIfNeeded() {
-        // Solo sincroniza una vez por sesión de ViewModel
-        // (el companion object NO guarda esto, así que si se recrea el VM, vuelve a sync)
-        viewModelScope.launch(Dispatchers.IO) {
-            try { syncDangerZonesUseCase() } catch (_: Exception) { /* best effort */ }
-        }
-    }
-
+    // ── 6. Zonas peligrosas ───────────────────────────────────────────────
     private suspend fun checkDangerIfNeeded(lat: Double, lon: Double) {
         val zona = checkDangerZoneUseCase(lat, lon)
         if (zona != null) {
-            val now = Clock.System.now().toEpochMilliseconds()
-            val lastAlertTime = lastDangerAlerts[zona.zonaId] ?: 0L
+            val now: Long = Clock.System.now().toEpochMilliseconds()
+            val lastAlertTime: Long = lastDangerAlerts[zona.zonaId] ?: 0L
+            val timeElapsed = now - lastAlertTime
 
-            if (now - lastAlertTime >= ALERT_INTERVAL_MS) {
-                println("🚨 Lanzando alerta para zona: ${zona.nombre} (ID: ${zona.zonaId})")
+            // 4. Comparamos asegurándonos de que ambos sean Long
+            if (timeElapsed >= ALERT_INTERVAL_MS) {
                 lastDangerAlerts[zona.zonaId] = now
                 _state.update { it.copy(dangerZoneActual = zona, showDangerAlert = true) }
-                // Enviar efecto para vibración y notificación local
                 _effect.send(MapEffect.DangerZoneAlertTriggered(zona))
             }
         }
     }
 
-    // ── 7. Cámara ─────────────────────────────────────────────────────────────
-
+    // ── 7. Cámara ─────────────────────────────────────────────────────────
     fun centerMapOnLocation(lat: Double, lon: Double) {
         _state.update { it.copy(cameraTarget = Pair(lat, lon)) }
         viewModelScope.launch { _effect.send(MapEffect.CenterMapOnLocation(lat, lon)) }
     }
 
-    // ── 8. Utilidades ─────────────────────────────────────────────────────────
-
+    // ── 8. Utilidades ─────────────────────────────────────────────────────
     private fun haversine(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val r    = 6371000.0
+        val r = 6371000.0
         val dLat = (lat2 - lat1) * PI / 180.0
         val dLon = (lon2 - lon1) * PI / 180.0
-        val a    = sin(dLat / 2).pow(2) +
+        val a = sin(dLat / 2).pow(2) +
                 cos(lat1 * PI / 180.0) * cos(lat2 * PI / 180.0) * sin(dLon / 2).pow(2)
         return r * 2 * atan2(sqrt(a), sqrt(1 - a))
     }

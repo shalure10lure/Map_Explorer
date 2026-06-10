@@ -7,7 +7,12 @@ import com.ucb.mapexplorer.map.data.service.LocalitationService
 import com.ucb.mapexplorer.map.domain.model.TileModel
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import com.ucb.mapexplorer.map.domain.repository.MapRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 
 class MapRepositoryImpl(
@@ -15,6 +20,8 @@ class MapRepositoryImpl(
     private val remoteDataSource: MapRemoteDataSource,
     private val locationService: LocalitationService
 ) : MapRepository {
+    private val bgScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 
     override fun observeLocation(): Flow<UserLocationModel> =
         locationService.observeLocation()
@@ -33,13 +40,13 @@ class MapRepositoryImpl(
                 visitCount = 1,
                 lastVisited = now
             )
-            try {
-                remoteDataSource.syncTile(uid, tile)
-                localDataSource.markAsSynced(uid, x, y)
-            } catch (e: Exception) {
-                // Sin internet → el tile queda en Room con sincronizado=false
-                // Se sincronizará en la próxima sesión con internet.
-                println("[MapRepo] Firebase sync failed, tile queued: ${x}_$y")
+            bgScope.launch {
+                try {
+                    remoteDataSource.syncTile(uid, tile)
+                    localDataSource.markAsSynced(uid, x, y)
+                } catch (e: Exception) {
+                    println("[MapRepo] Firebase sync queued: ${x}_$y")
+                }
             }
         }
 
