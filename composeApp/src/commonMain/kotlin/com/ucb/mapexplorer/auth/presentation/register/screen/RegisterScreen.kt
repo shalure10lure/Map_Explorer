@@ -170,7 +170,7 @@ private fun RegisterStep1(
                 BasicInput(
                     value = state.username,
                     onValueChange = { onEvent(RegisterEvent.OnUsernameChanged(it)) },
-                    label = "Elegir un nombre de usuario",
+                    label = stringResource(Res.string.register_hint_username),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -185,7 +185,7 @@ private fun RegisterStep1(
                 BasicInput(
                     value = state.email,
                     onValueChange = { onEvent(RegisterEvent.OnEmailChanged(it)) },
-                    label = "ejemplo@mail.com",
+                    label = stringResource(Res.string.register_hint_email),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -200,7 +200,7 @@ private fun RegisterStep1(
                 DsPasswordInput(
                     value = state.password,
                     onValueChange = { onEvent(RegisterEvent.OnPasswordChanged(it)) },
-                    label = "Al menos 8 caracteres",
+                    label = stringResource(Res.string.register_hint_password),
                     visibilityIcon = Icons.Default.Visibility,
                     visibilityOffIcon = Icons.Default.VisibilityOff,
                     modifier = Modifier.fillMaxWidth()
@@ -217,7 +217,7 @@ private fun RegisterStep1(
                 DsPasswordInput(
                     value = state.confirmPassword,
                     onValueChange = { onEvent(RegisterEvent.OnConfirmPasswordChanged(it)) },
-                    label = "Mínimo 8 caracteres",
+                    label = stringResource(Res.string.register_hint_confirm_password),
                     visibilityIcon = Icons.Default.Visibility,
                     visibilityOffIcon = Icons.Default.VisibilityOff,
                     modifier = Modifier.fillMaxWidth()
@@ -298,7 +298,7 @@ private fun RegisterStep2(
                 BasicInput(
                     value = state.description,
                     onValueChange = { onEvent(RegisterEvent.OnDescriptionChanged(it)) },
-                    label = "Cuéntanos sobre ti...",
+                    label = stringResource(Res.string.register_hint_description),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = false
                 )
@@ -372,7 +372,7 @@ private fun RegisterStep2(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "← Volver al paso anterior",
+                        text = stringResource(Res.string.register_button_back_step),
                         color = AppTheme.colors.textSecondary,
                         style = AppTheme.typography.bodySmall
                     )

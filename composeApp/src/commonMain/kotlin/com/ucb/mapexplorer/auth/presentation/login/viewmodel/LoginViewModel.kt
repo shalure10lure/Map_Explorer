@@ -59,7 +59,8 @@ class LoginViewModel(
         val password = _state.value.password
 
         if (email.isBlank() || password.isBlank()) {
-            emit(LoginEffect.ShowError("Campos vacíos"))
+            // Se envía una clave de error para ser localizada en la UI
+            emit(LoginEffect.ShowError("empty_fields"))
             return
         }
 
@@ -75,7 +76,8 @@ class LoginViewModel(
                 saveSessionUid(uid)
                 emit(LoginEffect.NavigateToHome)
             }else {
-                emit(LoginEffect.ShowError("Credenciales incorrectas"))
+                // Se envía una clave de error para ser localizada en la UI
+                emit(LoginEffect.ShowError("invalid_credentials"))
             }
 
             _state.update { it.copy(isLoading = false) }
