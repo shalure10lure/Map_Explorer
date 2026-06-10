@@ -96,7 +96,6 @@ actual fun triggerDangerNotification(title: String, message: String) {
 
     notificationManager.notify(System.currentTimeMillis().toInt(), notification)
 
-    // Vibrar explícitamente también por si la app está en primer plano
     val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
         vibratorManager.defaultVibrator
@@ -111,4 +110,32 @@ actual fun triggerDangerNotification(title: String, message: String) {
         @Suppress("DEPRECATION")
         vibrator.vibrate(longArrayOf(0, 500, 200, 500), -1)
     }
+}
+
+actual fun triggerFriendNotification(title: String, message: String) {
+    val context = AppContext.value
+    val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    val channelId = "friends_channel"
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        val channel = NotificationChannel(
+            channelId,
+            "Amistad",
+            NotificationManager.IMPORTANCE_DEFAULT
+        ).apply {
+            description = "Notificaciones de solicitudes y nuevos amigos"
+            enableVibration(true)
+        }
+        notificationManager.createNotificationChannel(channel)
+    }
+
+    val notification = NotificationCompat.Builder(context, channelId)
+        .setContentTitle(title)
+        .setContentText(message)
+        .setSmallIcon(android.R.drawable.ic_menu_myplaces)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+        .setAutoCancel(true)
+        .build()
+
+    notificationManager.notify(System.currentTimeMillis().toInt(), notification)
 }
