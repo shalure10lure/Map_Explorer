@@ -6,38 +6,49 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ucb.designsystem.components.navigation.DsTopAppBar
+import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.favoritePlaces.presentation.state.FavoritePlacesEffect
 import com.ucb.mapexplorer.favoritePlaces.presentation.state.FavoritePlacesEvent
 import com.ucb.mapexplorer.favoritePlaces.presentation.viewmodel.FavoritePlacesViewModel
+import com.ucb.mapexplorer.nearbyplaces.domain.model.LugarSavedModel
+import org.koin.compose.viewmodel.koinViewModel
 
-import mapexplorer.composeapp.generated.resources.*
+import mapexplorer.composeapp.generated.resources.Res
+import mapexplorer.composeapp.generated.resources.favorites_empty_desc
+import mapexplorer.composeapp.generated.resources.favorites_empty_title
+import mapexplorer.composeapp.generated.resources.moreOptions_textSelector_favoritePlaces
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun FavoritePlacesScreen(
-    viewModel: FavoritePlacesViewModel,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit,
+    viewModel: FavoritePlacesViewModel = koinViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
     LaunchedEffect(Unit) {
+        viewModel.loadFavoritos()
         viewModel.effect.collect { effect ->
             when (effect) {
                 FavoritePlacesEffect.NavigateBack -> onBack()
-                is FavoritePlacesEffect.NavigateToPlaceDetail -> {
-                    // Navegar al detalle del sitio
-                }
+                is FavoritePlacesEffect.NavigateToPlaceDetail ->
+                    onNavigateToDetail(effect.lugarId)
             }
         }
     }
@@ -45,68 +56,137 @@ fun FavoritePlacesScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(AppTheme.colors.background)
     ) {
-        // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(onClick = { viewModel.onEvent(FavoritePlacesEvent.OnBackClick) }) {
-                Text(
-                    text = "← ${stringResource(Res.string.navigationSelector_backToMap)}",
-                    fontSize = 16.sp,
-                    color = Color.Black
-                )
-            }
-        }
-
-        Text(
-            text = stringResource(Res.string.moreOptions_textSelector_favoritePlaces),
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp),
-            style = MaterialTheme.typography.titleLarge
+        // ── Header ────────────────────────────────────────────────────────
+        DsTopAppBar(
+            title = stringResource(Res.string.moreOptions_textSelector_favoritePlaces),
+            onBackClick = { viewModel.onEvent(FavoritePlacesEvent.OnBackClick) },
+            backIcon = Icons.AutoMirrored.Filled.ArrowBack,
+            actionIcon = Icons.Default.Favorite
         )
 
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 24.dp)
-        ) {
-            items(state.favoritePlaces) { place ->
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp)
-                        .clickable { viewModel.onEvent(FavoritePlacesEvent.OnPlaceClick(place)) },
-                    verticalAlignment = Alignment.CenterVertically
+        HorizontalDivider(color = AppTheme.colors.border.copy(alpha = 0.3f), thickness = 0.5.dp)
+
+        // ── Contenido ─────────────────────────────────────────────────────
+        when {
+            state.isLoading -> {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = AppTheme.colors.primary)
+                }
+            }
+
+            state.favoritos.isEmpty() -> {
+                EmptyFavoritosContent()
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
-                    // Icon Placeholder (Heart)
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .background(Color(0xFFF5F5F5), shape = CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("📍")
-                    }
-
-                    Spacer(modifier = Modifier.width(16.dp))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = place.name, fontWeight = FontWeight.Bold)
-                        Text(text = place.description, fontSize = 12.sp, color = Color.Gray)
-                    }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(text = "❤️", color = Color.Red)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = "⭐".repeat(place.rating.toInt()), color = Color(0xFFFFD700))
+                    items(state.favoritos, key = { it.lugarId }) { lugar ->
+                        FavoritoItem(
+                            lugar = lugar,
+                            onClick = {
+                                viewModel.onEvent(FavoritePlacesEvent.OnPlaceClick(lugar.lugarId))
+                            },
+                            onRemove = {
+                                viewModel.onEvent(FavoritePlacesEvent.OnRemoveFavorito(lugar.lugarId))
+                            }
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = AppTheme.colors.border.copy(alpha = 0.3f),
+                            thickness = 0.5.dp
+                        )
                     }
                 }
-                HorizontalDivider(color = Color(0xFFEEEEEE))
             }
+        }
+    }
+}
+
+@Composable
+private fun FavoritoItem(
+    lugar: LugarSavedModel,
+    onClick: () -> Unit,
+    onRemove: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Ícono categoría
+        Box(
+            modifier = Modifier
+                .size(46.dp)
+                .clip(CircleShape)
+                .background(AppTheme.colors.primary.copy(alpha = 0.08f)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(text = lugar.iconoCategoria, fontSize = 22.sp)
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = lugar.nombre,
+                style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = AppTheme.colors.textPrimary,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = lugar.categoria,
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colors.textSecondary
+            )
+        }
+
+        Spacer(modifier = Modifier.width(8.dp))
+
+        // Botón quitar de favoritos
+        IconButton(
+            onClick = onRemove,
+            modifier = Modifier.size(36.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = "Quitar de favoritos",
+                tint = AppTheme.colors.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun EmptyFavoritosContent() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.offset(y = (-40).dp)
+        ) {
+            Text("❤️", fontSize = 56.sp)
+            Text(
+                stringResource(Res.string.favorites_empty_title),
+                style = AppTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold),
+                color = AppTheme.colors.textPrimary
+            )
+            Text(
+                stringResource(Res.string.favorites_empty_desc),
+                style = AppTheme.typography.bodySmall,
+                color = AppTheme.colors.textSecondary
+            )
         }
     }
 }

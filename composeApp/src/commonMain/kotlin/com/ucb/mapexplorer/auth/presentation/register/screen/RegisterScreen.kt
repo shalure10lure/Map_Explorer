@@ -13,8 +13,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.components.input.BasicInput
+import com.ucb.designsystem.components.input.DsPasswordInput
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.auth.presentation.register.state.*
 import com.ucb.mapexplorer.auth.presentation.register.viewmodel.RegisterViewModel
@@ -166,7 +170,7 @@ private fun RegisterStep1(
                 BasicInput(
                     value = state.username,
                     onValueChange = { onEvent(RegisterEvent.OnUsernameChanged(it)) },
-                    label = "Elegir un nombre de usuario",
+                    label = stringResource(Res.string.register_hint_username),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -181,7 +185,7 @@ private fun RegisterStep1(
                 BasicInput(
                     value = state.email,
                     onValueChange = { onEvent(RegisterEvent.OnEmailChanged(it)) },
-                    label = "ejemplo@mail.com",
+                    label = stringResource(Res.string.register_hint_email),
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -193,13 +197,13 @@ private fun RegisterStep1(
                     style = AppTheme.typography.bodySmall,
                     color = AppTheme.colors.textSecondary
                 )
-                OutlinedTextField(
+                DsPasswordInput(
                     value = state.password,
                     onValueChange = { onEvent(RegisterEvent.OnPasswordChanged(it)) },
-                    label = { Text("Al menos 8 caracteres") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                    label = stringResource(Res.string.register_hint_password),
+                    visibilityIcon = Icons.Default.Visibility,
+                    visibilityOffIcon = Icons.Default.VisibilityOff,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -210,13 +214,13 @@ private fun RegisterStep1(
                     style = AppTheme.typography.bodySmall,
                     color = AppTheme.colors.textSecondary
                 )
-                OutlinedTextField(
+                DsPasswordInput(
                     value = state.confirmPassword,
                     onValueChange = { onEvent(RegisterEvent.OnConfirmPasswordChanged(it)) },
-                    label = { Text("Mínimo 8 caracteres") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp)
+                    label = stringResource(Res.string.register_hint_confirm_password),
+                    visibilityIcon = Icons.Default.Visibility,
+                    visibilityOffIcon = Icons.Default.VisibilityOff,
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -294,7 +298,7 @@ private fun RegisterStep2(
                 BasicInput(
                     value = state.description,
                     onValueChange = { onEvent(RegisterEvent.OnDescriptionChanged(it)) },
-                    label = "Cuéntanos sobre ti...",
+                    label = stringResource(Res.string.register_hint_description),
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = false
                 )
@@ -368,7 +372,7 @@ private fun RegisterStep2(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        "← Volver al paso anterior",
+                        text = stringResource(Res.string.register_button_back_step),
                         color = AppTheme.colors.textSecondary,
                         style = AppTheme.typography.bodySmall
                     )

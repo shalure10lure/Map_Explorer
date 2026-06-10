@@ -44,5 +44,30 @@ sealed class NavRoute {
     object NearbyPlaces : NavRoute()
 
     @Serializable
-    data class PlaceDetail(val placeId: String) : NavRoute()
+    object FavoritePlaces : NavRoute()
+    @Serializable
+    object SavedPlaces : NavRoute()
+    @Serializable
+    data class PlaceDetail(val placeId: String,val type: String = "OSM" ) : NavRoute()
+
+    @Serializable
+    data class GuideMap(
+        val userLat: Double,
+        val userLon: Double,
+        val destLat: Double,
+        val destLon: Double,
+        val placeName: String
+    ) : NavRoute()
+
+
+    @Serializable
+    data class Publication(val placeId: String) : NavRoute()
+
+    @Serializable
+    object FriendsRequests : NavRoute()
+
+    @Serializable
+    data class FriendProfile(val friendUid: String) : NavRoute()
+    @Serializable
+    object SearchUser : NavRoute()
 }

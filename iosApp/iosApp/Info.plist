@@ -5,4 +5,15 @@
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 </dict>
+<key>NSLocationWhenInUseUsageDescription</key>
+<string>MapExplorer necesita tu ubicación para mostrar el mapa y descubrir lugares cercanos.</string>
+
+<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+<string>MapExplorer usa tu ubicación en segundo plano para registrar los tiles que exploras.</string>
+
+<key>NSAppTransportSecurity</key>
+<dict>
+    <key>NSAllowsArbitraryLoads</key>
+    <true/>
+</dict>
 </plist>

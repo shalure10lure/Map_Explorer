@@ -7,7 +7,12 @@ import com.ucb.mapexplorer.map.data.service.LocalitationService
 import com.ucb.mapexplorer.map.domain.model.TileModel
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import com.ucb.mapexplorer.map.domain.repository.MapRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 
 class MapRepositoryImpl(
@@ -15,18 +20,12 @@ class MapRepositoryImpl(
     private val remoteDataSource: MapRemoteDataSource,
     private val locationService: LocalitationService
 ) : MapRepository {
+    private val bgScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 
     override fun observeLocation(): Flow<UserLocationModel> =
         locationService.observeLocation()
 
-    /**
-     * Flujo completo al descubrir un tile:
-     * 1. Convierte coordenadas GPS → tile OSM (zoom 17)
-     * 2. Guarda en Room (fuente de verdad local)
-     * 3. Si es NUEVO → sincroniza con Firebase async (best-effort)
-     *
-     * @return true si fue un tile nuevo.
-     */
     override suspend fun unlockTile(uid: String, location: UserLocationModel): Boolean {
         val (x, y) = TileUtils.latLngToTile(location.latitude, location.longitude)
         val isNew = localDataSource.unlockTile(uid, x, y)
@@ -41,19 +40,40 @@ class MapRepositoryImpl(
                 visitCount = 1,
                 lastVisited = now
             )
-            try {
-                remoteDataSource.syncTile(uid, tile)
-                localDataSource.markAsSynced(uid, x, y)
-            } catch (e: Exception) {
-                // Sin internet → el tile queda en Room con sincronizado=false
-                // Se sincronizará en la próxima sesión con internet.
-                println("[MapRepo] Firebase sync failed, tile queued: ${x}_$y")
+            bgScope.launch {
+                try {
+                    remoteDataSource.syncTile(uid, tile)
+                    localDataSource.markAsSynced(uid, x, y)
+                } catch (e: Exception) {
+                    println("[MapRepo] Firebase sync queued: ${x}_$y")
+                }
             }
         }
 
         return isNew
     }
+    override suspend fun downloadHistoryIfEmpty(uid: String) {
+        try {
+            // Obtenemos lo que hay en Room
+            val localTiles = localDataSource.getTiles(uid)
+
+            // SI NO HAY NADA (esto pasa cuando borras caché), descargamos de Firebase
+            if (localTiles.isEmpty()) {
+                println("🔄 Room vacío para $uid. Descargando de Firebase...")
+                val remoteTiles = remoteDataSource.getAllVisitedTiles(uid)
+
+                if (remoteTiles.isNotEmpty()) {
+                    // ESTA ES LA CLAVE: Guardamos en Room para que se pinte el mapa
+                    localDataSource.saveTilesToLocal(uid, remoteTiles)
+                }
+            }
+        } catch (e: Exception) {
+            println("❌ Error en downloadHistory: ${e.message}")
+        }
+    }
 
     override suspend fun getDiscoveredTiles(uid: String): List<TileModel> =
         localDataSource.getTiles(uid)
+
+
 }

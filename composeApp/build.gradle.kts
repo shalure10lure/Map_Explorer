@@ -60,6 +60,8 @@ kotlin {
             implementation(libs.play.services.location)
 
             implementation("io.ktor:ktor-client-android:2.3.12")
+            implementation("org.osmdroid:osmdroid-android:6.1.20")
+            implementation("com.github.MKergall:osmbonuspack:6.9.0")
         }
         commonMain.dependencies {
             implementation(libs.compose.runtime)
@@ -150,6 +152,11 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
+
+    add("kspCommonMainMetadata", libs.mockativeProcessor)
+    add("kspAndroid", libs.mockativeProcessor)
+    add("kspIosSimulatorArm64", libs.mockativeProcessor)
+    add("kspIosArm64", libs.mockativeProcessor)
 }
 
 //room

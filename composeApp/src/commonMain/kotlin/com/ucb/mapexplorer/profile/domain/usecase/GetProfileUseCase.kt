@@ -1,6 +1,6 @@
 package com.ucb.mapexplorer.profile.domain.usecase
 
-import com.ucb.mapexplorer.profile.domain.repository.ProfileModel
+import com.ucb.mapexplorer.profile.domain.model.ProfileModel
 import com.ucb.mapexplorer.profile.domain.repository.ProfileRepository
 
 class GetProfileUseCase(

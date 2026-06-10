@@ -2,7 +2,11 @@ package com.ucb.mapexplorer
 
 import android.app.Application
 import android.preference.PreferenceManager
+import com.ucb.mapexplorer.dangerzone.data.seed.DangerZoneSeeder
 import com.ucb.mapexplorer.di.getModules
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -13,6 +17,9 @@ class AndroidApp: Application() {
 
     override fun onCreate() {
         super.onCreate()
+        CoroutineScope(Dispatchers.IO).launch {
+            DangerZoneSeeder.seedDangerZones()
+        }
         
         // Configuración global de OsmDroid
         Configuration.getInstance().load(this, PreferenceManager.getDefaultSharedPreferences(this))

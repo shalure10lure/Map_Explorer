@@ -19,7 +19,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.auth.presentation.register.state.AvatarTab
+import com.ucb.mapexplorer.profile.data.mapper.toResource
 import com.ucb.mapexplorer.profile.domain.model.*
+import com.ucb.mapexplorer.profile.presentation.composable.*
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
@@ -139,57 +141,4 @@ fun AvatarEditorCompact(
     }
 }
 
-@Composable
-private fun AvatarPartItem(
-    resource: DrawableResource,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .size(72.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(AppTheme.colors.surface)
-            .border(
-                width = if (isSelected) 3.dp else 1.dp,
-                color = if (isSelected) AppTheme.colors.primary
-                else AppTheme.colors.border,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Image(
-            painter = painterResource(resource),
-            contentDescription = null,
-            modifier = Modifier.size(54.dp)
-        )
-    }
-}
 
-@Composable
-private fun NonePartItem(
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .size(72.dp)
-            .clip(RoundedCornerShape(10.dp))
-            .background(AppTheme.colors.surface)
-            .border(
-                width = if (isSelected) 3.dp else 1.dp,
-                color = if (isSelected) AppTheme.colors.primary
-                else AppTheme.colors.border,
-                shape = RoundedCornerShape(10.dp)
-            )
-            .clickable { onClick() },
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            "✕",
-            style = AppTheme.typography.headlineLarge,
-            color = AppTheme.colors.textSecondary
-        )
-    }
-}

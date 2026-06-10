@@ -14,8 +14,10 @@ import androidx.navigation.NavController
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.mapexplorer.navigation.NavRoute
-import com.ucb.mapexplorer.onboarding.presentation.viewmodel.OnboardingEvent
+import com.ucb.mapexplorer.onboarding.presentation.state.OnboardingEvent
 import com.ucb.mapexplorer.onboarding.presentation.viewmodel.OnboardingViewModel
+import mapexplorer.composeapp.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -81,7 +83,7 @@ fun OnboardingScreen(
 
             TextButton(onClick = { viewModel.onEvent(OnboardingEvent.Skip) }) {
                 Text(
-                    text = "Omitir",
+                    text = stringResource(Res.string.onboarding_skip),
                     color = AppTheme.colors.textSecondary,
                     style = AppTheme.typography.bodyMedium
                 )
@@ -147,12 +149,13 @@ fun OnboardingScreen(
                         contentColor = AppTheme.colors.primary
                     )
                 ) {
-                    Text("Anterior")
+                    Text(stringResource(Res.string.buttonText_goBack))
                 }
             }
 
             PrimaryButton(
-                text = if (isLast) "INICIAR" else "SIGUIENTE",
+                text = if (isLast) stringResource(Res.string.onboarding_start)
+                else stringResource(Res.string.buttonText_continue),
                 onClick = {
                     if (isLast) viewModel.onEvent(OnboardingEvent.Start)
                     else        viewModel.onEvent(OnboardingEvent.Next)

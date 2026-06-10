@@ -1,13 +1,13 @@
 package com.ucb.mapexplorer.favoritePlaces.presentation.state
 
-import com.ucb.mapexplorer.savedPlaces.presentation.state.Place
+
+import com.ucb.mapexplorer.nearbyplaces.domain.model.LugarSavedModel
 
 data class FavoritePlacesUIState(
-    val favoritePlaces: List<Place> = listOf(
-        Place("Nombre", "Descripción Sitio", 5f),
-        Place("Nombre", "Descripción Sitio", 4.5f),
-        Place("Nombre", "Descripción Sitio", 5f)
-    )
+    val favoritos: List<LugarSavedModel> = emptyList(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
+
 
 

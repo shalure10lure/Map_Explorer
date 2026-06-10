@@ -15,7 +15,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ucb.designsystem.components.button.PrimaryButton
+import com.ucb.designsystem.components.navigation.DsTopAppBar
 import com.ucb.designsystem.theme.AppTheme
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.ui.graphics.Color
+import androidx.navigation.NavController
+import com.ucb.mapexplorer.navigation.NavRoute
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEffect
 import com.ucb.mapexplorer.profile.presentation.state.OwnProfileEvent
 import com.ucb.mapexplorer.profile.presentation.viewmodel.OwnProfileViewModel
@@ -29,7 +35,8 @@ fun OwnProfileScreen(
     onBack: () -> Unit,
     onEditProfile: () -> Unit,
     onViewRequests: () -> Unit,
-    onViewFriend: (String) -> Unit
+    onViewFriend: (String) -> Unit,
+    onLogout: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -41,7 +48,12 @@ fun OwnProfileScreen(
                 OwnProfileEffect.NavigateBack -> onBack()
                 OwnProfileEffect.NavigateToEditProfile -> onEditProfile()
                 OwnProfileEffect.NavigateToRequests -> onViewRequests()
-                is OwnProfileEffect.NavigateToFriendProfile -> onViewFriend(effect.friendName)
+                is OwnProfileEffect.NavigateToFriendProfile -> {
+                   val uid = state.friendUids[effect.friendName] ?: return@collect
+                    onViewFriend(uid)   // pasamos el UID real
+                }
+                OwnProfileEffect.NavigateToLogin -> onLogout()
+
             }
         }
     }
@@ -52,20 +64,11 @@ fun OwnProfileScreen(
             .background(AppTheme.colors.background)
     ) {
         // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(onClick = { viewModel.onEvent(OwnProfileEvent.OnBackClick) }) {
-                Text(
-                    text = "← ${stringResource(Res.string.navigationSelector_backToMap)}",
-                    style = AppTheme.typography.bodyMedium,
-                    color = AppTheme.colors.textPrimary
-                )
-            }
-        }
+        DsTopAppBar(
+            title = stringResource(Res.string.navigationSelector_backToMap),
+            onBackClick = { viewModel.onEvent(OwnProfileEvent.OnBackClick) },
+            backIcon = Icons.AutoMirrored.Filled.ArrowBack
+        )
 
         if (state.isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -200,6 +203,21 @@ fun OwnProfileScreen(
                         modifier = Modifier.weight(1f),
                         isPrimary = true
                     )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                OutlinedButton(
+                    onClick = { viewModel.onEvent(OwnProfileEvent.OnLogoutClick) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 0.dp)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(8.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color.Red
+                    )
+                ) {
+                    Text("Cerrar sesión", color = Color.Red)
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))

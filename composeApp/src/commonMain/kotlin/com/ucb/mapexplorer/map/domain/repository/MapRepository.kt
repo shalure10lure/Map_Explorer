@@ -1,9 +1,12 @@
 package com.ucb.mapexplorer.map.domain.repository
 
+import com.ucb.mapexplorer.auth.domain.model.UserModel
 import com.ucb.mapexplorer.map.domain.model.TileModel
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import kotlinx.coroutines.flow.Flow
+import io.mockative.Mockable
 
+@Mockable
 interface MapRepository {
     /** Flujo continuo de la ubicación GPS del usuario. */
     fun observeLocation(): Flow<UserLocationModel>
@@ -18,4 +21,5 @@ interface MapRepository {
 
     /** Tiles descubiertos del usuario, leídos desde Room (fuente de verdad local). */
     suspend fun getDiscoveredTiles(uid: String): List<TileModel>
+    suspend fun downloadHistoryIfEmpty(uid: String)
 }

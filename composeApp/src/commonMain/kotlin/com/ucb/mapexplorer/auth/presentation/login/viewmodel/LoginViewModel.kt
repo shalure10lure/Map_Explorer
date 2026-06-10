@@ -7,6 +7,7 @@ import com.ucb.mapexplorer.auth.presentation.login.state.LoginEffect
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEvent
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginUIState
 import com.ucb.mapexplorer.core.session.Session
+import com.ucb.mapexplorer.saveSessionUid
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -58,7 +59,8 @@ class LoginViewModel(
         val password = _state.value.password
 
         if (email.isBlank() || password.isBlank()) {
-            emit(LoginEffect.ShowError("Campos vacíos"))
+            // Se envía una clave de error para ser localizada en la UI
+            emit(LoginEffect.ShowError("empty_fields"))
             return
         }
 
@@ -69,10 +71,13 @@ class LoginViewModel(
             val user = loginUseCase(email, password)
 
             if (user) {
-                Session.uid = safeKey(email)  // ← "jr_gmail_com" en vez de "jr@gmail.com"
+                val uid = safeKey(email)
+                Session.uid = uid
+                saveSessionUid(uid)
                 emit(LoginEffect.NavigateToHome)
             }else {
-                emit(LoginEffect.ShowError("Credenciales incorrectas"))
+                // Se envía una clave de error para ser localizada en la UI
+                emit(LoginEffect.ShowError("invalid_credentials"))
             }
 
             _state.update { it.copy(isLoading = false) }

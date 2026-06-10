@@ -1,19 +1,19 @@
 package com.ucb.mapexplorer.core.data.db
 
-
 import android.content.Context
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
+import androidx.sqlite.SQLiteConnection
 import androidx.sqlite.db.SupportSQLiteDatabase
+import androidx.sqlite.execSQL
 
-// Migración de versión 3 → 4:
-// - Se elimina columna porcentajeExplorado (no soportado en SQLite sin recrear tabla)
-// - Se recrea la tabla con el nuevo esquema
 val MIGRATION_3_6 = object : Migration(3, 6) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        // Crear tabla nueva con esquema correcto
-        database.execSQL("""
+    override fun migrate(database: SupportSQLiteDatabase) = migrateCommon(database::execSQL)
+    override fun migrate(connection: SQLiteConnection)    = migrateCommon(connection::execSQL)
+
+    private fun migrateCommon(execSQL: (String) -> Unit) {
+        execSQL("""
             CREATE TABLE IF NOT EXISTS tiles_descubiertos_new (
                 id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                 uid TEXT NOT NULL,
@@ -25,20 +25,85 @@ val MIGRATION_3_6 = object : Migration(3, 6) {
                 sincronizado INTEGER NOT NULL DEFAULT 0
             )
         """)
-        // Copiar datos existentes (se pierde porcentajeExplorado, sin impacto)
-        database.execSQL("""
+        execSQL("""
             INSERT INTO tiles_descubiertos_new
             (id, uid, tileX, tileY, descubiertoEn, vecesVisitado, ultimoIngreso, sincronizado)
             SELECT id, uid, tileX, tileY, descubiertoEn, vecesVisitado, ultimoIngreso, sincronizado
             FROM tiles_descubiertos
         """)
-        // Eliminar tabla vieja y renombrar nueva
-        database.execSQL("DROP TABLE tiles_descubiertos")
-        database.execSQL("ALTER TABLE tiles_descubiertos_new RENAME TO tiles_descubiertos")
-        // Recrear el índice único
-        database.execSQL("""
+        execSQL("DROP TABLE tiles_descubiertos")
+        execSQL("ALTER TABLE tiles_descubiertos_new RENAME TO tiles_descubiertos")
+        execSQL("""
             CREATE UNIQUE INDEX IF NOT EXISTS index_tiles_uid_x_y
             ON tiles_descubiertos (uid, tileX, tileY)
+        """)
+    }
+}
+
+// ── Migración 6 → 7: tablas de favoritos y guardados ────────────────────────
+val MIGRATION_6_7 = object : Migration(6, 7) {
+    override fun migrate(database: SupportSQLiteDatabase) = migrateCommon(database::execSQL)
+    override fun migrate(connection: SQLiteConnection)    = migrateCommon(connection::execSQL)
+
+    private fun migrateCommon(execSQL: (String) -> Unit) {
+        execSQL("""
+            CREATE TABLE IF NOT EXISTS lugares_favoritos (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                uid TEXT NOT NULL,
+                lugarId TEXT NOT NULL,
+                nombre TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                latitud REAL NOT NULL,
+                longitud REAL NOT NULL,
+                iconoCategoria TEXT NOT NULL,
+                agregadoEn INTEGER NOT NULL,
+                sincronizado INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS index_favoritos_uid_lugarId
+            ON lugares_favoritos (uid, lugarId)
+        """)
+        execSQL("""
+            CREATE TABLE IF NOT EXISTS lugares_guardados (
+                id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                uid TEXT NOT NULL,
+                lugarId TEXT NOT NULL,
+                nombre TEXT NOT NULL,
+                categoria TEXT NOT NULL,
+                latitud REAL NOT NULL,
+                longitud REAL NOT NULL,
+                iconoCategoria TEXT NOT NULL,
+                guardadoEn INTEGER NOT NULL,
+                sincronizado INTEGER NOT NULL DEFAULT 0
+            )
+        """)
+        execSQL("""
+            CREATE UNIQUE INDEX IF NOT EXISTS index_guardados_uid_lugarId
+            ON lugares_guardados (uid, lugarId)
+        """)
+    }
+}
+
+// ── Migración 7 → 8: tabla zonas_peligrosas ──────────────────────────────────
+val MIGRATION_7_8 = object : Migration(7, 8) {
+    override fun migrate(database: SupportSQLiteDatabase) = migrateCommon(database::execSQL)
+    override fun migrate(connection: SQLiteConnection)    = migrateCommon(connection::execSQL)
+
+    private fun migrateCommon(execSQL: (String) -> Unit) {
+        execSQL("""
+            CREATE TABLE IF NOT EXISTS zonas_peligrosas (
+                zonaId TEXT PRIMARY KEY NOT NULL,
+                nombre TEXT NOT NULL,
+                descripcion TEXT NOT NULL,
+                latitud REAL NOT NULL,
+                longitud REAL NOT NULL,
+                radio REAL NOT NULL,
+                nivel TEXT NOT NULL,
+                tipo TEXT NOT NULL,
+                activa INTEGER NOT NULL DEFAULT 1,
+                actualizadaEn INTEGER NOT NULL
+            )
         """)
     }
 }
@@ -49,7 +114,7 @@ actual fun getDatabaseBuilder(ctx: Any?): RoomDatabase.Builder<AppDatabase> {
     return Room.databaseBuilder<AppDatabase>(
         context = appContext,
         name = dbFile.absolutePath
-    ).addMigrations(MIGRATION_3_6
-
     )
+        .addMigrations(MIGRATION_3_6, MIGRATION_6_7, MIGRATION_7_8)
+        .fallbackToDestructiveMigration(true)
 }

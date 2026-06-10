@@ -4,7 +4,7 @@
  Project: MapExplorer
  Locale: es-BO, Spanish (Bolivia)
  Exported by: CHRISTOPHER BORIS QUIROZ GARECA
- Exported at: Sun, 24 May 2026 12:00:54 -0400
+ Exported at: Wed, 10 Jun 2026 16:54:58 -0400
 -->
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="login_tittle">INICIAR SESIÓN</string>
@@ -42,7 +42,7 @@
     <string name="searchText_searchForPerson">Buscar Persona</string>
     <string name="socialMedia_subtittle_myExperience">Mi experiencia:</string>
     <string name="socialMedia_subtittle_sendFriend">Enviar solicitud de Amistad</string>
-    <string name="socialMedia_subtittle_viewInMap">Ver lugar en el mapa</string>
+    <string name="socialMedia_subtittle_viewInMap">Ver detalle del lugar</string>
     <string name="navigationSelector_seeNearbyPlaces">Ver lugares cercanos a mi</string>
     <string name="placeDetails_description">Descripción:</string>
     <string name="placeDetails_seeOnMap">Ver en el mapa</string>
@@ -76,4 +76,57 @@
     <string name="buttonText_save">Guardar</string>
     <string name="navigationSelector_backToSocialMedia">Volver al Espacio Social</string>
     <string name="moreOptions_tittle_mySaves">Mis guardados</string>
+    <string name="navigationBar_map_textSelection">Mapa</string>
+    <string name="profileView_textSelector_goToFriendProfile">Ver perfil</string>
+    <string name="profileView_signOut_buttonText">Cerrar sesión</string>
+    <string name="nearbyPlaces_showMainText_noNearbyPlaces">Sigue explorando el mapa</string>
+    <string name="nearbyPlaces_showContextText_noNearbyPlaces">Los lugares aparecen cuando descubres nuevas zonas</string>
+    <string name="map_discovery_new_zone">¡Nueva zona descubierta! 🗺️</string>
+    <string name="map_loading_location">Obteniendo tu ubicación...</string>
+    <string name="common_error">Error</string>
+    <string name="common_ok">OK</string>
+    <string name="onboarding_skip">Omitir</string>
+    <string name="onboarding_start">INICIAR</string>
+    <string name="searchUser_title">Buscar personas</string>
+    <string name="searchUser_hint">Buscar por usuario, correo o ID...</string>
+    <string name="searchUser_subhint">Busca por nombre de usuario, correo o ID</string>
+    <string name="searchUser_already_friends">¡Ya son amigos!</string>
+    <string name="searchUser_request_sent">Solicitud pendiente</string>
+    <string name="searchUser_send_request">Enviar solicitud</string>
+    <string name="searchUser_already_friends_desc">Ya eres amigo de %s.</string>
+    <string name="searchUser_request_sent_desc">Ya enviaste una solicitud a %s. Espera su respuesta.</string>
+    <string name="searchUser_send_request_confirm">¿Deseas enviar una solicitud de amistad a %s?</string>
+    <string name="searchUser_no_results">No se encontraron usuarios</string>
+    <string name="searchUser_minimum_chars">Escribe al menos 2 caracteres</string>
+    <string name="searchUser_send">Enviar</string>
+    <string name="searchUser_close">Cerrar</string>
+    <string name="searchUser_add">Agregar →</string>
+    <string name="danger_zone_title">¡ZONA PELIGROSA!</string>
+    <string name="danger_zone_level">Nivel: %s</string>
+    <string name="danger_zone_button">Entendido, tener precaución</string>
+    <string name="danger_zone_default_desc">Has entrado en una zona reportada como %s. Mantente alerta y actúa con precaución.</string>
+    <string name="friendProfile_title">Perfil de amigo</string>
+    <string name="friendProfile_mutual_friends">Amigos en común (%d)</string>
+    <string name="friendProfile_all_friends">Sus amigos (%d)</string>
+    <string name="friendProfile_back">Volver al perfil</string>
+    <string name="favorites_empty_title">Aún no tienes favoritos</string>
+    <string name="favorites_empty_desc">Marca lugares como favoritos\ndesde el detalle del lugar</string>
+    <string name="nearby_search_hint">Buscar lugar...</string>
+    <string name="nearby_no_results">No hay resultados para \"%s\"</string>
+
+    <string name="login_error_empty_fields">Campos vacíos</string>
+    <string name="login_error_invalid_credentials">Credenciales incorrectas</string>
+    <string name="register_hint_username">Elegir un nombre de usuario</string>
+    <string name="register_hint_email">ejemplo@mail.com</string>
+    <string name="register_hint_password">Al menos 8 caracteres</string>
+    <string name="register_hint_confirm_password">Mínimo 8 caracteres</string>
+    <string name="register_hint_description">Cuéntanos sobre ti...</string>
+    <string name="register_button_back_step">← Volver al paso anterior</string>
+
+    <string name="danger_notification_title">¡Zona Peligrosa: %s!</string>
+    <string name="danger_notification_msg">Te encuentras cerca de: %s. %s</string>
+    <string name="map_error_gps">Error GPS: %s</string>
+
+    <string name="auth_password_show">Mostrar contraseña</string>
+    <string name="auth_password_hide">Ocultar contraseña</string>
 </resources>

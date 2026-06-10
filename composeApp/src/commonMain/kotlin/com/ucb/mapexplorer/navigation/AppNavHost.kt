@@ -10,12 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.ucb.mapexplorer.auth.presentation.login.screen.LoginScreen
 import com.ucb.mapexplorer.auth.presentation.register.screen.RegisterScreen
-import com.ucb.mapexplorer.explanation.explanation1.presentation.screen.Explanation1Screen
-import com.ucb.mapexplorer.explanation.explanation2.presentation.screen.Explanation2Screen
-import com.ucb.mapexplorer.explanation.explanation3.presentation.screen.Explanation3Screen
-import com.ucb.mapexplorer.explanation.explanation4.presentation.screen.Explanation4Screen
+import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.map.presentation.screen.MainScreen
 import com.ucb.mapexplorer.map.presentation.screen.MapScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
@@ -23,8 +21,20 @@ import com.ucb.mapexplorer.nearbyplaces.presentation.screen.PlaceDetailScreen
 import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
 import com.ucb.mapexplorer.editProfile.presentation.screen.EditProfileScreen
 import com.ucb.mapexplorer.editProfile.presentation.viewmodel.EditProfileViewModel
+import com.ucb.mapexplorer.favoritePlaces.presentation.screen.FavoritePlacesScreen
+import com.ucb.mapexplorer.friendProfile.presentation.screen.FriendProfileScreen
+import com.ucb.mapexplorer.friendProfile.presentation.viewmodel.FriendProfileViewModel
+import com.ucb.mapexplorer.friendsRequests.presentation.screen.FriendsRequestsScreen
+import com.ucb.mapexplorer.friendsRequests.presentation.viewmodel.FriendsRequestsViewModel
+import com.ucb.mapexplorer.getSessionUid
+import com.ucb.mapexplorer.map.presentation.screen.GuideMapScreen
+import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.onboarding.presentation.screen.OnboardingScreen
+import com.ucb.mapexplorer.publication.presentation.screen.PublicationScreen
+import com.ucb.mapexplorer.savedPlaces.presentation.screen.SavedPlacesScreen
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
+import com.ucb.mapexplorer.searchUser.presentation.screen.SearchUserScreen
+import com.ucb.mapexplorer.searchUser.presentation.viewmodel.SearchUserViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -32,14 +42,23 @@ fun AppNavHost() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Restaurar sesión si existe
+    val startDest: Any = remember {
+        val savedUid = getSessionUid()
+        if (savedUid != null) {
+            Session.uid = savedUid
+            NavRoute.Main
+        } else {
+            NavRoute.Login
+        }
+    }
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { _ -> 
-        // Eliminamos el padding(paddingValues) para permitir el diseño Edge-to-Edge
+    ) { _ ->
         NavHost(
             navController = navController,
-            startDestination = NavRoute.Login,
+            startDestination = startDest,
             modifier = Modifier.fillMaxSize()
         ) {
             composable<NavRoute.Login> {
@@ -50,19 +69,7 @@ fun AppNavHost() {
                     navController = navController,
                     snackbarHostState = snackbarHostState
                 )
-            }/*
-            composable<NavRoute.Explanation1> {
-                Explanation1Screen(navController = navController)
             }
-            composable<NavRoute.Explanation2> {
-                Explanation2Screen(navController = navController)
-            }
-            composable<NavRoute.Explanation3> {
-                Explanation3Screen(navController = navController)
-            }
-            composable<NavRoute.Explanation4> {
-                Explanation4Screen(navController = navController)
-            }*/
             composable<NavRoute.EditProfile> {
                 val vm: EditProfileViewModel = koinViewModel()
                 EditProfileScreen(
@@ -75,46 +82,124 @@ fun AppNavHost() {
                 MainScreen(navController = navController)
             }
             composable<NavRoute.Map> {
-                MapScreen()
+                val vm: MapViewModel = koinViewModel()
+                MapScreen(navController = navController, viewModel = vm)
             }
             composable<NavRoute.Onboarding> {
                 OnboardingScreen(navController = navController)
             }
 
-            // 🌐 Espacio Social
             composable<NavRoute.SocialSpace> {
                 SocialSpaceScreen(
                     onBack = { navController.popBackStack() },
-                    onNavigateToMessages = { /* TODO */ },
+                    onNavigateToFriendsRequests = { navController.navigate(NavRoute.FriendsRequests) },
                     onNavigateToNearby = { navController.navigate(NavRoute.NearbyPlaces) },
-                    onNavigateToProfile = { navController.navigate(NavRoute.Profile) }
-                )
-            }
-
-            // 📍 Pantalla de lista de lugares
-            composable<NavRoute.NearbyPlaces> {
-                val viewModel: NearbyPlacesViewModel = koinViewModel()
-                NearbyPlacesScreen(
-                    viewModel = viewModel,
-                    onPlaceClick = { placeId ->
+                    onNavigateToProfile = { navController.navigate(NavRoute.Profile) },
+                    onNavigateToDetail  = { placeId ->
                         navController.navigate(NavRoute.PlaceDetail(placeId))
                     }
                 )
             }
 
-            // 🖼️ Pantalla de detalle de lugar
-            composable<NavRoute.PlaceDetail> {
-                val viewModel: NearbyPlacesViewModel = koinViewModel()
-                PlaceDetailScreen(
+            composable<NavRoute.FriendsRequests> {
+                val viewModel: FriendsRequestsViewModel = koinViewModel()
+                FriendsRequestsScreen(
+                    viewModel = viewModel,
+                    onBack = { navController.popBackStack() },
+                    onNavigateToSearch = { navController.navigate(NavRoute.SearchUser) }
+                )
+            }
+
+            composable<NavRoute.SearchUser> {
+                val viewModel: SearchUserViewModel = koinViewModel()
+                SearchUserScreen(
                     viewModel = viewModel,
                     onBack = { navController.popBackStack() }
                 )
             }
 
-            // 👤 Perfil
+            composable<NavRoute.NearbyPlaces> {
+                val mapViewModel: MapViewModel = koinViewModel()
+
+                val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
+                NearbyPlacesScreen(
+                    mapViewModel = mapViewModel,
+                    viewModel = nearbyViewModel,
+                    onPlaceClick = { placeId ->
+                        navController.navigate(NavRoute.PlaceDetail(placeId))
+                    },
+                    onBack = { navController.popBackStack() }
+                )
+            }
+
             composable<NavRoute.Profile> {
                 navController.navigate(NavRoute.Map)
             }
+            composable<NavRoute.FavoritePlaces> {
+                FavoritePlacesScreen(
+                    onBack              = { navController.popBackStack() },
+                    onNavigateToDetail  = { placeId ->
+                        navController.navigate(NavRoute.PlaceDetail(placeId))
+                    }
+                )
+            }
+            composable<NavRoute.SavedPlaces> {
+                SavedPlacesScreen(
+                    onBack              = { navController.popBackStack() },
+                    onNavigateToDetail  = { placeId ->
+                        navController.navigate(NavRoute.PlaceDetail(placeId))
+                    }
+                )
+            }
+
+            composable<NavRoute.PlaceDetail> { backStackEntry ->
+                val route: NavRoute.PlaceDetail = backStackEntry.toRoute()
+                val mapViewModel: MapViewModel = koinViewModel()
+                val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
+
+                PlaceDetailScreen(
+                    placeId = route.placeId,
+                    mapViewModel = mapViewModel,
+                    nearbyViewModel = nearbyViewModel,
+                    navController = navController,
+                    onBack = { navController.popBackStack() }
+                )
+            }
+            composable<NavRoute.GuideMap> { backStackEntry ->
+                val route: NavRoute.GuideMap = backStackEntry.toRoute()
+                GuideMapScreen(
+                    userLat   = route.userLat,
+                    userLon   = route.userLon,
+                    destLat   = route.destLat,
+                    destLon   = route.destLon,
+                    placeName = route.placeName,
+                    onBack    = { navController.popBackStack() }
+                )
+            }
+
+            composable<NavRoute.Publication> { backStackEntry ->
+                val route: NavRoute.Publication = backStackEntry.toRoute()
+                PublicationScreen(
+                    placeId     = route.placeId,
+                    onBack      = { navController.popBackStack() },
+                    onPublished = {
+                        navController.navigate(NavRoute.Main) {
+                            popUpTo(NavRoute.Main) { inclusive = false }
+                        }
+                    }
+                )
+            }
+            composable<NavRoute.FriendProfile> { backStackEntry ->
+                val route: NavRoute.FriendProfile = backStackEntry.toRoute()
+                val vm: FriendProfileViewModel = koinViewModel()
+                FriendProfileScreen(
+                    friendUid = route.friendUid,
+                    viewModel = vm,
+                    onBack    = { navController.popBackStack() },
+                    onBackToProfile = { navController.popBackStack() }
+                )
+            }
+
         }
     }
 }

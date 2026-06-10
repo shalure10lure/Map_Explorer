@@ -51,4 +51,20 @@ class MapLocalDataSource(
 
     suspend fun getUnsyncedTiles(): List<TileEntity> =
         tileDao.getUnsyncedTiles()
+
+    suspend fun saveTilesToLocal(uid: String, tiles: List<TileModel>) {
+        val entities = tiles.map { model ->
+            TileEntity(
+                uid = uid,
+                tileX = model.tileX,
+                tileY = model.tileY,
+                descubiertoEn = model.discoveredAt,
+                vecesVisitado = model.visitCount,
+                ultimoIngreso = model.lastVisited,
+                sincronizado = true // Como vienen de Firebase, ya están sincronizados
+            )
+        }
+        // Usamos insertTiles (que definimos en tu TileDao con OnConflictStrategy.REPLACE)
+        tileDao.insertTiles(entities)
+    }
 }

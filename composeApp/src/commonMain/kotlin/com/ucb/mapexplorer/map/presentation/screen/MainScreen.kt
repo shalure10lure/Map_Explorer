@@ -2,7 +2,6 @@ package com.ucb.mapexplorer.map.presentation.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -11,9 +10,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.ucb.designsystem.theme.AppTheme
+import com.ucb.mapexplorer.map.presentation.state.MapEvent
+import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.navigation.MainTab
 import com.ucb.mapexplorer.navigation.NavRoute
 import com.ucb.mapexplorer.navigation.composable.MainTopBar
+import com.ucb.mapexplorer.nearbyplaces.presentation.screen.NearbyPlacesScreen
+import com.ucb.mapexplorer.nearbyplaces.presentation.viewmodel.NearbyPlacesViewModel
+import com.ucb.mapexplorer.profile.domain.model.AvatarConfigModel
 import com.ucb.mapexplorer.profile.presentation.screen.OwnProfileScreen
 import com.ucb.mapexplorer.profile.presentation.viewmodel.OwnProfileViewModel
 import com.ucb.mapexplorer.social.presentation.screen.SocialSpaceScreen
@@ -23,68 +27,89 @@ import org.koin.compose.viewmodel.koinViewModel
 fun MainScreen(
     navController: NavController
 ) {
-    // Iniciamos en la pestaña del Mapa por defecto
     var selectedTab by rememberSaveable { mutableStateOf(MainTab.MAP) }
+
+    val mapViewModel: MapViewModel = koinViewModel()
+    val mapState by mapViewModel.state.collectAsState()
+
     val ownProfileViewModel: OwnProfileViewModel = koinViewModel()
     val profileState by ownProfileViewModel.state.collectAsState()
+
+    LaunchedEffect(profileState.avatarConfig) {
+        // Solo actualiza si el perfil ya cargó (no es el default vacío)
+        if (profileState.avatarConfig != AvatarConfigModel()) {
+            mapViewModel.onEvent(MapEvent.OnAvatarUpdated(profileState.avatarConfig))
+        }
+    }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(AppTheme.colors.background)
     ) {
-        
         Box(modifier = Modifier.fillMaxSize()) {
             when (selectedTab) {
                 MainTab.MAP -> {
-                    MapScreen()
+                    MapScreen(navController = navController, viewModel = mapViewModel)
                 }
-                
+
                 MainTab.SOCIAL -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-                        Spacer(modifier = Modifier.height(70.dp)) 
+                        Spacer(modifier = Modifier.height(10.dp))
                         SocialSpaceScreen(
                             onBack = { selectedTab = MainTab.MAP },
-                            onNavigateToMessages = { /* TODO */ },
+                            onNavigateToFriendsRequests = { navController.navigate(NavRoute.FriendsRequests) },
                             onNavigateToNearby = { selectedTab = MainTab.NEARBY },
-                            onNavigateToProfile = { selectedTab = MainTab.PROFILE }
+                            onNavigateToProfile = { selectedTab = MainTab.PROFILE },
+                            onNavigateToDetail = { lugarId ->
+                                navController.navigate(NavRoute.PlaceDetail(lugarId))
+                            }
                         )
                     }
                 }
 
                 MainTab.NEARBY -> {
-                    // Pantalla temporal vacía o placeholder
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Próximamente: Lugares Cercanos", color = AppTheme.colors.textSecondary)
-                    }
-                }
-                
-                MainTab.PROFILE -> {
+                    val nearbyViewModel: NearbyPlacesViewModel = koinViewModel()
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
                         Spacer(modifier = Modifier.height(70.dp))
+                        NearbyPlacesScreen(
+                            mapViewModel = mapViewModel,
+                            viewModel = nearbyViewModel,
+                            onPlaceClick = { placeId ->
+                                navController.navigate(NavRoute.PlaceDetail(placeId))
+                            },
+                            onBack = { selectedTab = MainTab.MAP }
+                        )
+                    }
+                }
+
+                MainTab.PROFILE -> {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
+                        Spacer(modifier = Modifier.height(10.dp))
                         OwnProfileScreen(
-                            viewModel      = ownProfileViewModel,
-                            onBack         = { selectedTab = MainTab.MAP },
-                            onEditProfile  = { navController.navigate(NavRoute.EditProfile) },
-                            onViewRequests = { },
-                            onViewFriend   = { }
+                            viewModel = ownProfileViewModel,
+                            onBack = { selectedTab = MainTab.MAP },
+                            onEditProfile = { navController.navigate(NavRoute.EditProfile) },
+                            onViewRequests = { navController.navigate(NavRoute.FriendsRequests) },
+                            onViewFriend = { friendUid -> navController.navigate(NavRoute.FriendProfile(friendUid)) },
+                            onLogout = {
+                                navController.navigate(NavRoute.Login) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            }
                         )
                     }
                 }
             }
         }
 
-        // La TopBar con las nuevas opciones: Social Media, Mapa y Lugares Cercanos
         MainTopBar(
-            selectedTab   = selectedTab,
-            avatarConfig  = profileState.avatarConfig,
-            onTabSelected = { tab ->
-                // "Lugares Cercanos" (NEARBY) está deshabilitado temporalmente si se desea
-                // Pero lo dejamos navegable para que se vea el placeholder
-                selectedTab = tab
-            },
+            selectedTab = selectedTab,
+            avatarConfig = profileState.avatarConfig,
+            onTabSelected = { tab -> selectedTab = tab },
             onAvatarClick = { selectedTab = MainTab.PROFILE },
             modifier = Modifier
                 .align(Alignment.TopCenter)

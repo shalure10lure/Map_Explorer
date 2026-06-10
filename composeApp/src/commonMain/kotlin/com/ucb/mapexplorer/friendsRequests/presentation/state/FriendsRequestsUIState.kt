@@ -1,6 +1,10 @@
 package com.ucb.mapexplorer.friendsRequests.presentation.state
 
-data class FriendsRequestsUIState(
-    val requests: List<String> = listOf("Amigo 1", "Amigo 2", "Amigo 3", "Amigo 4", "Amigo 5")
-)
+import com.ucb.mapexplorer.friends.domain.model.FriendRequestModel
 
+
+data class FriendsRequestsUIState(
+    val requests: List<FriendRequestModel> = emptyList(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
+)

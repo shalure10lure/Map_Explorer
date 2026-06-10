@@ -1,10 +1,17 @@
 package com.ucb.mapexplorer.friendProfile.presentation.state
 
-data class FriendProfileUIState(
-    val friendName: String = "Amigo1",
-    val description: String = "Descripción del usuario",
-    val level: Int = 10,
-    val email: String = "amigo1@gmail.com",
-    val mutualFriends: List<String> = listOf("amigo1", "amigo2", "amigo3", "amigo4")
-)
+import com.ucb.mapexplorer.friends.domain.model.FriendModel
 
+data class FriendProfileUIState(
+    val friendUid: String = "",
+    val friendName: String = "",
+    val description: String = "",
+    val avatarId: String = "",
+    val level: Int = 1,
+    val email: String = "",
+    val mutualFriends: List<String> = emptyList(),
+    val friendsList: List<FriendModel> = emptyList(),
+    val isLoading: Boolean = false,
+    val isRemoving: Boolean = false,
+    val showRemoveDialog: Boolean = false
+)

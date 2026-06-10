@@ -8,6 +8,7 @@ data class OwnProfileUIState(
     val level: Int = 1,
     val email: String = "",
     val friends: List<String> = emptyList(),
+    val friendUids: Map<String, String> = emptyMap(),  // username -> uid
     val avatarConfig: AvatarConfigModel = AvatarConfigModel(),
     val isLoading: Boolean = false
 )

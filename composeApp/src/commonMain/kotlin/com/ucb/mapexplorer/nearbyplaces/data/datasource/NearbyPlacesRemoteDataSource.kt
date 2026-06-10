@@ -4,28 +4,32 @@ import com.ucb.mapexplorer.nearbyplaces.data.dto.OverpassResponseDto
 
 expect class NearbyPlacesRemoteDataSource() {
 
-    // Overpass API → lugares cercanos
-    suspend fun fetchNearbyPlaces(
-        lat: Double,
-        lon: Double,
-        radius: Int
-    ): OverpassResponseDto
+    suspend fun fetchNearbyPlaces(lat: Double, lon: Double, radius: Int): OverpassResponseDto
+    suspend fun fetchByQuery(query: String): OverpassResponseDto  // ← AGREGAR
 
-    // Firebase → usuarios/{uid}/exploracion/lugares_descubiertos/{lugarId}
+
     suspend fun saveLugarDescubierto(
-        uid: String,
-        lugarId: String,
-        nombre: String,
-        categoria: String,
-        lat: Double,
-        lon: Double
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
     )
 
-    // Firebase → usuarios/{uid}/exploracion/lugares_visitados/{lugarId}
     suspend fun saveLugarVisitado(
-        uid: String,
-        lugarId: String,
-        nombre: String,
-        categoria: String
+        uid: String, lugarId: String, nombre: String, categoria: String
     )
+
+    // ── Favoritos ─────────────────────────────────────────────────────────
+    suspend fun saveFavorito(
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
+    )
+
+    suspend fun removeFavorito(uid: String, lugarId: String)
+
+    // ── Guardados ─────────────────────────────────────────────────────────
+    suspend fun saveGuardado(
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
+    )
+
+    suspend fun removeGuardado(uid: String, lugarId: String)
 }

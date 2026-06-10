@@ -8,6 +8,7 @@ import com.ucb.mapexplorer.auth.presentation.register.state.RegisterEffect
 import com.ucb.mapexplorer.auth.presentation.register.state.RegisterEvent
 import com.ucb.mapexplorer.auth.presentation.register.state.RegisterUIState
 import com.ucb.mapexplorer.core.session.Session
+import com.ucb.mapexplorer.saveSessionUid
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -114,12 +115,15 @@ class RegisterViewModel(
                     email       = s.email,
                     password    = s.password,
                     description = s.description,
-                    photoUrl    = s.avatarConfig.toId() // Serializa a String estructurado "CUERPO|SOMBRERO|ACCESORIO"
+                    age         = s.age,                  // ← NUEVO
+                    photoUrl    = s.avatarConfig.toId()
                 )
             )
 
             if (result) {
-                Session.uid = safeKey(s.email)
+                val uid = safeKey(s.email)
+                Session.uid = uid
+                saveSessionUid(uid)
                 emit(RegisterEffect.NavigateToHome)
             } else {
                 emit(RegisterEffect.ShowError("Error al registrar usuario"))

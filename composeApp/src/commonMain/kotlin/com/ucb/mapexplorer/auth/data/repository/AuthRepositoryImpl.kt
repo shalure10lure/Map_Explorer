@@ -17,9 +17,8 @@ class AuthRepositoryImpl(
             val uid = safeKey(email)
 
             // Lee la contraseña directamente del campo
-            val storedPassword = firebase.getData(
-                "usuarios/$uid/informacion/password"
-            ) ?: return false
+            val storedPassword = firebase.getData("usuarios/$uid/informacion/password")
+                ?.trim('"') ?: return false
 
             if (storedPassword.trim('"') == password) {
                 // Guarda sesión local
@@ -46,15 +45,41 @@ class AuthRepositoryImpl(
             val uid = safeKey(user.email)
             val now = Clock.System.now().toEpochMilliseconds()
 
+            // 1. Verificar que el email no esté ya registrado
+            val existingPassword = firebase.getData("usuarios/$uid/informacion/password")
+            if (!existingPassword.isNullOrBlank()) {
+                println("❌ Registro fallido: email ya en uso")
+                return false
+            }
+
+            // 2. Verificar que el username no esté ya en uso
+            val usernameKey = user.username.trim().lowercase().replace(" ", "_")
+            val existingUid = firebase.getData("usernames/$usernameKey")
+            if (!existingUid.isNullOrBlank()) {
+                println("❌ Registro fallido: username ya en uso")
+                return false
+            }
+
             // Guarda bajo usuarios/{uid}/informacion/
             firebase.saveData("usuarios/$uid/informacion/username",   user.username)
             firebase.saveData("usuarios/$uid/informacion/correo",     user.email)
             firebase.saveData("usuarios/$uid/informacion/password",   user.password)
             firebase.saveData("usuarios/$uid/informacion/descripcion",user.description ?: "")
+            firebase.saveData("usuarios/$uid/informacion/edad",          user.age.toString())
             firebase.saveData("usuarios/$uid/informacion/fecha_creacion", now.toString())
 
+            if (!user.photoUrl.isNullOrEmpty()) {
+                firebase.saveData("usuarios/$uid/informacion/avatar_id", user.photoUrl)
+            }
             // También registra el username como único en el nodo usernames
             firebase.saveData("usernames/$uid", user.username)
+
+            // 5. Estadísticas iniciales
+            firebase.saveData("usuarios/$uid/estadisticas/nivel",              "1")
+            firebase.saveData("usuarios/$uid/estadisticas/experiencia",        "0")
+            firebase.saveData("usuarios/$uid/estadisticas/tiles_descubiertos", "0")
+            firebase.saveData("usuarios/$uid/estadisticas/lugares_visitados",  "0")
+
 
             // Guarda sesión local
             try {

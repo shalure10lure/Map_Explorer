@@ -1,16 +1,10 @@
 package com.ucb.mapexplorer.savedPlaces.presentation.state
 
-data class Place(
-    val name: String,
-    val description: String,
-    val rating: Float
-)
+import com.ucb.mapexplorer.nearbyplaces.domain.model.LugarSavedModel
 
 data class SavedPlacesUIState(
-    val places: List<Place> = listOf(
-        Place("Nombre", "Descripción Sitio", 4f),
-        Place("Nombre", "Descripción Sitio", 5f),
-        Place("Nombre", "Descripción Sitio", 3f),
-        Place("Nombre", "Descripción Sitio", 4.5f)
-    )
+    val guardados: List<LugarSavedModel> = emptyList(),
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null
 )
+

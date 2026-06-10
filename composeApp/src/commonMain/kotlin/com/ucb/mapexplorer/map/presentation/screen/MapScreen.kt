@@ -5,32 +5,44 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.ucb.designsystem.components.button.PrimaryButton
 import com.ucb.designsystem.theme.AppTheme
 import com.ucb.designsystem.theme.ThemeMode
 import com.ucb.mapexplorer.core.*
+import com.ucb.mapexplorer.dangerzone.presentation.composable.DangerZoneAlertDialog
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.getString
 
 import com.ucb.mapexplorer.map.presentation.state.MapEffect
 import com.ucb.mapexplorer.map.presentation.state.MapEvent
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
+import com.ucb.mapexplorer.navigation.NavRoute
+import com.ucb.mapexplorer.triggerDangerNotification
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
-    viewModel: MapViewModel = koinViewModel()
+    navController: NavController,
+    viewModel: MapViewModel
 ) {
     val state by viewModel.state.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val mapDiscoveryNewZoneMessage = stringResource(Res.string.map_discovery_new_zone)
 
     // Manejar efectos del ViewModel
     LaunchedEffect(Unit) {
@@ -39,9 +51,17 @@ fun MapScreen(
                 is MapEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.NewTileDiscovered -> {
-                    snackbarHostState.showSnackbar("¡Nueva zona descubierta! 🗺️")
+                    val message = getString(Res.string.map_discovery_new_zone)
+                    snackbarHostState.showSnackbar(message)
                 }
+                is MapEffect.CenterMapOnLocation -> {}
                 MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
+                is MapEffect.DangerZoneAlertTriggered -> {
+                    triggerDangerNotification(
+                        title = "¡Zona Peligrosa: ${effect.zona.nivel.label}!",
+                        message = "Te encuentras cerca de: ${effect.zona.nombre}. ${effect.zona.descripcion}"
+                    )
+                }
             }
         }
     }
@@ -56,7 +76,12 @@ fun MapScreen(
     BottomSheetScaffold(
         scaffoldState = scaffoldState,
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        sheetContent = { MapSettingsContent() },
+        sheetContent = {
+            MapSettingsContent(
+                onNavigateToFavoritos = { navController.navigate(NavRoute.FavoritePlaces) },
+                onNavigateToGuardados = { navController.navigate(NavRoute.SavedPlaces) }
+            )
+        },
         sheetPeekHeight = 80.dp,
         sheetShape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
         sheetContainerColor = AppTheme.colors.surface,
@@ -77,8 +102,9 @@ fun MapScreen(
             MapViewContainer(
                 modifier = Modifier.fillMaxSize(),
                 state = state,
-                onLocationChanged = { lat, lng ->
-                    viewModel.onEvent(MapEvent.OnLocationUpdated(lat, lng))
+                navController = navController,
+                onLocationChanged = { lat, lon ->
+                    viewModel.onEvent(MapEvent.OnLocationUpdated(lat, lon))
                 }
             )
 
@@ -94,7 +120,7 @@ fun MapScreen(
                         CircularProgressIndicator(color = AppTheme.colors.primary)
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Obteniendo tu ubicación...",
+                            text = stringResource(Res.string.map_loading_location),
                             style = AppTheme.typography.bodyMedium,
                             color = AppTheme.colors.textPrimary
                         )
@@ -108,31 +134,38 @@ fun MapScreen(
                     onDismissRequest = { viewModel.onEvent(MapEvent.OnDismissError) },
                     confirmButton = {
                         TextButton(onClick = { viewModel.onEvent(MapEvent.OnDismissError) }) {
-                            Text("OK")
+                            Text(stringResource(Res.string.common_ok))
                         }
                     },
-                    title = { Text("Error") },
+                    title = { Text(stringResource(Res.string.common_error)) },
                     text = { Text(error) }
+                )
+            }
+
+            // ← DANGER ZONE ALERT
+            if (state.showDangerAlert) {
+                DangerZoneAlertDialog(
+                    zona      = state.dangerZoneActual,
+                    onDismiss = { viewModel.onEvent(MapEvent.OnDismissDangerAlert) }
                 )
             }
         }
     }
 }
+
+
 @Composable
-private fun MapSettingsContent() {
-    // Valores globales actuales (reales)
+private fun MapSettingsContent(
+    onNavigateToFavoritos: () -> Unit,
+    onNavigateToGuardados: () -> Unit
+) {
     val globalLanguage = LocalAppLanguage.current
     val globalTheme = LocalThemeMode.current
-
-    // Controladores globales para aplicar cambios
     val changeLanguage = LocalLanguageController.current
     val changeTheme = LocalThemeController.current
 
-    // ESTADO TEMPORAL (Borrador del usuario)
     var tempLanguage by remember(globalLanguage) { mutableStateOf(globalLanguage) }
     var tempTheme by remember(globalTheme) { mutableStateOf(globalTheme) }
-
-    // Verificamos si el usuario ha movido algo respecto a lo guardado
     val hasChanges = tempLanguage != globalLanguage || tempTheme != globalTheme
 
     Column(
@@ -143,19 +176,15 @@ private fun MapSettingsContent() {
             .padding(bottom = 40.dp),
         horizontalAlignment = Alignment.Start
     ) {
-        // --- SECCIÓN: CONFIGURACIÓN ---
         SectionHeader(stringResource(Res.string.moreOptions_tittle_configuration))
-
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Selector de Idioma
         Text(
             text = stringResource(Res.string.moreOptions_subtittle_language),
             style = AppTheme.typography.bodyMedium,
             color = AppTheme.colors.textPrimary,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -174,14 +203,12 @@ private fun MapSettingsContent() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Selector de Tema
         Text(
             text = stringResource(Res.string.moreOptions_subtittle_theme),
             style = AppTheme.typography.bodyMedium,
             color = AppTheme.colors.textPrimary,
             modifier = Modifier.padding(bottom = 12.dp)
         )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -198,14 +225,12 @@ private fun MapSettingsContent() {
             )
         }
 
-        // BOTONES DE ACCIÓN (Solo aparecen si hay cambios pendientes)
         if (hasChanges) {
             Spacer(modifier = Modifier.height(32.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // BOTÓN REVERTIR
                 OutlinedButton(
                     onClick = {
                         tempLanguage = globalLanguage
@@ -220,8 +245,6 @@ private fun MapSettingsContent() {
                 ) {
                     Text(stringResource(Res.string.buttonText_cancel), style = AppTheme.typography.labelLarge)
                 }
-
-                // BOTÓN GUARDAR
                 PrimaryButton(
                     text = stringResource(Res.string.buttonText_save),
                     onClick = {
@@ -238,6 +261,73 @@ private fun MapSettingsContent() {
         // --- SECCIÓN: MIS GUARDADOS ---
         SectionHeader(stringResource(Res.string.moreOptions_tittle_mySaves))
 
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Botón Ver favoritos
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(AppTheme.colors.background)
+                .clickable { onNavigateToFavoritos() }
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = null,
+                tint = AppTheme.colors.primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                text = stringResource(Res.string.moreOptions_textSelector_favoritePlaces),
+                style = AppTheme.typography.bodyMedium,
+                color = AppTheme.colors.textPrimary,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = AppTheme.colors.textSecondary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Botón Ver guardados
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(12.dp))
+                .background(AppTheme.colors.background)
+                .clickable { onNavigateToGuardados() }
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Outlined.Bookmark,
+                contentDescription = null,
+                tint = AppTheme.colors.primary,
+                modifier = Modifier.size(22.dp)
+            )
+            Text(
+                text = stringResource(Res.string.moreOptions_textSelector_savedPlaces),
+                style = AppTheme.typography.bodyMedium,
+                color = AppTheme.colors.textPrimary,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = AppTheme.colors.textSecondary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
     }
 }
 

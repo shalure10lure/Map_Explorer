@@ -32,3 +32,11 @@ actual fun getThemeSetting(): Boolean? {
         defaults.boolForKey("is_dark_theme")
     } else null
 }
+actual fun saveSessionUid(uid: String) {}
+actual fun getSessionUid(): String? = null
+actual fun clearSessionUid() {}
+
+actual fun triggerDangerNotification(title: String, message: String) {
+    // Implementación básica para iOS (Stubs)
+    println("iOS Notification: $title - $message")
+}

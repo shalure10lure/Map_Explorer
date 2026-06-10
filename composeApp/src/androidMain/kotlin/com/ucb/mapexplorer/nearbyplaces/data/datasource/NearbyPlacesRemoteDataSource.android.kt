@@ -1,12 +1,13 @@
 package com.ucb.mapexplorer.nearbyplaces.data.datasource
 
-
-
 import com.google.firebase.database.FirebaseDatabase
 import com.ucb.mapexplorer.nearbyplaces.data.dto.OverpassResponseDto
+import com.ucb.mapexplorer.nearbyplaces.data.service.OVERPASS_URL
+import com.ucb.mapexplorer.nearbyplaces.data.service.buildOverpassQuery
 import io.ktor.client.*
-import io.ktor.client.engine.android.*
-import io.ktor.client.request.*
+import io.ktor.client.engine.okhttp.*
+import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.tasks.await
@@ -15,104 +16,144 @@ import kotlinx.serialization.json.Json
 
 actual class NearbyPlacesRemoteDataSource actual constructor() {
 
-    // ── Ktor para Overpass API ────────────────────────────────────────────
-    private val client = HttpClient(Android) {
-        engine {
-            connectTimeout = 15_000
-            socketTimeout  = 25_000
+    private val client = HttpClient(OkHttp) {
+        install(HttpTimeout) {
+            connectTimeoutMillis = 15_000
+            requestTimeoutMillis = 25_000
+            socketTimeoutMillis  = 25_000
         }
     }
 
-    private val json = Json {
-        ignoreUnknownKeys = true
-        isLenient = true
-    }
-
-    // ── Firebase ──────────────────────────────────────────────────────────
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
     private val firebaseDb = FirebaseDatabase.getInstance()
 
-    // ─────────────────────────────────────────────────────────────────────
-    // 1. Overpass API
-    // ─────────────────────────────────────────────────────────────────────
-    actual suspend fun fetchNearbyPlaces(
-        lat: Double,
-        lon: Double,
-        radius: Int
-    ): OverpassResponseDto {
+    actual suspend fun fetchNearbyPlaces(lat: Double, lon: Double, radius: Int): OverpassResponseDto {
         return try {
-            val query    = buildOverpassQuery(lat, lon, radius)
-            val response = client.post(OVERPASS_URL) {
-                contentType(ContentType.Application.FormUrlEncoded)
-                setBody("data=${query.encodeURLParameter()}")
-            }
+            val query = buildOverpassQuery(lat, lon, radius)
+            val response = client.submitForm(
+                url = OVERPASS_URL,
+                formParameters = parameters { append("data", query) }
+            )
             json.decodeFromString(response.bodyAsText())
         } catch (e: Exception) {
-            println("Overpass error (Android): ${e.message}")
+            println("❌ Overpass error: ${e.message}")
+            OverpassResponseDto(elements = emptyList())
+        }
+    }
+    actual suspend fun fetchByQuery(query: String): OverpassResponseDto {
+        return try {
+            val response = client.submitForm(
+                url = OVERPASS_URL,
+                formParameters = parameters { append("data", query) }
+            )
+            json.decodeFromString(response.bodyAsText())
+        } catch (e: Exception) {
+            println("❌ Overpass fetchByQuery error: ${e.message}")
             OverpassResponseDto(elements = emptyList())
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // 2. Firebase → lugares_descubiertos
-    //    usuarios/{uid}/exploracion/lugares_descubiertos/{lugarId}
-    // ─────────────────────────────────────────────────────────────────────
     actual suspend fun saveLugarDescubierto(
-        uid: String,
-        lugarId: String,
-        nombre: String,
-        categoria: String,
-        lat: Double,
-        lon: Double
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
     ) {
         try {
             val now = Clock.System.now().toEpochMilliseconds()
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
             firebaseDb.reference
-                .child("usuarios")
-                .child(uid)
-                .child("exploracion")
-                .child("lugares_descubiertos")
-                .child(lugarId)
+                .child("usuarios").child(uid).child("exploracion")
+                .child("lugares_descubiertos").child(safeId)
                 .setValue(mapOf(
-                    "nombre"         to nombre,
-                    "categoria"      to categoria,
-                    "latitud"        to lat,
-                    "longitud"       to lon,
-                    "descubierto_en" to now,
-                    "sincronizado"   to true
+                    "nombre" to nombre, "categoria" to categoria,
+                    "latitud" to lat, "longitud" to lon,
+                    "descubierto_en" to now, "sincronizado" to true
                 )).await()
-            println("✅ Lugar descubierto: $lugarId para $uid")
         } catch (e: Exception) {
-            println("Firebase error (saveLugarDescubierto): ${e.message}")
+            println("❌ Firebase error (saveLugarDescubierto): ${e.message}")
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // 3. Firebase → lugares_visitados
-    //    usuarios/{uid}/exploracion/lugares_visitados/{lugarId}
-    // ─────────────────────────────────────────────────────────────────────
     actual suspend fun saveLugarVisitado(
-        uid: String,
-        lugarId: String,
-        nombre: String,
-        categoria: String
+        uid: String, lugarId: String, nombre: String, categoria: String
     ) {
         try {
             val now = Clock.System.now().toEpochMilliseconds()
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
             firebaseDb.reference
-                .child("usuarios")
-                .child(uid)
-                .child("exploracion")
-                .child("lugares_visitados")
-                .child(lugarId)
+                .child("usuarios").child(uid).child("exploracion")
+                .child("lugares_visitados").child(safeId)
                 .setValue(mapOf(
-                    "nombre"        to nombre,
-                    "categoria"     to categoria,
-                    "ultima_visita" to now,
-                    "sincronizado"  to true
+                    "nombre" to nombre, "categoria" to categoria,
+                    "ultima_visita" to now, "sincronizado" to true
                 )).await()
-            println("✅ Lugar visitado: $lugarId para $uid")
         } catch (e: Exception) {
-            println("Firebase error (saveLugarVisitado): ${e.message}")
+            println("❌ Firebase error (saveLugarVisitado): ${e.message}")
+        }
+    }
+
+    // ── NUEVOS: Favoritos y Guardados en Firebase ─────────────────────────
+
+    actual suspend fun saveFavorito(
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
+    ) {
+        try {
+            val now = Clock.System.now().toEpochMilliseconds()
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("lugares_favoritos").child(safeId)
+                .setValue(mapOf(
+                    "nombre" to nombre, "categoria" to categoria,
+                    "latitud" to lat, "longitud" to lon,
+                    "agregado_en" to now
+                )).await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (saveFavorito): ${e.message}")
+        }
+    }
+
+    actual suspend fun removeFavorito(uid: String, lugarId: String) {
+        try {
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("lugares_favoritos").child(safeId)
+                .removeValue().await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (removeFavorito): ${e.message}")
+        }
+    }
+
+    actual suspend fun saveGuardado(
+        uid: String, lugarId: String, nombre: String,
+        categoria: String, lat: Double, lon: Double
+    ) {
+        try {
+            val now = Clock.System.now().toEpochMilliseconds()
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("ver_lugares_favoritos").child(safeId)
+                .setValue(mapOf(
+                    "nombre" to nombre, "categoria" to categoria,
+                    "latitud" to lat, "longitud" to lon,
+                    "guardado_en" to now
+                )).await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (saveGuardado): ${e.message}")
+        }
+    }
+
+    actual suspend fun removeGuardado(uid: String, lugarId: String) {
+        try {
+            val safeId = lugarId.replace(Regex("[.#\$\\[\\]/]"), "_")
+            firebaseDb.reference
+                .child("usuarios").child(uid).child("mas_opciones")
+                .child("ver_lugares_favoritos").child(safeId)
+                .removeValue().await()
+        } catch (e: Exception) {
+            println("❌ Firebase error (removeGuardado): ${e.message}")
         }
     }
 }

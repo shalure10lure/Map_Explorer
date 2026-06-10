@@ -10,20 +10,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.ucb.mapexplorer.onboarding.presentation.state.OnboardingEvent
+import com.ucb.mapexplorer.onboarding.presentation.state.OnboardingUIState
 
-data class OnboardingUIState(
-    val pages: List<OnboardingPageModel> = emptyList(),
-    val currentIndex: Int = 0,
-    val isLoading: Boolean = true,
-    val navigateToHome: Boolean = false
-)
-
-sealed class OnboardingEvent {
-    object Next  : OnboardingEvent()
-    object Back  : OnboardingEvent()
-    object Skip  : OnboardingEvent()  // No persiste → reaparece al reiniciar
-    object Start : OnboardingEvent()  // Persiste → nunca más aparece
-}
 
 class OnboardingViewModel(
     private val repository: OnboardingRepository
