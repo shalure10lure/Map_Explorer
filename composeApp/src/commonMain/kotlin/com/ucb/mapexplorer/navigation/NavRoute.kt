@@ -48,7 +48,7 @@ sealed class NavRoute {
     @Serializable
     object SavedPlaces : NavRoute()
     @Serializable
-    data class PlaceDetail(val placeId: String) : NavRoute()
+    data class PlaceDetail(val placeId: String,val type: String = "OSM" ) : NavRoute()
 
     @Serializable
     data class GuideMap(

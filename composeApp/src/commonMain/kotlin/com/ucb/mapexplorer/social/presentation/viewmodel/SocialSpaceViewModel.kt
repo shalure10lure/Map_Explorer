@@ -71,7 +71,9 @@ class SocialSpaceViewModel(
                         isFriend = pub.uid == myUid || friendSet.contains(pub.uid),
                         imageUrl = pub.imageUrl,
                         avatarId = "" ,
-                        lugarId        = pub.lugarId
+                        lugarId        = pub.lugarId,
+                        latitude       = pub.latitude,
+                        longitude      = pub.longitude
                     )
                 }
 

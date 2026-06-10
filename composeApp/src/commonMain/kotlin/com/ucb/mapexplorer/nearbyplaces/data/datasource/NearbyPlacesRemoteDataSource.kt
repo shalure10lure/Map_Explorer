@@ -5,6 +5,8 @@ import com.ucb.mapexplorer.nearbyplaces.data.dto.OverpassResponseDto
 expect class NearbyPlacesRemoteDataSource() {
 
     suspend fun fetchNearbyPlaces(lat: Double, lon: Double, radius: Int): OverpassResponseDto
+    suspend fun fetchByQuery(query: String): OverpassResponseDto  // ← AGREGAR
+
 
     suspend fun saveLugarDescubierto(
         uid: String, lugarId: String, nombre: String,

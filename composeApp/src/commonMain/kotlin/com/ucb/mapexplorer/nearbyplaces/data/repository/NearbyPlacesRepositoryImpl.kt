@@ -79,9 +79,36 @@ class NearbyPlacesRepositoryImpl(
             .map { it.toModel(lastUserLat, lastUserLon) }
             .sortedBy { it.distanceMeters }
 
-    override suspend fun getPlaceById(id: String): PlaceModel? =
-        local.getById(id)?.toModel(lastUserLat, lastUserLon)
+    override suspend fun getPlaceById(id: String): PlaceModel? {
+        // 1. Buscar en Room primero
+        val cached = local.getById(id)
+        if (cached != null) return cached.toModel(lastUserLat, lastUserLon)
 
+        // 2. No está en Room — buscar en Overpass por ID
+        return try {
+            // El ID viene como "node_123456" o "way_789012"
+            val parts = id.split("_", limit = 2)
+            if (parts.size < 2) return null
+
+            val osmType = parts[0]  // "node" o "way"
+            val osmId   = parts[1]  // "123456"
+
+            val query = "[out:json][timeout:15];\n$osmType($osmId);\nout body center;"
+            val response = remote.fetchByQuery(query)
+
+            val now = Clock.System.now().toEpochMilliseconds()
+            val entity = response.elements.firstOrNull()?.toEntity(now)
+
+            entity?.let {
+                // Guardar en Room para la próxima vez
+                local.saveAll(listOf(it))
+                it.toModel(lastUserLat, lastUserLon)
+            }
+        } catch (e: Exception) {
+            println("❌ getPlaceById Overpass fallback error: ${e.message}")
+            null
+        }
+    }
     override suspend fun syncLugarDescubierto(uid: String, place: PlaceModel) {
         remote.saveLugarDescubierto(
             uid = uid,

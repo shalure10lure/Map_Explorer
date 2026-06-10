@@ -56,14 +56,14 @@ fun MainScreen(
                 MainTab.SOCIAL -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-                        Spacer(modifier = Modifier.height(70.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         SocialSpaceScreen(
                             onBack = { selectedTab = MainTab.MAP },
                             onNavigateToFriendsRequests = { navController.navigate(NavRoute.FriendsRequests) },
                             onNavigateToNearby = { selectedTab = MainTab.NEARBY },
                             onNavigateToProfile = { selectedTab = MainTab.PROFILE },
-                            onNavigateToPlaceDetail = { placeId ->   // ← NUEVO
-                                navController.navigate(NavRoute.PlaceDetail(placeId))
+                            onNavigateToDetail = { lugarId ->
+                                navController.navigate(NavRoute.PlaceDetail(lugarId))
                             }
                         )
                     }

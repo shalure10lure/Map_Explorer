@@ -19,7 +19,9 @@ data class SocialPost(
     val imageUrl: String?       = null,
     val avatarId: String        = "",
     val requestSent: Boolean    = false,
-    val lugarId: String         = ""
+    val lugarId: String         = "",
+    val latitude: Double        = 0.0,
+    val longitude: Double       = 0.0
 )
 
 

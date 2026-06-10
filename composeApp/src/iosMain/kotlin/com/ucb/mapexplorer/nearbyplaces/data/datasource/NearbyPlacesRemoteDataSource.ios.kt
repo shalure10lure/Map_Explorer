@@ -38,6 +38,18 @@ actual class NearbyPlacesRemoteDataSource actual constructor() {
             OverpassResponseDto(elements = emptyList())
         }
     }
+    actual suspend fun fetchByQuery(query: String): OverpassResponseDto {
+        return try {
+            val response = client.submitForm(
+                url = OVERPASS_URL,
+                formParameters = parameters { append("data", query) }
+            )
+            json.decodeFromString(response.bodyAsText())
+        } catch (e: Exception) {
+            println("iOS Overpass fetchByQuery error: ${e.message}")
+            OverpassResponseDto(elements = emptyList())
+        }
+    }
 
     actual suspend fun saveLugarDescubierto(
         uid: String, lugarId: String, nombre: String,
