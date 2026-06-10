@@ -163,6 +163,11 @@ actual class FriendsRemoteDataSource actual constructor() {
         } catch (e: Exception) { false }
     }
 
+    actual suspend fun startObservingRequests(uid: String) {
+        // iOS real-time stubs if using REST. 
+        // En iOS con REST puro no hay addChildEventListener nativo sin SDK de Firebase.
+    }
+
     // ── BÚSQUEDA ───────────────────────────────────────────────────────────
 
     actual suspend fun searchUsers(query: String, currentUid: String): List<UserSearchModel> {

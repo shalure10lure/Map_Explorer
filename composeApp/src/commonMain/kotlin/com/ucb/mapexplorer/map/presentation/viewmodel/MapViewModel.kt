@@ -6,6 +6,7 @@ import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.core.utils.TileUtils
 import com.ucb.mapexplorer.dangerzone.domain.usecase.CheckDangerZoneUseCase
 import com.ucb.mapexplorer.dangerzone.domain.usecase.SyncDangerZonesUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.ObserveFriendRequestsUseCase
 import com.ucb.mapexplorer.map.domain.model.TileModel
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import com.ucb.mapexplorer.map.domain.usecase.GetCurrentLocationUseCase
@@ -37,7 +38,8 @@ class MapViewModel(
     private val syncMapHistoryUseCase: SyncMapHistoryUseCase,
     private val profileRepository: ProfileRepository,
     private val checkDangerZoneUseCase: CheckDangerZoneUseCase,
-    private val syncDangerZonesUseCase: SyncDangerZonesUseCase
+    private val syncDangerZonesUseCase: SyncDangerZonesUseCase,
+    private val observeFriendRequestsUseCase: ObserveFriendRequestsUseCase
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(MapUIState())
@@ -89,6 +91,7 @@ class MapViewModel(
                 loadProfileIfNeeded()
                 loadTilesIfNeeded()
                 startLocationUpdatesIfNeeded()
+                startObservingFriendRequests()
                 // Sync primero, LUEGO arrancar location
                 viewModelScope.launch(Dispatchers.IO) {
                     try {
@@ -104,6 +107,18 @@ class MapViewModel(
             is MapEvent.OnAvatarUpdated   -> _state.update { it.copy(avatarConfig = event.config) }
             MapEvent.OnDismissDangerAlert -> {
                 _state.update { it.copy(showDangerAlert = false, dangerZoneActual = null) }
+            }
+        }
+    }
+
+    private fun startObservingFriendRequests() {
+        val uid = Session.uid ?: return
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                observeFriendRequestsUseCase(uid)
+                println("👥 Observando solicitudes de amistad para: $uid")
+            } catch (e: Exception) {
+                println("❌ Error al iniciar observación de amigos: ${e.message}")
             }
         }
     }

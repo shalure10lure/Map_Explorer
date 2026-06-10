@@ -15,4 +15,7 @@ expect class FriendsRemoteDataSource() {
     suspend fun hasPendingRequest(fromUid: String, toUid: String): Boolean
     suspend fun searchUsers(query: String, currentUid: String): List<UserSearchModel>
     suspend fun getUserProfile(uid: String): UserSearchModel?
+    
+    /** Escucha cambios en las solicitudes para disparar notificaciones locales */
+    suspend fun startObservingRequests(uid: String)
 }

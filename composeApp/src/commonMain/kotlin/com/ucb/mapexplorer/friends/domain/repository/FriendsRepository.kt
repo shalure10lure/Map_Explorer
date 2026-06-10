@@ -35,4 +35,7 @@ interface FriendsRepository {
 
     /** Verifica si ya hay solicitud pendiente entre dos usuarios */
     suspend fun hasPendingRequest(fromUid: String, toUid: String): Boolean
+
+    /** Inicia la observación de solicitudes para notificaciones en tiempo real */
+    suspend fun startObservingRequests(uid: String)
 }

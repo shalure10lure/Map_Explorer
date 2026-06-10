@@ -1,9 +1,13 @@
 package com.ucb.mapexplorer.friends.data.datasource
 
+import com.google.firebase.database.ChildEventListener
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.ucb.mapexplorer.friends.domain.model.FriendModel
 import com.ucb.mapexplorer.friends.domain.model.FriendRequestModel
 import com.ucb.mapexplorer.friends.domain.model.UserSearchModel
+import com.ucb.mapexplorer.triggerFriendNotification
 import kotlinx.coroutines.tasks.await
 import kotlinx.datetime.Clock
 
@@ -18,7 +22,6 @@ actual class FriendsRemoteDataSource actual constructor() {
             val snapshot = db.child("amistades").child(uid).get().await()
             snapshot.children.mapNotNull { child ->
                 val friendUid = child.key ?: return@mapNotNull null
-                // Obtenemos username del amigo desde usuarios/{friendUid}/informacion/username
                 val username = db
                     .child("usuarios").child(friendUid)
                     .child("informacion").child("username")
@@ -57,7 +60,6 @@ actual class FriendsRemoteDataSource actual constructor() {
 
     actual suspend fun removeFriend(myUid: String, friendUid: String): Boolean {
         return try {
-            // Eliminamos en ambas direcciones
             db.child("amistades").child(myUid).child(friendUid).removeValue().await()
             db.child("amistades").child(friendUid).child(myUid).removeValue().await()
             true
@@ -75,7 +77,6 @@ actual class FriendsRemoteDataSource actual constructor() {
         fromUsername: String
     ): Boolean {
         return try {
-            // Verificamos que no exista ya
             val existing = hasPendingRequest(fromUid, toUid)
             if (existing) return false
 
@@ -83,11 +84,11 @@ actual class FriendsRemoteDataSource actual constructor() {
             val now = Clock.System.now().toEpochMilliseconds()
             db.child("solicitudes_amistad").child(requestId).setValue(
                 mapOf(
-                    "emisor_uid"     to fromUid,
+                    "emisor_uid"      to fromUid,
                     "emisor_username" to fromUsername,
-                    "receptor_uid"   to toUid,
-                    "estado"         to "pendiente",
-                    "fecha"          to now
+                    "receptor_uid"    to toUid,
+                    "estado"          to "pendiente",
+                    "fecha"           to now
                 )
             ).await()
             true
@@ -104,7 +105,6 @@ actual class FriendsRemoteDataSource actual constructor() {
                 val requestId = child.key ?: return@mapNotNull null
                 val receptorUid = child.child("receptor_uid").getValue(String::class.java) ?: ""
                 val estado = child.child("estado").getValue(String::class.java) ?: ""
-                // Solo las pendientes que son PARA este usuario
                 if (receptorUid != uid || estado != "pendiente") return@mapNotNull null
 
                 FriendRequestModel(
@@ -131,9 +131,14 @@ actual class FriendsRemoteDataSource actual constructor() {
     ): Boolean {
         return try {
             val now = Clock.System.now().toEpochMilliseconds()
-            // 1. Actualizar estado de la solicitud
-            db.child("solicitudes_amistad").child(requestId)
-                .child("estado").setValue("aceptado").await()
+            // 1. Actualizar estado y agregar quién acepta para la notificación
+            db.child("solicitudes_amistad").child(requestId).updateChildren(
+                mapOf(
+                    "estado" to "aceptado",
+                    "receptor_username" to myUsername
+                )
+            ).await()
+
             // 2. Crear amistad en AMBAS direcciones
             db.child("amistades").child(myUid).child(friendUid)
                 .setValue(mapOf("desde" to now, "username" to friendUsername)).await()
@@ -169,7 +174,50 @@ actual class FriendsRemoteDataSource actual constructor() {
         } catch (e: Exception) { false }
     }
 
-    // ── BÚSQUEDA DE USUARIOS ─────────────────────────────────────────────
+    actual suspend fun startObservingRequests(uid: String) {
+        db.child("solicitudes_amistad").addChildEventListener(object : ChildEventListener {
+            override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
+                val receptorUid = snapshot.child("receptor_uid").getValue(String::class.java)
+                val emisorUsername = snapshot.child("emisor_username").getValue(String::class.java) ?: "Alguien"
+                val estado = snapshot.child("estado").getValue(String::class.java)
+                val fecha = snapshot.child("fecha").getValue(Long::class.java) ?: 0L
+                val now = Clock.System.now().toEpochMilliseconds()
+
+                // Solo notificar si es reciente (últimos 60 segundos) para evitar spam de viejas
+                if (receptorUid == uid && estado == "pendiente" && (now - fecha) < 60000) {
+                    triggerFriendNotification(
+                        "Nueva solicitud de amistad",
+                        "$emisorUsername quiere ser tu amigo."
+                    )
+                }
+            }
+
+            override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
+                val emisorUid = snapshot.child("emisor_uid").getValue(String::class.java)
+                val receptorUsername = snapshot.child("receptor_username").getValue(String::class.java) ?: "Un usuario"
+                val estado = snapshot.child("estado").getValue(String::class.java)
+
+                if (emisorUid == uid) {
+                    when (estado) {
+                        "aceptado" -> triggerFriendNotification(
+                            "Solicitud Aceptada",
+                            "$receptorUsername ha aceptado tu solicitud de amistad. 🎉"
+                        )
+                        "rechazado" -> triggerFriendNotification(
+                            "Solicitud Rechazada",
+                            "$receptorUsername no ha aceptado tu solicitud."
+                        )
+                    }
+                }
+            }
+
+            override fun onChildRemoved(snapshot: DataSnapshot) {}
+            override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {}
+            override fun onCancelled(error: DatabaseError) {}
+        })
+    }
+
+    // ── BÚSQUEDA ─────────────────────────────────────────────────────────
 
     actual suspend fun searchUsers(query: String, currentUid: String): List<UserSearchModel> {
         return try {
@@ -185,22 +233,15 @@ actual class FriendsRemoteDataSource actual constructor() {
                 val descripcion = info.child("descripcion").getValue(String::class.java) ?: ""
                 val avatarId = info.child("avatar_id").getValue(String::class.java) ?: ""
 
-                // Busca por username, uid o correo
                 val matches = username.lowercase().contains(lowerQuery) ||
                         uid.lowercase().contains(lowerQuery) ||
                         correo.lowercase().contains(lowerQuery)
 
                 if (matches && username.isNotBlank()) {
-                    UserSearchModel(
-                        uid = uid,
-                        username = username,
-                        description = descripcion,
-                        avatarId = avatarId
-                    )
+                    UserSearchModel(uid, username, descripcion, avatarId)
                 } else null
-            }.take(20) // Máximo 20 resultados
+            }.take(20)
         } catch (e: Exception) {
-            println("❌ Error searchUsers: ${e.message}")
             emptyList()
         }
     }
@@ -214,9 +255,6 @@ actual class FriendsRemoteDataSource actual constructor() {
                 description = info.child("descripcion").getValue(String::class.java) ?: "",
                 avatarId = info.child("avatar_id").getValue(String::class.java) ?: ""
             )
-        } catch (e: Exception) {
-            println("❌ Error getUserProfile: ${e.message}")
-            null
-        }
+        } catch (e: Exception) { null }
     }
 }

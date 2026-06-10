@@ -46,4 +46,8 @@ class FriendsRepositoryImpl(
 
     override suspend fun hasPendingRequest(fromUid: String, toUid: String): Boolean =
         remote.hasPendingRequest(fromUid, toUid)
+
+    override suspend fun startObservingRequests(uid: String) {
+        remote.startObservingRequests(uid)
+    }
 }

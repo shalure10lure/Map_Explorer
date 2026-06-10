@@ -11,6 +11,7 @@ import com.ucb.mapexplorer.friends.domain.usecase.GetPendingRequestsUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.GetUserProfileUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.HasPendingRequestUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.IsFriendUseCase
+import com.ucb.mapexplorer.friends.domain.usecase.ObserveFriendRequestsUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.RemoveFriendUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.SearchUsersUseCase
 import com.ucb.mapexplorer.friends.domain.usecase.SendFriendRequestUseCase
@@ -81,6 +82,7 @@ val domainModule = module {
     singleOf(::GetUserProfileUseCase)
     singleOf(::IsFriendUseCase)
     singleOf(::HasPendingRequestUseCase)
+    singleOf(::ObserveFriendRequestsUseCase)
 
     //lugar peligroso
     //singleOf(::GetDangerZonesUseCase)
