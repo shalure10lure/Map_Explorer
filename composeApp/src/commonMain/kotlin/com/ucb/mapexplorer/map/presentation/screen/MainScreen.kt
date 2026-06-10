@@ -88,7 +88,7 @@ fun MainScreen(
                 MainTab.PROFILE -> {
                     Column(modifier = Modifier.fillMaxSize()) {
                         Spacer(modifier = Modifier.windowInsetsTopHeight(WindowInsets.statusBars))
-                        Spacer(modifier = Modifier.height(70.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         OwnProfileScreen(
                             viewModel = ownProfileViewModel,
                             onBack = { selectedTab = MainTab.MAP },
