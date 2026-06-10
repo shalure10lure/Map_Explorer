@@ -26,6 +26,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlin.math.*
 
 class MapViewModel(
@@ -52,7 +53,8 @@ class MapViewModel(
 
     // ── Guards: evitan trabajo duplicado ─────────────────────────────────────
     private var lastProcessedTileKey:  String? = null
-    private var lastDangerAlertTile:   String? = null
+    private val lastDangerAlerts = mutableMapOf<String, Long>() // zonaId -> timestamp
+    private val ALERT_INTERVAL_MS = 15 * 60 * 1000L // 15 minutos
     private var lastPlacesSearchLat:   Double  = 0.0
     private var lastPlacesSearchLon:   Double  = 0.0
 
@@ -102,7 +104,6 @@ class MapViewModel(
             is MapEvent.OnAvatarUpdated   -> _state.update { it.copy(avatarConfig = event.config) }
             MapEvent.OnDismissDangerAlert -> {
                 _state.update { it.copy(showDangerAlert = false, dangerZoneActual = null) }
-                lastDangerAlertTile = null  // permite volver a alertar si el usuario regresa
             }
         }
     }
@@ -362,16 +363,18 @@ class MapViewModel(
     }
 
     private suspend fun checkDangerIfNeeded(lat: Double, lon: Double) {
-        val tileKey = "${TileUtils.lonToTileX(lon)}_${TileUtils.latToTileY(lat)}"
-        if (tileKey == lastDangerAlertTile) return
-
-        println("🚨 Chequeando peligro en lat=$lat, lon=$lon, tileKey=$tileKey")
-
         val zona = checkDangerZoneUseCase(lat, lon)
-        println("🚨 Resultado: $zona")
         if (zona != null) {
-            lastDangerAlertTile = tileKey
-            _state.update { it.copy(dangerZoneActual = zona, showDangerAlert = true) }
+            val now = Clock.System.now().toEpochMilliseconds()
+            val lastAlertTime = lastDangerAlerts[zona.zonaId] ?: 0L
+
+            if (now - lastAlertTime >= ALERT_INTERVAL_MS) {
+                println("🚨 Lanzando alerta para zona: ${zona.nombre} (ID: ${zona.zonaId})")
+                lastDangerAlerts[zona.zonaId] = now
+                _state.update { it.copy(dangerZoneActual = zona, showDangerAlert = true) }
+                // Enviar efecto para vibración y notificación local
+                _effect.send(MapEffect.DangerZoneAlertTriggered(zona))
+            }
         }
     }
 

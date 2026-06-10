@@ -30,6 +30,7 @@ import com.ucb.mapexplorer.map.presentation.state.MapEffect
 import com.ucb.mapexplorer.map.presentation.state.MapEvent
 import com.ucb.mapexplorer.map.presentation.viewmodel.MapViewModel
 import com.ucb.mapexplorer.navigation.NavRoute
+import com.ucb.mapexplorer.triggerDangerNotification
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -53,6 +54,12 @@ fun MapScreen(
                 }
                 is MapEffect.CenterMapOnLocation -> {}
                 MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
+                is MapEffect.DangerZoneAlertTriggered -> {
+                    triggerDangerNotification(
+                        title = "¡Zona Peligrosa: ${effect.zona.nivel.label}!",
+                        message = "Te encuentras cerca de: ${effect.zona.nombre}. ${effect.zona.descripcion}"
+                    )
+                }
             }
         }
     }

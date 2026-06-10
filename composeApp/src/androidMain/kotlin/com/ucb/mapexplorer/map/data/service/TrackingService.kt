@@ -7,6 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.core.app.NotificationCompat
 import com.ucb.mapexplorer.core.session.Session
 import com.ucb.mapexplorer.core.utils.ConnectivityObserver
@@ -28,6 +31,10 @@ class TrackingService : Service() {
     private var connectivityJob: Job? = null
     private var isNetworkAvailable = false
 
+    private val channelId = "tracking_channel"
+    private val notificationId = 1
+    private val stopNotificationId = 2
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -37,10 +44,11 @@ class TrackingService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Importante: startForeground debe llamarse lo antes posible dentro de onStartCommand
-        startForeground(1, createNotification("Iniciando servicio de exploración..."))
+        startForeground(notificationId, createNotification("Iniciando servicio de exploración..."))
 
         when (intent?.action) {
             ACTION_START -> {
+                vibratePhone()
                 observeConnectivity()
             }
             ACTION_STOP -> {
@@ -51,6 +59,7 @@ class TrackingService : Service() {
     }
 
     private fun stopService() {
+        sendStopNotification()
         stopForeground(true)
         stopSelf()
     }
@@ -102,31 +111,68 @@ class TrackingService : Service() {
         trackingJob = null
     }
 
-    private fun createNotification(content: String) = NotificationCompat.Builder(this, "tracking_channel")
+    private fun createNotification(content: String) = NotificationCompat.Builder(this, channelId)
         .setContentTitle("Map Explorer")
         .setContentText(content)
         .setSmallIcon(android.R.drawable.ic_menu_mylocation)
         .setOngoing(true)
-        .setPriority(NotificationCompat.PRIORITY_LOW)
+        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .build()
 
     private fun updateNotification(content: String) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(1, createNotification(content))
+        notificationManager.notify(notificationId, createNotification(content))
+    }
+
+    private fun sendStopNotification() {
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val stopNotification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("Map Explorer")
+            .setContentText("El rastreo de tu recorrido ha finalizado.")
+            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .build()
+        
+        vibratePhone()
+        notificationManager.notify(stopNotificationId, stopNotification)
+    }
+
+    private fun vibratePhone() {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator.vibrate(500)
+        }
     }
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
-                "tracking_channel",
+                channelId,
                 "Seguimiento de Ruta",
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Mantiene el rastreo de tiles activos en segundo plano"
+                enableVibration(true)
             }
             val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
+    }
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        stopService()
     }
 
     override fun onDestroy() {
