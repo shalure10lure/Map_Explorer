@@ -10,7 +10,7 @@ import kotlin.test.assertNotNull
 
 class AvatarConfigModelTest {
 
-    // ── TEST 1: toId genera el ID correcto ────────────────────────────────
+    // ── TEST 1: toId genera el ID correcto
     @Test
     fun `toId genera string con formato correcto`() {
         val config = AvatarConfigModel(
@@ -22,7 +22,7 @@ class AvatarConfigModelTest {
         assertEquals("GATO|BANANA|BOOBA", id)
     }
 
-    // ── TEST 2: fromId reconstruye el modelo correctamente ────────────────
+    // ── TEST 2: fromId reconstruye el modelo correctamente
     @Test
     fun `fromId reconstruye el mismo modelo`() {
         val original = AvatarConfigModel(
@@ -38,7 +38,7 @@ class AvatarConfigModelTest {
         assertEquals(original.accessory, reconstructed.accessory)
     }
 
-    // ── TEST 3: fromId con NONE funciona ──────────────────────────────────
+    // ── TEST 3: fromId con NONE funciona
     @Test
     fun `fromId con NONE en sombrero y accesorio funciona`() {
         val config = AvatarConfigModel(
@@ -51,7 +51,7 @@ class AvatarConfigModelTest {
         assertEquals(AvatarAccessory.NONE, reconstructed.accessory)
     }
 
-    // ── TEST 4: fromId con ID inválido usa defaults ───────────────────────
+    // ── TEST 4: fromId con ID inválido usa defaults
     @Test
     fun `fromId con ID inválido retorna defaults`() {
         val config = AvatarConfigModel.fromId("INVALIDO|INVALIDO|INVALIDO")
@@ -60,7 +60,7 @@ class AvatarConfigModelTest {
         assertEquals(AvatarBody.GATO, config.body)
     }
 
-    // ── TEST 5: El modelo por defecto es GATO sin nada ───────────────────
+    // ── TEST 5: El modelo por defecto es GATO sin nada
     @Test
     fun `modelo por defecto tiene valores correctos`() {
         val config = AvatarConfigModel()

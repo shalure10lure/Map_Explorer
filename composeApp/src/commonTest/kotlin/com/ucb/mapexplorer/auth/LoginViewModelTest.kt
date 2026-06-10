@@ -6,7 +6,7 @@ import com.ucb.mapexplorer.auth.domain.usecase.LoginUseCase
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEffect
 import com.ucb.mapexplorer.auth.presentation.login.state.LoginEvent
 import com.ucb.mapexplorer.auth.presentation.login.viewmodel.LoginViewModel
-import io.mockative.Mock
+import io.mockative.any
 import io.mockative.classOf
 import io.mockative.coEvery
 import io.mockative.mock
@@ -27,7 +27,6 @@ import kotlin.test.assertTrue
 class LoginViewModelTest {
 
     // Mockative genera el mock de AuthRepository
-    @Mock
     val authRepository = mock(classOf<AuthRepository>())
 
     private lateinit var viewModel: LoginViewModel
@@ -43,6 +42,7 @@ class LoginViewModelTest {
 
     @AfterTest
     fun teardown() {
+        // Restablece el dispatcher principal
         Dispatchers.resetMain()
     }
 

@@ -1,23 +1,21 @@
 package com.ucb.mapexplorer.map
 
 import com.ucb.mapexplorer.core.utils.TileUtils
-import com.ucb.mapexplorer.map.domain.model.TileModel
 import com.ucb.mapexplorer.map.domain.model.UserLocationModel
 import com.ucb.mapexplorer.map.domain.repository.MapRepository
 import com.ucb.mapexplorer.map.domain.usecase.UnlockTileUseCase
-import io.mockative.Mock
+import io.mockative.any
 import io.mockative.classOf
 import io.mockative.coEvery
 import io.mockative.coVerify
+import io.mockative.eq
 import io.mockative.mock
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 class UnlockTileUseCaseTest {
 
-    @Mock
-    val mapRepository = mock(classOf<MapRepository>())
+    private val mapRepository = mock(classOf<MapRepository>())
 
     private val useCase = UnlockTileUseCase(mapRepository)
 
@@ -44,16 +42,14 @@ class UnlockTileUseCaseTest {
             bearing   = 0f
         )
 
-        val (expectedX, expectedY) = TileUtils.latLngToTile(
-            location.latitude, location.longitude
-        )
-
-        coEvery { mapRepository.saveTile(uid, any()) }.returns(Unit)
+        // Mockative no permite mezclar valores reales y matchers.
+        // Usamos eq(uid) para que todos los argumentos usen matchers.
+        coEvery { mapRepository.unlockTile(eq(uid), any<UserLocationModel>()) }.returns(true)
 
         useCase(uid, location)
 
-        // Verifica que se llamó al repositorio con el tile correcto
-        coVerify { mapRepository.saveTile(uid, any()) }
+        // Verifica que se llamó al repositorio con el método correcto
+        coVerify { mapRepository.unlockTile(eq(uid), any<UserLocationModel>()) }
             .wasInvoked(exactly = 1)
     }
 }
