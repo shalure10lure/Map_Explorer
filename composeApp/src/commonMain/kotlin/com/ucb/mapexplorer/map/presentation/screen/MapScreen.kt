@@ -25,6 +25,7 @@ import com.ucb.mapexplorer.core.*
 import com.ucb.mapexplorer.dangerzone.presentation.composable.DangerZoneAlertDialog
 import mapexplorer.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.getString
 
 import com.ucb.mapexplorer.map.presentation.state.MapEffect
 import com.ucb.mapexplorer.map.presentation.state.MapEvent
@@ -48,7 +49,8 @@ fun MapScreen(
                 is MapEffect.ShowSnackbar -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
                 is MapEffect.NewTileDiscovered -> {
-                    snackbarHostState.showSnackbar(stringResource(Res.string.map_discovery_new_zone))
+                    val message = getString(Res.string.map_discovery_new_zone)
+                    snackbarHostState.showSnackbar(message)
                 }
                 is MapEffect.CenterMapOnLocation -> {}
                 MapEffect.CenterMapOnUser -> { /* Manejado en MapViewContainer */ }
